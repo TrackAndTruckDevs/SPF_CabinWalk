@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SPF_Hooks_API.h>
+#include "Animation/AnimationController.hpp" // For CameraPosition enum
 
 namespace SPF_CabinWalk::CameraHookManager
 {
@@ -12,11 +13,12 @@ namespace SPF_CabinWalk::CameraHookManager
     bool Initialize(const SPF_Hooks_API *hooks_api, const char *plugin_name);
 
     /**
-     * @brief Sets the desired state for the camera modification.
-     * @details This function should be called when the camera is about to arrive at the passenger seat
-     * or is about to leave it.
-     * @param is_on_passenger_seat True if the camera is on the passenger seat, false otherwise.
+     * @brief Sets the current logical position of the camera.
+     * @details This function should be called when an animation to a new position completes.
+     * It allows the hook manager to apply the correct logic (e.g., azimuth mirroring)
+     * for the given position.
+     * @param new_pos The camera's new logical position.
      */
-    void SetPassengerSeatState(bool is_on_passenger_seat);
+    void SetCurrentCameraPosition(AnimationController::CameraPosition new_pos);
 
 } // namespace SPF_CabinWalk::CameraHookManager

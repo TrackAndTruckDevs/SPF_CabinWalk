@@ -78,14 +78,7 @@ namespace SPF_CabinWalk::AnimationController
             g_current_pos = g_target_pos; // Update current position
 
             // Notify hook manager of the new state
-            if (g_current_pos == CameraPosition::Passenger)
-            {
-                CameraHookManager::SetPassengerSeatState(true);
-            }
-            else
-            {
-                CameraHookManager::SetPassengerSeatState(false);
-            }
+            CameraHookManager::SetCurrentCameraPosition(g_current_pos);
         }
     }
 
@@ -164,7 +157,6 @@ namespace SPF_CabinWalk::AnimationController
                                                            Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.z);
                 g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::PASSENGER_SEAT_TARGET.rotation.x,
                                                            Animation::CameraPositions::PASSENGER_SEAT_TARGET.rotation.y);
-                CameraHookManager::SetPassengerSeatState(true);
             }
             else if (target == CameraPosition::Driver)
             {
@@ -181,8 +173,8 @@ namespace SPF_CabinWalk::AnimationController
                      g_anim_ctx->cameraAPI->SetInteriorSeatPos(0.0f, 0.0f, 0.0f);
                      g_anim_ctx->cameraAPI->SetInteriorHeadRot(0.0f, 0.0f);
                 }
-                CameraHookManager::SetPassengerSeatState(false);
             }
+            CameraHookManager::SetCurrentCameraPosition(target);
         }
     }
 

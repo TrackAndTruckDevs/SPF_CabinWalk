@@ -411,18 +411,11 @@ namespace SPF_CabinWalk
 
         if (isStationary && truckData.parking_brake)
         {
-            // Conditions are met. Start the animation.
-            if (!AnimationController::IsAnimating())
-            {
-                // Toggle between Driver and Passenger seats
-                auto current_pos = AnimationController::GetCurrentPosition();
-                auto target_pos = (current_pos == AnimationController::CameraPosition::Driver)
-                                      ? AnimationController::CameraPosition::Passenger
-                                      : AnimationController::CameraPosition::Driver;
-                
-                AnimationController::MoveTo(target_pos);
-            }
-        }
+                    // Conditions are met. Start the animation.
+                    if (!AnimationController::IsAnimating() && AnimationController::GetCurrentPosition() != AnimationController::CameraPosition::Passenger)
+                    {
+                        AnimationController::MoveTo(AnimationController::CameraPosition::Passenger);
+                    }        }
         else
         {
             // Conditions are not met. Show the warning window.
