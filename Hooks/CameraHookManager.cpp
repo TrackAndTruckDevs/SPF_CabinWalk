@@ -1,7 +1,7 @@
 #include "Hooks/CameraHookManager.hpp"
 #include "Hooks/Offsets.hpp"
 #include "Animation/Positions/CameraPositions.hpp" // For accessing predefined camera positions
-#include "SPF_CabinWalk.hpp" // For access to g_ctx for logging and passenger seat position.
+#include "SPF_CabinWalk.hpp"                       // For access to g_ctx for logging and passenger seat position.
 
 namespace SPF_CabinWalk::CameraHookManager
 {
@@ -14,11 +14,16 @@ namespace SPF_CabinWalk::CameraHookManager
     static UpdateCameraFromInput_t o_UpdateCameraFromInput = nullptr;
 
     // Define the function pointer type for CacheExteriorSoundAngleRange
-    using CacheExteriorSoundAngleRange_t = void(*)(long long camera_object);
+    using CacheExteriorSoundAngleRange_t = void (*)(long long camera_object);
 
     // --- State Variables ---
-    static bool g_is_on_passenger_seat = false;
-    static bool g_are_azimuth_values_modified = false;
+    enum class AzimuthState
+    {
+        Default, // Standard driver azimuths
+        Modified // Azimuths have been changed (e.g., for passenger)
+    };
+    static AnimationController::CameraPosition g_current_camera_pos = AnimationController::CameraPosition::Driver;
+    static AzimuthState g_current_azimuth_state = AzimuthState::Default;
 
     // --- Backup Storage ---
     static AzimuthBackup g_original_azimuth_values[20];
@@ -56,9 +61,9 @@ namespace SPF_CabinWalk::CameraHookManager
             true);
     }
 
-    void SetPassengerSeatState(bool is_on_passenger_seat)
+    void SetCurrentCameraPosition(AnimationController::CameraPosition new_pos)
     {
-        g_is_on_passenger_seat = is_on_passenger_seat;
+        g_current_camera_pos = new_pos;
     }
 
     // =================================================================================================
@@ -67,15 +72,19 @@ namespace SPF_CabinWalk::CameraHookManager
 
     static void Detour_UpdateCameraFromInput(long long camera_object, float delta_time)
     {
-        if (g_is_on_passenger_seat && !g_are_azimuth_values_modified)
+        // Decide what state the azimuths *should* be in based on the camera position
+        bool should_be_modified = (g_current_camera_pos == AnimationController::CameraPosition::Passenger);
+
+        // Apply changes if the current state doesn't match the desired state
+        if (should_be_modified && g_current_azimuth_state != AzimuthState::Modified)
         {
             BackupAndModifyAzimuths(camera_object);
-            g_are_azimuth_values_modified = true;
+            g_current_azimuth_state = AzimuthState::Modified;
         }
-        else if (!g_is_on_passenger_seat && g_are_azimuth_values_modified)
+        else if (!should_be_modified && g_current_azimuth_state == AzimuthState::Modified)
         {
             RestoreAzimuths(camera_object);
-            g_are_azimuth_values_modified = false;
+            g_current_azimuth_state = AzimuthState::Default;
         }
 
         if (o_UpdateCameraFromInput)
