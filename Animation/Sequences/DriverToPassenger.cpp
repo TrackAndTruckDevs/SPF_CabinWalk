@@ -9,7 +9,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(Animation::Config::DRIVER_TO_PASSENGER_DURATION_MS);
+        seq->Initialize(Animation::Config::DRIVER_TO_PASSENGER_DURATION);
 
         // --- Position X Track (Move Right) ---
         {

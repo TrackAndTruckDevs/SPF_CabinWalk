@@ -24,6 +24,11 @@ namespace SPF_CabinWalk::Animation
             {0.03f, 0.03f, 0.0f}  // Target rotation {yaw, pitch, roll}.
         };
 
+        const Transform STANDING_POSITION_TARGET = {
+            {0.5f, 0.200f, 0.25f}, // Absolute position {x, y, z} in cabin space.
+            {-0.17f, -0.3f, 0.0f}      // Target rotation {yaw, pitch, roll}.
+        };
+
         // TODO: Add other absolute target positions like Standing, Bed, etc.
 
     } // namespace CameraPositions

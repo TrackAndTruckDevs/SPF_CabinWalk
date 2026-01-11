@@ -36,16 +36,8 @@ namespace SPF_CabinWalk::Offsets
     const char *const G_HEAD_OFFSETS_SIGNATURE = "4C 8D 1D ? ? ? ? F2 0F 10 42 ? 89 44 24 08 8B 42 ? F2 0F 11 04 24 F2 0F 10 42 ?";
 
     // Finds `MOV EAX, R10D`, `MOV EBX, 0x494`, `CMOVZ EAX, EBX`.
-    // Used to get `base_head_offset` (0x494).
-    const char *const G_BASE_HEAD_OFFSET_SIGNATURE = "41 8B C2 BB ? ? ? ? 0F 44 C3";
-
-    // Finds a pair of `MOVSS` instructions. The second one reads `mouse_right_limit_offset` (0x580).
-    // `...MOVSS ..., [RCX + 0x56c]` followed by `...MOVSS ..., [RCX + 0x580]`
-    const char *const G_MOUSE_RIGHT_LIMIT_SIGNATURE = "f3 0f 11 89 ? ? ? ? f3 0f 10 89";
-
-    // Finds `JMP ...` followed by `MOVSS ..., [RCX + 0x57c]`.
-    // Used to get `mouse_left_limit_offset` (0x57C).
-    const char *const G_MOUSE_LEFT_LIMIT_SIGNATURE = "eb 08 f3 0f 10";
+    // Used to get `camera_pivot_offset` (0x494), which is the base position around which the camera rotates.
+    const char *const G_CAMERA_PIVOT_SIGNATURE = "41 8B C2 BB ? ? ? ? 0F 44 C3";
 
     // Signature for the CacheExteriorSoundAngleRange function.
     // This function calculates and caches the angular range for outside sounds.
@@ -62,9 +54,7 @@ namespace SPF_CabinWalk::Offsets
     struct Offsets
     {
         // --- Dynamically Found Offsets (from Camera Object) ---
-        uint32_t base_head_offset;         // Offset to the base head position vector (previously hardcoded 0x494)
-        uint32_t mouse_left_limit_offset;  // Offset to the mouse left limit (previously hardcoded 0x57C)
-        uint32_t mouse_right_limit_offset; // Offset to the mouse right limit (previously hardcoded 0x580)
+        uint32_t camera_pivot_offset;      // Offset to the base position vector around which the camera rotates.
 
         uint32_t azimuth_array_offset; // Offset to the pointer of the azimuth_range array
         uint32_t azimuth_count_offset; // Offset to the count of azimuth_range elements
