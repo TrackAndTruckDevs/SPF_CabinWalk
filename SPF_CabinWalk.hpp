@@ -237,6 +237,17 @@ namespace SPF_CabinWalk
   void OnMoveToDriverSeat();
 
   /**
+   * @brief Callback executed when a keybind action is triggered by the user.
+   * @details This is for the "move to standing position" action.
+   */
+  void OnMoveToStandingPosition();
+
+  /**
+   * @brief Returns true if the walk key is currently being held down.
+   */
+  bool IsWalkKeyDown();
+
+  /**
    * @brief Callback for game log messages.
    * @details Uncomment this if your plugin needs to monitor the game's internal log output.
    *          You would typically register this callback in `OnActivated`.

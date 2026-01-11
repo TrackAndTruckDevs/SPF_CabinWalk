@@ -48,16 +48,6 @@ namespace SPF_CabinWalk::Animation
          */
         void Initialize(uint64_t duration_ms);
 
-        /**
-         * @brief Adds a track for a specific property.
-         * @tparam T The type of the property being animated.
-         * @param track_ptr A unique_ptr to the configured Track object.
-         * @param property_name A string identifier for the property (e.g., "position.x", "rotation.yaw").
-         * @details This method needs a more robust way to map property_name to the correct member track.
-         * For now, direct access or specific Add...Track methods might be simpler.
-         */
-        // void AddTrack(std::unique_ptr<Track<T>> track_ptr, const std::string& property_name);
-
         // Specific AddTrack methods for each property type
         void AddPositionXTrack(std::unique_ptr<Track<float>> track) { m_position_x_track = std::move(track); }
         void AddPositionYTrack(std::unique_ptr<Track<float>> track) { m_position_y_track = std::move(track); }

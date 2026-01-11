@@ -34,6 +34,15 @@ namespace SPF_CabinWalk::Animation
         }
 
         /**
+         * @brief Checks if the track contains any keyframes.
+         * @return True if the track is empty, false otherwise.
+         */
+        bool IsEmpty() const
+        {
+            return m_keyframes.empty();
+        }
+
+        /**
          * @brief Evaluates the track at a specific progress point, returning the interpolated value.
          * @param current_progress The current progress of the animation sequence (0.0 to 1.0).
          * @param default_value A default value to return if the track is empty.

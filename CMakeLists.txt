@@ -19,9 +19,15 @@ add_library(${PLUGIN_NAME} SHARED
     "Hooks/CameraHookManager.cpp"
     "Animation/AnimationController.cpp"
     "Animation/AnimationSequence.cpp"
+    "Animation/StandingAnimController.cpp"
     "Animation/Easing/Easing.cpp"
     "Animation/Sequences/DriverToPassenger.cpp"
     "Animation/Sequences/PassengerToDriver.cpp"
+    "Animation/Sequences/DriverToStanding.cpp"
+    "Animation/Sequences/StandingToDriver.cpp"
+    "Animation/Sequences/PassengerToStanding.cpp"
+    "Animation/Sequences/StandingToPassenger.cpp"
+    "Animation/Sequences/StandingStances.cpp"
 )
 
 target_include_directories(${PLUGIN_NAME} PRIVATE

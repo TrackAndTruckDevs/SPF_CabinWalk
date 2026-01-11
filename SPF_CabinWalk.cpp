@@ -11,6 +11,7 @@
 #include "Hooks/Offsets.hpp"         // For memory offsets and signatures
 #include "Hooks/CameraHookManager.hpp" // For camera hooking logic
 #include "Animation/AnimationController.hpp" // For managing camera animations
+#include "Animation/StandingAnimController.hpp" // For handling walking logic
 
 #include <cmath>             // For math functions like fabsf
 #include <cstring>           // For C-style string manipulation functions like strncpy_s.
@@ -34,6 +35,11 @@ namespace SPF_CabinWalk
      * @details This is the central point for accessing all plugin state.
      */
     PluginContext g_ctx;
+
+    /**
+     * @brief Tracks the 'hold' state of the walk key.
+     */
+    static bool g_is_walk_key_down = false;
 
     // =================================================================================================
     // 2. Manifest Implementation
@@ -132,7 +138,7 @@ namespace SPF_CabinWalk
         */
 
         auto &keybinds = out_manifest.keybinds;
-        keybinds.actionCount = 2; // Number of distinct actions defined by your plugin.
+        keybinds.actionCount = 3; // Number of distinct actions defined by your plugin.
         {
             // --- Action 0: A sample keybind to toggle a window ---
             auto &action = keybinds.actions[0];
@@ -177,6 +183,22 @@ namespace SPF_CabinWalk
 				strncpy_s(def.behavior, "toggle", sizeof(def.behavior));
 			}
 		}
+		{
+			// --- Action 2: Move to standing position ---
+			auto& action = keybinds.actions[2];
+			strncpy_s(action.groupName, "SPF_CabinWalk.Movement", sizeof(action.groupName));
+			strncpy_s(action.actionName, "moveToStandingPosition", sizeof(action.actionName));
+
+			action.definitionCount = 1;
+			{
+				auto& def = action.definitions[0];
+				strncpy_s(def.type, "keyboard", sizeof(def.type));
+				strncpy_s(def.key, "KEY_NUMPAD2", sizeof(def.key));
+				strncpy_s(def.pressType, "short", sizeof(def.pressType));
+				strncpy_s(def.consume, "always", sizeof(def.consume));
+				strncpy_s(def.behavior, "hold", sizeof(def.behavior));
+			}
+		}
 
         auto &ui = out_manifest.ui;
         ui.windowsCount = 1; // Number of UI windows defined by your plugin.
@@ -208,7 +230,7 @@ namespace SPF_CabinWalk
         // If you don't provide metadata for an item, the framework will use its raw key as a label.
         //==============================================================================================
 
-        out_manifest.keybindsMetadataCount = 2;
+        out_manifest.keybindsMetadataCount = 3;
         {
             auto &meta = out_manifest.keybindsMetadata[0];
             strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName)); // Must match the action's groupName
@@ -222,6 +244,13 @@ namespace SPF_CabinWalk
 			strncpy_s(meta.actionName, "moveToDriverSeat", sizeof(meta.actionName));
 			strncpy_s(meta.titleKey, "Move to Driver Seat", sizeof(meta.titleKey));
 			strncpy_s(meta.descriptionKey, "Moves the camera to the driver seat.", sizeof(meta.descriptionKey));
+		}
+		{
+			auto& meta = out_manifest.keybindsMetadata[2];
+			strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName));
+			strncpy_s(meta.actionName, "moveToStandingPosition", sizeof(meta.actionName));
+			strncpy_s(meta.titleKey, "Move to Standing Position", sizeof(meta.titleKey));
+			strncpy_s(meta.descriptionKey, "Moves the camera to the standing position in the cabin.", sizeof(meta.descriptionKey));
 		}
     }
 
@@ -274,9 +303,9 @@ namespace SPF_CabinWalk
             g_ctx.keybindsHandle = g_ctx.coreAPI->keybinds->GetContext(PLUGIN_NAME);
             if (g_ctx.keybindsHandle)
             {
-                g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToPassengerSeat", OnMoveToPassengerSeat);
-				g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToDriverSeat", OnMoveToDriverSeat);
-            }
+                				g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToPassengerSeat", OnMoveToPassengerSeat);
+                				g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToDriverSeat", OnMoveToDriverSeat);
+                                g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToStandingPosition", OnMoveToStandingPosition);            }
         }
 
         // Telemetry API
@@ -438,6 +467,27 @@ namespace SPF_CabinWalk
 		}
 		AnimationController::MoveTo(AnimationController::CameraPosition::Driver);
 	}
+
+    void OnMoveToStandingPosition()
+    {
+        // If not standing, the first press is just to stand up.
+        // We don't toggle the walk key here, as the release event for this first press would immediately toggle it off.
+        if (AnimationController::GetCurrentPosition() != AnimationController::CameraPosition::Standing)
+        {
+            if (AnimationController::IsAnimating()) return;
+            AnimationController::MoveTo(AnimationController::CameraPosition::Standing);
+            return;
+        }
+
+        // If we ARE standing, this callback now acts as a toggle for the walking state.
+        // Pressing down (first event) sets it to true, releasing (second event) sets it to false.
+        g_is_walk_key_down = !g_is_walk_key_down;
+    }
+
+    bool IsWalkKeyDown()
+    {
+        return g_is_walk_key_down;
+    }
 
     void OnGameWorldReady()
     {

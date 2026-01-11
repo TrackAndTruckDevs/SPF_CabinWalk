@@ -2,6 +2,8 @@
 #include "SPF_CabinWalk.hpp"
 #include "Hooks/CameraHookManager.hpp"
 #include "Utils/Utils.hpp" // Placeholder for potential utility functions
+#include "Animation/StandingAnimController.hpp" // Integrate the new controller
+#include "Animation/AnimationConfig.hpp"      // For STEP_AMOUNT and other constants
 
 #include <utility> // For std::pair
 #include <map>
@@ -10,9 +12,14 @@
 
 #include "Sequences/DriverToPassenger.hpp"
 #include "Sequences/PassengerToDriver.hpp" // Include the actual sequence factory
+#include "Sequences/DriverToStanding.hpp"
+#include "Sequences/StandingToDriver.hpp"
+#include "Sequences/PassengerToStanding.hpp"
+#include "Sequences/StandingToPassenger.hpp"
 
 namespace SPF_CabinWalk::AnimationController
 {
+    using namespace Animation::Config;
     // =================================================================================================
     // Internal State
     // =================================================================================================
@@ -33,6 +40,8 @@ namespace SPF_CabinWalk::AnimationController
     static Animation::CurrentCameraState g_cached_driver_state;
     // Tracks simulation time to calculate delta time for animations
     static uint64_t last_simulation_time = 0;
+    // Stores the next move in a chained animation (e.g., Stand Up -> Sit Down)
+    static CameraPosition g_pending_move = CameraPosition::None;
 
     // =================================================================================================
     // Public Functions
@@ -42,6 +51,9 @@ namespace SPF_CabinWalk::AnimationController
     {
         g_anim_ctx = ctx;
         g_current_pos = CameraPosition::Driver; // Always start at driver's seat by default
+
+        // Initialize sub-controllers
+        StandingAnimController::Initialize(ctx);
 
         // --- Register Actual Sequence Factories ---
         RegisterSequence(CameraPosition::Driver, CameraPosition::Passenger,
@@ -56,37 +68,95 @@ namespace SPF_CabinWalk::AnimationController
             }
         );
 
+        // --- Driver <-> Standing Sequences ---
+        RegisterSequence(CameraPosition::Driver, CameraPosition::Standing,
+            [](const Animation::CurrentCameraState& start_state, const Animation::CurrentCameraState& target_state) {
+                return AnimationSequences::CreateDriverToStandingSequence(start_state, target_state);
+            }
+        );
+
+        RegisterSequence(CameraPosition::Standing, CameraPosition::Driver,
+            [](const Animation::CurrentCameraState& start_state, const Animation::CurrentCameraState& target_state) {
+                return AnimationSequences::CreateStandingToDriverSequence(start_state, target_state);
+            }
+        );
+
+        // --- Passenger <-> Standing Sequences ---
+        RegisterSequence(CameraPosition::Passenger, CameraPosition::Standing,
+            [](const Animation::CurrentCameraState& start_state, const Animation::CurrentCameraState& target_state) {
+                return AnimationSequences::CreatePassengerToStandingSequence(start_state, target_state);
+            }
+        );
+
+        RegisterSequence(CameraPosition::Standing, CameraPosition::Passenger,
+            [](const Animation::CurrentCameraState& start_state, const Animation::CurrentCameraState& target_state) {
+                return AnimationSequences::CreateStandingToPassengerSequence(start_state, target_state);
+            }
+        );
+
+
     }
     void Update()
     {
-        if (!g_active_sequence || !g_active_sequence->IsPlaying() || !g_anim_ctx || !g_anim_ctx->coreAPI)
+        if (!g_anim_ctx || !g_anim_ctx->coreAPI)
         {
             return;
         }
 
-        SPF_Timestamps timestamps;
-        g_anim_ctx->coreAPI->telemetry->GetTimestamps(g_anim_ctx->telemetryHandle, &timestamps);
-        uint64_t delta_time_ms = timestamps.simulation - last_simulation_time;
-        last_simulation_time = timestamps.simulation;
-
-        bool is_playing = g_active_sequence->Update(delta_time_ms, g_anim_ctx->cameraAPI);
-
-        if (!is_playing)
+        // --- Handle pending chained animation ---
+        if (g_pending_move != CameraPosition::None)
         {
-            // Animation finished
-            g_active_sequence.reset(); // Clear the sequence
-            g_current_pos = g_target_pos; // Update current position
+            // Check if the standing controller is now in the default standing stance and not busy
+            if (StandingAnimController::GetCurrentStance() == StandingAnimController::Stance::Standing && !StandingAnimController::IsAnimating())
+            {
+                CameraPosition next_move = g_pending_move;
+                g_pending_move = CameraPosition::None;
+                MoveTo(next_move); // Trigger the originally requested move
+                return; // The new MoveTo call will handle the rest
+            }
+        }
 
-            // Notify hook manager of the new state
-            CameraHookManager::SetCurrentCameraPosition(g_current_pos);
+        // --- 1. Handle Major Transitions ---
+        if (g_active_sequence && g_active_sequence->IsPlaying())
+        {
+            SPF_Timestamps timestamps;
+            g_anim_ctx->coreAPI->telemetry->GetTimestamps(g_anim_ctx->telemetryHandle, &timestamps);
+            uint64_t delta_time_ms = timestamps.simulation - last_simulation_time;
+            last_simulation_time = timestamps.simulation;
+
+            bool is_playing = g_active_sequence->Update(delta_time_ms, g_anim_ctx->cameraAPI);
+
+            if (!is_playing)
+            {
+                // Major animation finished
+                g_active_sequence.reset();
+                g_current_pos = g_target_pos;
+                CameraHookManager::SetCurrentCameraPosition(g_current_pos);
+
+                // If we arrived at the standing position, notify the standing controller
+                if (g_current_pos == CameraPosition::Standing)
+                {
+                    StandingAnimController::OnEnterStandingState();
+                }
+            }
+        }
+        // --- 2. Handle Standing "Sub-State" Animations ---
+        else if (g_current_pos == CameraPosition::Standing)
+        {
+            Animation::CurrentCameraState current_state;
+            g_anim_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+            g_anim_ctx->cameraAPI->GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+            current_state.rotation.z = 0.0f; // Roll is not retrieved
+
+            StandingAnimController::Update(current_state);
         }
     }
 
     void MoveTo(CameraPosition target)
     {
-        if (g_active_sequence && g_active_sequence->IsPlaying())
+        if ((g_active_sequence && g_active_sequence->IsPlaying()) || StandingAnimController::IsAnimating())
         {
-            return; // Animation already in progress
+            return; // Animation already in progress in this or sub-controller
         }
 
         if (target == g_current_pos)
@@ -99,6 +169,40 @@ namespace SPF_CabinWalk::AnimationController
             return; // API not ready
         }
 
+        // --- STANCE-BASED TRANSITIONS ---
+        if (g_current_pos == CameraPosition::Standing && (target == CameraPosition::Driver || target == CameraPosition::Passenger))
+        {
+            StandingAnimController::Stance current_stance = StandingAnimController::GetCurrentStance();
+
+            if (current_stance != StandingAnimController::Stance::Standing)
+            {
+                // Not in the base standing stance, so we need to transition to it first.
+                g_pending_move = target; // Set the final destination
+
+                if (current_stance == StandingAnimController::Stance::Crouching)
+                {
+                    StandingAnimController::TriggerStandUp();
+                }
+                else if (current_stance == StandingAnimController::Stance::Tiptoes)
+                {
+                    StandingAnimController::TriggerStandDown();
+                }
+                // InTransition and ReturningToHome are busy states, IsAnimating() check should have caught them.
+                return; // Exit, the Update loop will handle the pending move later.
+            }
+            
+            // If we get here, stance is Standing, so check if we need to walk back.
+            bool can_sit_immediately = StandingAnimController::CanSitDown(target);
+            if (!can_sit_immediately)
+            {
+                // StandingAnimController has initiated the walk-back, so we return.
+                // It will eventually call MoveTo again when ready to sit.
+                return;
+            }
+            // If can_sit_immediately, fall through to the normal transition logic below.
+        }
+
+        // --- NORMAL TRANSITION LOGIC ---
         // Cache current camera state before starting animation
         Animation::CurrentCameraState initial_state;
         g_anim_ctx->cameraAPI->GetInteriorSeatPos(&initial_state.position.x, &initial_state.position.y, &initial_state.position.z);
@@ -129,6 +233,12 @@ namespace SPF_CabinWalk::AnimationController
                 // For returning to driver, the target is the cached driver's state
                 animation_target_state = g_cached_driver_state;
             }
+            else if (target == CameraPosition::Standing)
+            {
+                animation_target_state.position = Animation::CameraPositions::STANDING_POSITION_TARGET.position;
+                animation_target_state.rotation = Animation::CameraPositions::STANDING_POSITION_TARGET.rotation;
+                animation_target_state.rotation.z = initial_state.rotation.z;
+            }
             // TODO: Handle other CameraPosition targets here
 
             // Found a factory, create the sequence and start it
@@ -138,7 +248,7 @@ namespace SPF_CabinWalk::AnimationController
 
             g_active_sequence = it->second(initial_state, animation_target_state);
             g_active_sequence->Start(initial_state);
-            g_target_pos = target;
+g_target_pos = target;
 
         }
         else
@@ -173,6 +283,15 @@ namespace SPF_CabinWalk::AnimationController
                      g_anim_ctx->cameraAPI->SetInteriorSeatPos(0.0f, 0.0f, 0.0f);
                      g_anim_ctx->cameraAPI->SetInteriorHeadRot(0.0f, 0.0f);
                 }
+            }
+            else if (target == CameraPosition::Standing)
+            {
+                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::STANDING_POSITION_TARGET.position.x,
+                                                           Animation::CameraPositions::STANDING_POSITION_TARGET.position.y,
+                                                           Animation::CameraPositions::STANDING_POSITION_TARGET.position.z);
+                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::STANDING_POSITION_TARGET.rotation.x,
+                                                           Animation::CameraPositions::STANDING_POSITION_TARGET.rotation.y);
+                StandingAnimController::OnEnterStandingState(); // Reset stance on snap
             }
             CameraHookManager::SetCurrentCameraPosition(target);
         }

@@ -25,7 +25,19 @@ namespace SPF_CabinWalk
             Driver,
             Passenger,
             Standing, // To be implemented
-            Bed       // To be implemented
+            Bed,      // To be implemented
+            None      // Represents no position / no pending action
+        };
+
+        /**
+         * @brief Defines the direction the player is looking, used for dynamic animations.
+         */
+        enum class GazeDirection
+        {
+            Forward,
+            Backward,
+            Left,
+            Right
         };
 
         /**
