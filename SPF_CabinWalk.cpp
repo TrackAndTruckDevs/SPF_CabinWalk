@@ -18,6 +18,8 @@
 
 namespace SPF_CabinWalk
 {
+    // Forward Declarations
+    bool IsSafeToLeaveDriverSeat();
 
     // =================================================================================================
     // 1. Constants & Global State
@@ -78,7 +80,7 @@ namespace SPF_CabinWalk
 
             // `allowUserConfig`: Set to `true` if you want a `settings.json` file to be created
             // for your plugin, allowing users (or the framework UI) to override default settings.
-            policy.allowUserConfig = false;
+            policy.allowUserConfig = true;
 
             // `userConfigurableSystemsCount`: The number of framework systems (e.g., "settings", "logging", "localization", "ui")
             // that should have a configuration section generated in the settings UI for your plugin.
@@ -138,7 +140,7 @@ namespace SPF_CabinWalk
         */
 
         auto &keybinds = out_manifest.keybinds;
-        keybinds.actionCount = 3; // Number of distinct actions defined by your plugin.
+        keybinds.actionCount = 4; // Incremented to 4
         {
             // --- Action 0: A sample keybind to toggle a window ---
             auto &action = keybinds.actions[0];
@@ -199,6 +201,22 @@ namespace SPF_CabinWalk
 				strncpy_s(def.behavior, "hold", sizeof(def.behavior));
 			}
 		}
+        {
+			// --- Action 3: Cycle Sofa Positions ---
+			auto& action = keybinds.actions[3];
+			strncpy_s(action.groupName, "SPF_CabinWalk.Movement", sizeof(action.groupName));
+			strncpy_s(action.actionName, "cycleSofaPositions", sizeof(action.actionName));
+
+			action.definitionCount = 1;
+			{
+				auto& def = action.definitions[0];
+				strncpy_s(def.type, "keyboard", sizeof(def.type));
+				strncpy_s(def.key, "KEY_NUMPAD1", sizeof(def.key));
+				strncpy_s(def.pressType, "short", sizeof(def.pressType));
+				strncpy_s(def.consume, "always", sizeof(def.consume));
+				strncpy_s(def.behavior, "toggle", sizeof(def.behavior));
+			}
+		}
 
         auto &ui = out_manifest.ui;
         ui.windowsCount = 1; // Number of UI windows defined by your plugin.
@@ -230,7 +248,7 @@ namespace SPF_CabinWalk
         // If you don't provide metadata for an item, the framework will use its raw key as a label.
         //==============================================================================================
 
-        out_manifest.keybindsMetadataCount = 3;
+        out_manifest.keybindsMetadataCount = 4; // Incremented to 4
         {
             auto &meta = out_manifest.keybindsMetadata[0];
             strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName)); // Must match the action's groupName
@@ -251,6 +269,13 @@ namespace SPF_CabinWalk
 			strncpy_s(meta.actionName, "moveToStandingPosition", sizeof(meta.actionName));
 			strncpy_s(meta.titleKey, "Move to Standing Position", sizeof(meta.titleKey));
 			strncpy_s(meta.descriptionKey, "Moves the camera to the standing position in the cabin.", sizeof(meta.descriptionKey));
+		}
+        {
+			auto& meta = out_manifest.keybindsMetadata[3];
+			strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName));
+			strncpy_s(meta.actionName, "cycleSofaPositions", sizeof(meta.actionName));
+			strncpy_s(meta.titleKey, "Cycle Sofa Positions", sizeof(meta.titleKey));
+			strncpy_s(meta.descriptionKey, "Cycles through positions on the sofa (sit, lie down).", sizeof(meta.descriptionKey));
 		}
     }
 
@@ -281,6 +306,45 @@ namespace SPF_CabinWalk
 
     }
 
+    void OnCycleSofaPositions()
+    {
+        if (!IsSafeToLeaveDriverSeat())
+        {
+            return;
+        }
+
+        if (AnimationController::IsAnimating())
+        {
+            return; // Don't do anything if an animation is already playing
+        }
+
+        AnimationController::CameraPosition current_pos = AnimationController::GetCurrentPosition();
+
+        switch (current_pos)
+        {
+            // --- Cycle through sofa positions ---
+            case AnimationController::CameraPosition::SofaSit1:
+                AnimationController::MoveTo(AnimationController::CameraPosition::SofaLie);
+                break;
+            case AnimationController::CameraPosition::SofaLie:
+                AnimationController::MoveTo(AnimationController::CameraPosition::SofaSit2);
+                break;
+            case AnimationController::CameraPosition::SofaSit2:
+                AnimationController::MoveTo(AnimationController::CameraPosition::SofaSit1);
+                break;
+
+                    // --- Enter sofa cycle from other positions ---
+                    case AnimationController::CameraPosition::Driver:
+                    case AnimationController::CameraPosition::Passenger:
+                    case AnimationController::CameraPosition::Standing:
+                        AnimationController::OnRequestMove(AnimationController::CameraPosition::SofaSit1);
+                        break;            
+            default:
+                // Do nothing for other states like Bed, None, etc.
+                break;
+        }
+    }
+
     void OnActivated(const SPF_Core_API *core_api)
     {
         g_ctx.coreAPI = core_api;
@@ -303,9 +367,11 @@ namespace SPF_CabinWalk
             g_ctx.keybindsHandle = g_ctx.coreAPI->keybinds->GetContext(PLUGIN_NAME);
             if (g_ctx.keybindsHandle)
             {
-                				g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToPassengerSeat", OnMoveToPassengerSeat);
-                				g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToDriverSeat", OnMoveToDriverSeat);
-                                g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToStandingPosition", OnMoveToStandingPosition);            }
+                g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToPassengerSeat", OnMoveToPassengerSeat);
+                g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToDriverSeat", OnMoveToDriverSeat);
+                g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToStandingPosition", OnMoveToStandingPosition);
+                g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.cycleSofaPositions", OnCycleSofaPositions);
+            }
         }
 
         // Telemetry API
@@ -425,26 +491,28 @@ namespace SPF_CabinWalk
         }
     }
 
-    void OnMoveToPassengerSeat()
+
+    bool IsSafeToLeaveDriverSeat()
     {
+        // This check only applies if we are currently in the driver's seat.
+        if (AnimationController::GetCurrentPosition() != AnimationController::CameraPosition::Driver)
+        {
+            return true; // It's always safe to move if not in the driver's seat.
+        }
+
         if (!g_ctx.coreAPI || !g_ctx.coreAPI->telemetry || !g_ctx.telemetryHandle)
         {
-            return; // Not ready to process yet
+            return false; // Not ready, prevent movement just in case.
         }
 
         SPF_TruckData truckData;
         g_ctx.coreAPI->telemetry->GetTruckData(g_ctx.telemetryHandle, &truckData);
 
-        // Check if speed is near zero (to handle float inaccuracies) and if park brake is on.
         const bool isStationary = fabsf(truckData.speed) < 0.1f;
-
         if (isStationary && truckData.parking_brake)
         {
-                    // Conditions are met. Start the animation.
-                    if (!AnimationController::IsAnimating() && AnimationController::GetCurrentPosition() != AnimationController::CameraPosition::Passenger)
-                    {
-                        AnimationController::MoveTo(AnimationController::CameraPosition::Passenger);
-                    }        }
+            return true; // Conditions are met.
+        }
         else
         {
             // Conditions are not met. Show the warning window.
@@ -452,36 +520,46 @@ namespace SPF_CabinWalk
             {
                 SPF_Timestamps timestamps;
                 g_ctx.coreAPI->telemetry->GetTimestamps(g_ctx.telemetryHandle, &timestamps);
-                g_ctx.warning_start_time = timestamps.simulation; // Using simulation time
+                g_ctx.warning_start_time = timestamps.simulation;
                 g_ctx.is_warning_active = true;
                 g_ctx.uiAPI->SetVisibility(g_ctx.warningWindowHandle, true);
             }
+            return false; // Movement is not safe.
         }
+    }
+
+    void OnMoveToPassengerSeat()
+    {
+        if (!IsSafeToLeaveDriverSeat())
+        {
+            return;
+        }
+        AnimationController::OnRequestMove(AnimationController::CameraPosition::Passenger);
     }
 
 	void OnMoveToDriverSeat()
 	{
-		if (AnimationController::IsAnimating())
-		{
-			return;
-		}
-		AnimationController::MoveTo(AnimationController::CameraPosition::Driver);
+		// OnRequestMove now handles all pathfinding logic internally.
+		AnimationController::OnRequestMove(AnimationController::CameraPosition::Driver);
 	}
 
     void OnMoveToStandingPosition()
     {
-        // If not standing, the first press is just to stand up.
-        // We don't toggle the walk key here, as the release event for this first press would immediately toggle it off.
-        if (AnimationController::GetCurrentPosition() != AnimationController::CameraPosition::Standing)
+        if (!IsSafeToLeaveDriverSeat())
         {
-            if (AnimationController::IsAnimating()) return;
-            AnimationController::MoveTo(AnimationController::CameraPosition::Standing);
             return;
         }
 
-        // If we ARE standing, this callback now acts as a toggle for the walking state.
-        // Pressing down (first event) sets it to true, releasing (second event) sets it to false.
-        g_is_walk_key_down = !g_is_walk_key_down;
+        // If we are already standing, this key toggles the walking state.
+        if (AnimationController::GetCurrentPosition() == AnimationController::CameraPosition::Standing)
+        {
+            g_is_walk_key_down = !g_is_walk_key_down;
+            return;
+        }
+
+        // Otherwise, request a move to the standing position.
+        // OnRequestMove will handle getting there from any other state (sofa, seats).
+        AnimationController::OnRequestMove(AnimationController::CameraPosition::Standing);
     }
 
     bool IsWalkKeyDown()

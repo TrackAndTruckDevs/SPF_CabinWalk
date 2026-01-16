@@ -29,6 +29,21 @@ namespace SPF_CabinWalk::Animation
             {-0.17f, -0.3f, 0.0f}      // Target rotation {yaw, pitch, roll}.
         };
 
+        const Transform SOFA_SIT1_TARGET = {
+            {0.5f, 0.0f, 0.8f}, // Placeholder position
+            {0.0f, 0.0f, 0.0f}      // Placeholder rotation (facing left)
+        };
+
+        const Transform SOFA_LIE_TARGET = {
+            {-0.15f, -0.25f, 1.25f}, // Placeholder position
+            {-1.65f, 0.35f, 0.0f}  // Placeholder rotation (facing ceiling)
+        };
+
+        const Transform SOFA_SIT2_TARGET = {
+            {0.2f, 0.0f, 0.8f},  // Placeholder position
+            {0.0f, 0.0f, 0.0f}      // Placeholder rotation (facing left)
+        };
+
         // TODO: Add other absolute target positions like Standing, Bed, etc.
 
     } // namespace CameraPositions

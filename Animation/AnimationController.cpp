@@ -16,6 +16,9 @@
 #include "Sequences/StandingToDriver.hpp"
 #include "Sequences/PassengerToStanding.hpp"
 #include "Sequences/StandingToPassenger.hpp"
+#include "Sequences/StandingToSofa.hpp"
+#include "Sequences/SofaToStanding.hpp"
+#include "Sequences/SofaStances.hpp"
 
 namespace SPF_CabinWalk::AnimationController
 {
@@ -40,8 +43,8 @@ namespace SPF_CabinWalk::AnimationController
     static Animation::CurrentCameraState g_cached_driver_state;
     // Tracks simulation time to calculate delta time for animations
     static uint64_t last_simulation_time = 0;
-    // Stores the next move in a chained animation (e.g., Stand Up -> Sit Down)
-    static CameraPosition g_pending_move = CameraPosition::None;
+    // Stores a sequence of moves for a chained animation.
+    static std::queue<CameraPosition> g_pending_moves;
 
     // =================================================================================================
     // Public Functions
@@ -94,7 +97,15 @@ namespace SPF_CabinWalk::AnimationController
             }
         );
 
+        // --- Sofa External Sequences ---
+        RegisterSequence(CameraPosition::Standing, CameraPosition::SofaSit1, AnimationSequences::CreateStandingToSofaSequence);
+        RegisterSequence(CameraPosition::SofaSit1, CameraPosition::Standing, AnimationSequences::CreateSofaToStandingSequence);
 
+        // --- Sofa Internal Sequences ---
+        RegisterSequence(CameraPosition::SofaSit1, CameraPosition::SofaLie, AnimationSequences::CreateSofaSit1ToLieSequence);
+        RegisterSequence(CameraPosition::SofaLie, CameraPosition::SofaSit2, AnimationSequences::CreateSofaLieToSit2Sequence);
+        RegisterSequence(CameraPosition::SofaLie, CameraPosition::SofaSit1, AnimationSequences::CreateSofaLieToSofa1Sequence); // Shortcut animation
+        RegisterSequence(CameraPosition::SofaSit2, CameraPosition::SofaSit1, AnimationSequences::CreateSofaSit2ToSit1Sequence);
     }
     void Update()
     {
@@ -104,15 +115,15 @@ namespace SPF_CabinWalk::AnimationController
         }
 
         // --- Handle pending chained animation ---
-        if (g_pending_move != CameraPosition::None)
+        if (HasPendingMoves())
         {
-            // Check if the standing controller is now in the default standing stance and not busy
-            if (StandingAnimController::GetCurrentStance() == StandingAnimController::Stance::Standing && !StandingAnimController::IsAnimating())
+            // Check if we are in a neutral, non-animating state before triggering the next move
+            if (!IsAnimating() && !StandingAnimController::IsAnimating() && StandingAnimController::GetCurrentStance() == StandingAnimController::Stance::Standing)
             {
-                CameraPosition next_move = g_pending_move;
-                g_pending_move = CameraPosition::None;
-                MoveTo(next_move); // Trigger the originally requested move
-                return; // The new MoveTo call will handle the rest
+                CameraPosition next_move = g_pending_moves.front();
+                g_pending_moves.pop();
+                MoveTo(next_move); // Trigger the next move in the sequence
+                return; // The new MoveTo call will handle the rest of this frame
             }
         }
 
@@ -137,6 +148,19 @@ namespace SPF_CabinWalk::AnimationController
                 if (g_current_pos == CameraPosition::Standing)
                 {
                     StandingAnimController::OnEnterStandingState();
+                }
+
+                // --- Immediately trigger the next move in the chain if one exists ---
+                if (HasPendingMoves())
+                {
+                    // Ensure we are in a neutral state before proceeding
+                    if (!IsAnimating() && !StandingAnimController::IsAnimating())
+                    {
+                        CameraPosition next_move = g_pending_moves.front();
+                        g_pending_moves.pop();
+                        MoveTo(next_move);
+                        return; // The new MoveTo call will handle the rest of this frame
+                    }
                 }
             }
         }
@@ -170,14 +194,14 @@ namespace SPF_CabinWalk::AnimationController
         }
 
         // --- STANCE-BASED TRANSITIONS ---
-        if (g_current_pos == CameraPosition::Standing && (target == CameraPosition::Driver || target == CameraPosition::Passenger))
+        if (g_current_pos == CameraPosition::Standing && (target == CameraPosition::Driver || target == CameraPosition::Passenger || target == CameraPosition::SofaSit1))
         {
             StandingAnimController::Stance current_stance = StandingAnimController::GetCurrentStance();
 
             if (current_stance != StandingAnimController::Stance::Standing)
             {
                 // Not in the base standing stance, so we need to transition to it first.
-                g_pending_move = target; // Set the final destination
+                QueueMove(target); // Set the final destination
 
                 if (current_stance == StandingAnimController::Stance::Crouching)
                 {
@@ -187,19 +211,41 @@ namespace SPF_CabinWalk::AnimationController
                 {
                     StandingAnimController::TriggerStandDown();
                 }
-                // InTransition and ReturningToHome are busy states, IsAnimating() check should have caught them.
+                // InTransition and WalkingToFinalDestination are busy states, IsAnimating() check should have caught them.
                 return; // Exit, the Update loop will handle the pending move later.
             }
             
-            // If we get here, stance is Standing, so check if we need to walk back.
-            bool can_sit_immediately = StandingAnimController::CanSitDown(target);
-            if (!can_sit_immediately)
+            // If we get here, stance is Standing, so check if we need to walk.
+            float target_z = GetTargetZForPosition(target);
+
+            if (target == CameraPosition::Driver || target == CameraPosition::Passenger)
             {
-                // StandingAnimController has initiated the walk-back, so we return.
-                // It will eventually call MoveTo again when ready to sit.
-                return;
+                // Special logic for seats: only walk if Z is non-negative
+                Animation::CurrentCameraState current_state;
+                g_anim_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+
+                if (current_state.position.z < 0)
+                {
+                    // Z is negative, sit immediately by falling through
+                }
+                else
+                {
+                    // Z is non-negative, check if a walk is needed
+                    if (!StandingAnimController::CanSitDown(target, target_z))
+                    {
+                        return; // Walk was initiated
+                    }
+                }
             }
-            // If can_sit_immediately, fall through to the normal transition logic below.
+            else if (target == CameraPosition::SofaSit1)
+            {
+                // Generic logic for sofa: always walk if not at the target Z
+                if (!StandingAnimController::CanSitDown(target, target_z))
+                {
+                    return; // Walk was initiated
+                }
+            }
+            // If we can sit immediately, fall through to the normal transition logic below.
         }
 
         // --- NORMAL TRANSITION LOGIC ---
@@ -239,7 +285,24 @@ namespace SPF_CabinWalk::AnimationController
                 animation_target_state.rotation = Animation::CameraPositions::STANDING_POSITION_TARGET.rotation;
                 animation_target_state.rotation.z = initial_state.rotation.z;
             }
-            // TODO: Handle other CameraPosition targets here
+            else if (target == CameraPosition::SofaSit1)
+            {
+                animation_target_state.position = Animation::CameraPositions::SOFA_SIT1_TARGET.position;
+                animation_target_state.rotation = Animation::CameraPositions::SOFA_SIT1_TARGET.rotation;
+                animation_target_state.rotation.z = initial_state.rotation.z;
+            }
+            else if (target == CameraPosition::SofaLie)
+            {
+                animation_target_state.position = Animation::CameraPositions::SOFA_LIE_TARGET.position;
+                animation_target_state.rotation = Animation::CameraPositions::SOFA_LIE_TARGET.rotation;
+                animation_target_state.rotation.z = initial_state.rotation.z;
+            }
+            else if (target == CameraPosition::SofaSit2)
+            {
+                animation_target_state.position = Animation::CameraPositions::SOFA_SIT2_TARGET.position;
+                animation_target_state.rotation = Animation::CameraPositions::SOFA_SIT2_TARGET.rotation;
+                animation_target_state.rotation.z = initial_state.rotation.z;
+            }
 
             // Found a factory, create the sequence and start it
             SPF_Timestamps timestamps;
@@ -248,7 +311,7 @@ namespace SPF_CabinWalk::AnimationController
 
             g_active_sequence = it->second(initial_state, animation_target_state);
             g_active_sequence->Start(initial_state);
-g_target_pos = target;
+            g_target_pos = target;
 
         }
         else
@@ -293,6 +356,30 @@ g_target_pos = target;
                                                            Animation::CameraPositions::STANDING_POSITION_TARGET.rotation.y);
                 StandingAnimController::OnEnterStandingState(); // Reset stance on snap
             }
+            else if (target == CameraPosition::SofaSit1)
+            {
+                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::SOFA_SIT1_TARGET.position.x,
+                                                           Animation::CameraPositions::SOFA_SIT1_TARGET.position.y,
+                                                           Animation::CameraPositions::SOFA_SIT1_TARGET.position.z);
+                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::SOFA_SIT1_TARGET.rotation.x,
+                                                           Animation::CameraPositions::SOFA_SIT1_TARGET.rotation.y);
+            }
+            else if (target == CameraPosition::SofaLie)
+            {
+                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::SOFA_LIE_TARGET.position.x,
+                                                           Animation::CameraPositions::SOFA_LIE_TARGET.position.y,
+                                                           Animation::CameraPositions::SOFA_LIE_TARGET.position.z);
+                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::SOFA_LIE_TARGET.rotation.x,
+                                                           Animation::CameraPositions::SOFA_LIE_TARGET.rotation.y);
+            }
+            else if (target == CameraPosition::SofaSit2)
+            {
+                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::SOFA_SIT2_TARGET.position.x,
+                                                           Animation::CameraPositions::SOFA_SIT2_TARGET.position.y,
+                                                           Animation::CameraPositions::SOFA_SIT2_TARGET.position.z);
+                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::SOFA_SIT2_TARGET.rotation.x,
+                                                           Animation::CameraPositions::SOFA_SIT2_TARGET.rotation.y);
+            }
             CameraHookManager::SetCurrentCameraPosition(target);
         }
     }
@@ -307,6 +394,102 @@ g_target_pos = target;
         return g_current_pos;
     }
 
+    void OnRequestMove(CameraPosition final_destination)
+    {
+        // Don't start a new sequence if one is already in progress
+        if (HasPendingMoves() || IsAnimating() || StandingAnimController::IsAnimating())
+        {
+            return;
+        }
+
+        CameraPosition current_pos = GetCurrentPosition();
+        if (current_pos == final_destination)
+        {
+            return;
+        }
+
+        ClearPendingMoves();
+
+        // --- Path definitions ---
+
+        // -- Specific Path: Seat-to-Seat --
+        if ((current_pos == CameraPosition::Driver && final_destination == CameraPosition::Passenger) ||
+            (current_pos == CameraPosition::Passenger && final_destination == CameraPosition::Driver))
+        {
+            // This is a direct, single-animation move.
+            QueueMove(final_destination);
+        }
+        // -- Paths originating from the Sofa --
+        else if (current_pos == CameraPosition::SofaLie || current_pos == CameraPosition::SofaSit2 || current_pos == CameraPosition::SofaSit1)
+        {
+            bool needs_to_stand = (final_destination == CameraPosition::Standing || final_destination == CameraPosition::Driver || final_destination == CameraPosition::Passenger);
+
+            // Step 1: Get to SofaSit1 if not already there.
+            if (current_pos == CameraPosition::SofaLie)
+            {
+                QueueMove(CameraPosition::SofaSit1);
+            }
+            else if (current_pos == CameraPosition::SofaSit2)
+            {
+                QueueMove(CameraPosition::SofaSit1);
+            }
+
+            // Step 2: Stand up if the destination is off the sofa.
+            if (needs_to_stand)
+            {
+                QueueMove(CameraPosition::Standing);
+            }
+
+            // Step 3: Add final destination if it's not an intermediate step.
+            if (g_pending_moves.empty() || g_pending_moves.back() != final_destination)
+            {
+                QueueMove(final_destination);
+            }
+        }
+        // -- Paths originating from the Seats (to non-seat destinations) --
+        else if (current_pos == CameraPosition::Driver || current_pos == CameraPosition::Passenger)
+        {
+            // To go anywhere ELSE from a seat, we must stand up first.
+            QueueMove(CameraPosition::Standing);
+
+            if (final_destination != CameraPosition::Standing)
+            {
+                QueueMove(final_destination);
+            }
+        }
+        // -- All other direct paths --
+        else
+        {
+            QueueMove(final_destination);
+        }
+
+        // --- Start the sequence ---
+        if (HasPendingMoves())
+        {
+            CameraPosition next_move = g_pending_moves.front();
+            g_pending_moves.pop();
+            MoveTo(next_move);
+        }
+    }
+
+    void QueueMove(CameraPosition target)
+    {
+        g_pending_moves.push(target);
+    }
+
+    void ClearPendingMoves()
+    {
+        while (!g_pending_moves.empty())
+        {
+            g_pending_moves.pop();
+        }
+    }
+
+    bool HasPendingMoves()
+    {
+        return !g_pending_moves.empty();
+    }
+
     void RegisterSequence(
         CameraPosition from,
         CameraPosition to,
@@ -314,6 +497,23 @@ g_target_pos = target;
     )
     {
         g_sequence_factory[{from, to}] = factory;
+    }
+
+    float GetTargetZForPosition(CameraPosition pos)
+    {
+        switch (pos)
+        {
+            case CameraPosition::Driver:
+                return g_cached_driver_state.position.z;
+            case CameraPosition::Passenger:
+                return Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.z;
+            case CameraPosition::SofaSit1:
+            case CameraPosition::SofaLie: // Assuming all sofa positions share the same approach Z
+            case CameraPosition::SofaSit2:
+                return Animation::CameraPositions::SOFA_SIT1_TARGET.position.z; // Use SofaSit1 as the approach Z
+            default:
+                return 0.0f; // Default for other positions, or error handling
+        }
     }
 
 } // namespace SPF_CabinWalk::AnimationController

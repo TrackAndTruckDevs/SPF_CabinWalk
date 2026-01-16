@@ -28,6 +28,9 @@ add_library(${PLUGIN_NAME} SHARED
     "Animation/Sequences/PassengerToStanding.cpp"
     "Animation/Sequences/StandingToPassenger.cpp"
     "Animation/Sequences/StandingStances.cpp"
+    "Animation/Sequences/StandingToSofa.cpp"
+    "Animation/Sequences/SofaToStanding.cpp"
+    "Animation/Sequences/SofaStances.cpp"
 )
 
 target_include_directories(${PLUGIN_NAME} PRIVATE

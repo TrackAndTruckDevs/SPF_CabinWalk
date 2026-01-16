@@ -9,6 +9,8 @@ namespace SPF_CabinWalk::Animation::Config
     constexpr uint64_t DRIVER_TO_STANDING = 6000000;
     constexpr uint64_t PASSENGER_TO_STANDING = 5000000;
     constexpr uint64_t STANDING_TO_DRIVER = 6000000;
+    constexpr uint64_t SOFA_TO_STANDING_DURATION = 3000000;
+    constexpr uint64_t STANDING_TO_SOFA_DURATION = 3000000;
     constexpr uint64_t DRIVER_TO_DRIVER_STANDING_MS = 6000000;
 
     namespace Stances
@@ -38,13 +40,24 @@ namespace SPF_CabinWalk::Animation::Config
         constexpr float STEP_AMOUNT = 0.35f;
         constexpr float BOB_AMOUNT = 0.02f;
         
-        constexpr uint64_t STEP_DURATION = 250000;
+        constexpr uint64_t STEP_DURATION = 450000;
         
         namespace FirstStep
         {
-            constexpr uint64_t BASE_TURN_DURATION = 100000;
-            constexpr uint64_t EXTRA_TURN_DURATION_PER_PI = 400000;
+            constexpr uint64_t BASE_TURN_DURATION = 250000;
+            constexpr uint64_t EXTRA_TURN_DURATION_PER_PI = 1000000;
         }
+    }
+
+    namespace Sofa
+    {
+        struct Limits {
+            // Rotation limits in degrees for when on the sofa.
+            static constexpr float YAW_LEFT = 180.0f;
+            static constexpr float YAW_RIGHT = -180.0f;
+            static constexpr float PITCH_UP = 90.0f;
+            static constexpr float PITCH_DOWN = -65.0f;
+        };
     }
 
 } // namespace SPF_CabinWalk::Animation::Config

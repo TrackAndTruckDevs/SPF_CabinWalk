@@ -4,9 +4,11 @@
 #include "Hooks/Offsets.hpp"
 #include "Animation/Positions/CameraPositions.hpp" // For accessing predefined camera positions
 #include "SPF_CabinWalk.hpp"                       // For access to g_ctx for logging and passenger seat position.
+#include "Animation/AnimationConfig.hpp"
 
 namespace SPF_CabinWalk::CameraHookManager
 {
+    using namespace Animation::Config;
     // =================================================================================================
     // Internal State
     // =================================================================================================
@@ -19,14 +21,8 @@ namespace SPF_CabinWalk::CameraHookManager
     using CacheExteriorSoundAngleRange_t = void (*)(long long camera_object);
 
     // --- State Variables ---
-    enum class AzimuthState
-    {
-        Default,  // Standard driver azimuths
-        Modified, // Azimuths have been changed (e.g., for passenger)
-        Zeroed    // Azimuths have been zeroed out (e.g., for standing)
-    };
     static AnimationController::CameraPosition g_current_camera_pos = AnimationController::CameraPosition::Driver;
-    static AzimuthState g_current_azimuth_state = AzimuthState::Default;
+    static AnimationController::CameraPosition g_previous_camera_pos = AnimationController::CameraPosition::Driver;
 
     // --- Backup Storage ---
     static AzimuthBackup g_original_azimuth_values[20];
@@ -78,59 +74,58 @@ namespace SPF_CabinWalk::CameraHookManager
 
     static void Detour_UpdateCameraFromInput(long long camera_object, float delta_time)
     {
-        // Decide what state the azimuths *should* be in based on the camera position
-        AzimuthState desired_azimuth_state = AzimuthState::Default;
-        if (g_current_camera_pos == AnimationController::CameraPosition::Passenger)
+        // If the logical camera position has not changed, just run the original function and 360-wrap logic.
+        if (g_current_camera_pos == g_previous_camera_pos)
         {
-            desired_azimuth_state = AzimuthState::Modified;
+            if (o_UpdateCameraFromInput) {
+                o_UpdateCameraFromInput(camera_object, delta_time);
+            }
         }
-        else if (g_current_camera_pos == AnimationController::CameraPosition::Standing)
+        else // A position change has occurred
         {
-            desired_azimuth_state = AzimuthState::Zeroed;
-        }
-
-        // Apply changes if the current state doesn't match the desired state
-        if (desired_azimuth_state != g_current_azimuth_state)
-        {
-            // Case 1: The new state is Default (Driver). We must have been in Modified or Zeroed.
-            // Action: Restore.
-            if (desired_azimuth_state == AzimuthState::Default)
+            // First, always restore to a clean slate if the previous state was not the default driver state.
+            // This prevents modifications from stacking (e.g., passenger inverted limits + zeroed azimuths).
+            if (g_previous_camera_pos != AnimationController::CameraPosition::Driver)
             {
                 RestoreAzimuths(camera_object);
             }
-            // Case 2: The new state is Modified (Passenger).
-            else if (desired_azimuth_state == AzimuthState::Modified)
+            
+            // Now, apply the new state's modifications from the clean, default state.
+            switch (g_current_camera_pos)
             {
-                // If we were in a non-default state (e.g. Standing), restore to clean state first.
-                if (g_current_azimuth_state != AzimuthState::Default)
-                {
-                    RestoreAzimuths(camera_object);
-                }
-                // Now apply the modification from the clean, default state.
-                BackupAndModifyAzimuths(camera_object);
-            }
-            // Case 3: The new state is Zeroed (Standing).
-            else if (desired_azimuth_state == AzimuthState::Zeroed)
-            {
-                // If we were in a non-default state (e.g. Passenger), restore to clean state first.
-                if (g_current_azimuth_state != AzimuthState::Default)
-                {
-                    RestoreAzimuths(camera_object);
-                }
-                // Now apply the zeroing from the clean, default state.
-                ZeroAzimuths(camera_object);
+                case AnimationController::CameraPosition::Passenger:
+                    BackupAndModifyAzimuths(camera_object);
+                    break;
+
+                case AnimationController::CameraPosition::Standing:
+                case AnimationController::CameraPosition::SofaSit1:
+                case AnimationController::CameraPosition::SofaLie:
+                case AnimationController::CameraPosition::SofaSit2:
+                    ZeroAzimuths(camera_object); // The switch inside this handles different limits
+                    break;
+
+                case AnimationController::CameraPosition::Driver:
+                default:
+                    // Do nothing, we are already restored to default.
+                    break;
             }
 
-            g_current_azimuth_state = desired_azimuth_state;
+            // Update the previous position for the next frame's comparison.
+            g_previous_camera_pos = g_current_camera_pos;
+
+            // Call the original function after our modifications.
+            if (o_UpdateCameraFromInput)
+            {
+                o_UpdateCameraFromInput(camera_object, delta_time);
+            }
         }
 
-        if (o_UpdateCameraFromInput)
-        {
-            o_UpdateCameraFromInput(camera_object, delta_time);
-        }
-
-        // Handle 360-degree rotation wrapping for the standing position
-        if (g_current_camera_pos == AnimationController::CameraPosition::Standing && g_ctx.cameraAPI)
+        // Handle 360-degree rotation wrapping for any free-look position
+        if ((g_current_camera_pos == AnimationController::CameraPosition::Standing ||
+             g_current_camera_pos == AnimationController::CameraPosition::SofaSit1 ||
+             g_current_camera_pos == AnimationController::CameraPosition::SofaLie ||
+             g_current_camera_pos == AnimationController::CameraPosition::SofaSit2) 
+             && g_ctx.cameraAPI)
         {
             float yaw, pitch;
             g_ctx.cameraAPI->GetInteriorHeadRot(&yaw, &pitch);
@@ -354,8 +349,29 @@ namespace SPF_CabinWalk::CameraHookManager
                 &g_original_mouse_up_limit,
                 &g_original_mouse_down_limit);
 
-            // Set wide limits for free look in standing mode
-            g_ctx.cameraAPI->SetInteriorRotationLimits(231.0f, -231.0f, g_original_mouse_up_limit, -80.0f);
+            switch (g_current_camera_pos)
+            {
+                case AnimationController::CameraPosition::Standing:
+                    // Set wide limits for free look in standing mode
+                    g_ctx.cameraAPI->SetInteriorRotationLimits(231.0f, -231.0f, g_original_mouse_up_limit, -80.0f);
+                    break;
+                
+                case AnimationController::CameraPosition::SofaSit1:
+                case AnimationController::CameraPosition::SofaLie:
+                case AnimationController::CameraPosition::SofaSit2:
+                    // Set custom limits for sofa positions
+                    g_ctx.cameraAPI->SetInteriorRotationLimits(
+                        Sofa::Limits::YAW_LEFT,
+                        Sofa::Limits::YAW_RIGHT,
+                        Sofa::Limits::PITCH_UP,
+                        Sofa::Limits::PITCH_DOWN
+                    );
+                    break;
+                
+                default:
+                    // Fallback, should not happen if logic is correct
+                    break;
+            }
         }
 
         // 3. Handle Azimuth Ranges - Zero them out

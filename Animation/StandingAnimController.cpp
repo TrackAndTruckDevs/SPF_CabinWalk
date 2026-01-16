@@ -17,6 +17,7 @@ namespace SPF_CabinWalk::StandingAnimController
     // =================================================================================================
     static PluginContext* g_stand_ctx = nullptr;
     static Stance g_current_stance = Stance::Standing;
+    static float g_target_walk_z = 0.0f; // New static variable to store the Z-coordinate target for walking
     static AnimationController::CameraPosition g_final_destination; // For multi-stage transitions
     static Stance g_transition_to_stance = Stance::Standing;
     static std::unique_ptr<Animation::AnimationSequence> g_active_sequence = nullptr;
@@ -220,25 +221,25 @@ namespace SPF_CabinWalk::StandingAnimController
             }
             case Stance::InTransition: // Should be handled by the active_sequence check above
                 break;
-            case Stance::ReturningToHome:
+            case Stance::WalkingToFinalDestination:
             {
-                // Logic for automatically walking back to Z-zero
-                const float z_home = 0.0f;
+                // Logic for automatically walking towards g_target_walk_z
+                const float z_target = g_target_walk_z;
                 const float z_current = current_state.position.z;
                 const float step_amount = Walking::STEP_AMOUNT;
 
-                // Check if we are close enough to home (Z-zero)
-                if (std::fabs(z_current - z_home) <= step_amount)
+                // Determine if we are close enough to the target Z
+                if (std::fabs(z_current - z_target) <= step_amount)
                 {
-                    // Close enough to home. Transition to sitting.
-                    g_current_stance = Stance::Standing; // Reset stance
+                    // Close enough to target. Transition to sitting.
+                    g_current_stance = Stance::Standing; // Reset stance to Standing
                     AnimationController::MoveTo(g_final_destination); // Trigger the final sit-down animation
                     return; // New animation started, exit update
                 }
-                else // Still far from home, trigger another walk step towards home
+                else // Still far from target, trigger another walk step
                 {
                     // Determine if we need to walk forward (-Z) or backward (+Z)
-                    bool is_walking_forward = (z_current > z_home); // If current Z is greater than zero, walk forward (-Z)
+                    bool is_walking_forward = (z_current > z_target); // If current Z is greater than target Z, walk forward (-Z)
 
                     // Trigger a walk step.
                     TriggerWalkStepTowards(current_state, is_walking_forward);
@@ -297,7 +298,7 @@ namespace SPF_CabinWalk::StandingAnimController
         }
     }
 
-        bool CanSitDown(AnimationController::CameraPosition target)
+        bool CanSitDown(AnimationController::CameraPosition target, float target_z)
         {
             // Get current camera state
             Animation::CurrentCameraState current_state;
@@ -309,19 +310,19 @@ namespace SPF_CabinWalk::StandingAnimController
             const float z_current = current_state.position.z;
             const float step_amount = Walking::STEP_AMOUNT;
     
-            if (z_current > step_amount) // Only initiate walk back if Z is positive and beyond step_amount
+            // Check if we are close enough to the target Z
+            if (std::fabs(z_current - target_z) <= step_amount)
             {
-                // Too far from Z-zero on the positive side, initiate walk back
-                g_current_stance = Stance::ReturningToHome;
-                g_final_destination = target;
+                // Close enough, can sit immediately.
+                return true;
+            }
+            else
+            {
+                // Too far, initiate walk
+                StartWalkingToZ(target_z, target);
                 return false;
             }
-                    else
-                    {
-                        // Close enough to Z-zero (positive or negative), OR too far on the negative side (in which case we ignore and sit)
-                        return true;
-                    }
-                }
+        }
             
                 Stance GetCurrentStance()
                 {
@@ -356,26 +357,37 @@ namespace SPF_CabinWalk::StandingAnimController
                     }
                 }
             
-                void TriggerStandDown()
-                {
-                    if (IsAnimating() || g_current_stance != Stance::Tiptoes)
+                    void TriggerStandDown()
                     {
-                        return; // Don't interrupt or trigger from wrong state
+                        if (IsAnimating() || g_current_stance != Stance::Tiptoes)
+                        {
+                            return; // Don't interrupt or trigger from wrong state
+                        }
+                
+                        // Need current state to create the animation
+                        Animation::CurrentCameraState current_state;
+                        g_stand_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+                        g_stand_ctx->cameraAPI->GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+                        current_state.rotation.z = 0.0f;
+                
+                        AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);
+                        g_active_sequence = AnimationSequences::CreateStandDownSequence(current_state, current_gaze);
+                        if (g_active_sequence)
+                        {
+                            g_active_sequence->Start(current_state);
+                            g_current_stance = Stance::InTransition;
+                            g_transition_to_stance = Stance::Standing;
+                        }
                     }
-            
-                    // Need current state to create the animation
-                    Animation::CurrentCameraState current_state;
-                    g_stand_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
-                    g_stand_ctx->cameraAPI->GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
-                    current_state.rotation.z = 0.0f;
-            
-                    AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);
-                    g_active_sequence = AnimationSequences::CreateStandDownSequence(current_state, current_gaze);
-                    if (g_active_sequence)
+                
+                    void StartWalkingToZ(float target_z, AnimationController::CameraPosition final_destination)
                     {
-                        g_active_sequence->Start(current_state);
-                        g_current_stance = Stance::InTransition;
-                        g_transition_to_stance = Stance::Standing;
-                    }
-                }
-            }
+                        if (IsAnimating() || g_current_stance != Stance::Standing)
+                        {
+                            return; // Only start walking if currently in Standing stance and not animating
+                        }
+                
+                        g_target_walk_z = target_z;
+                        g_final_destination = final_destination;
+                        g_current_stance = Stance::WalkingToFinalDestination;
+                    }            }

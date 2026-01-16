@@ -243,6 +243,11 @@ namespace SPF_CabinWalk
   void OnMoveToStandingPosition();
 
   /**
+   * @brief Callback executed when the keybind to cycle sofa positions is triggered.
+   */
+  void OnCycleSofaPositions();
+
+  /**
    * @brief Returns true if the walk key is currently being held down.
    */
   bool IsWalkKeyDown();

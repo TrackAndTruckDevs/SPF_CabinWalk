@@ -20,7 +20,7 @@ namespace SPF_CabinWalk
             Crouching,
             Tiptoes,
             InTransition,  // Represents the state while an animation is playing
-            ReturningToHome // Automatically walking back to the home position
+            WalkingToFinalDestination // Automatically walking to a specific Z-coordinate before a final destination
         };
 
         /**
@@ -28,6 +28,13 @@ namespace SPF_CabinWalk
          * @param ctx A pointer to the main plugin context.
          */
         void Initialize(PluginContext* ctx);
+
+        /**
+         * @brief Initiates an automatic walk towards a specific Z-coordinate.
+         * @param target_z The Z-coordinate to walk to.
+         * @param final_destination The CameraPosition to transition to after the walk is complete.
+         */
+        void StartWalkingToZ(float target_z, AnimationController::CameraPosition final_destination);
 
     /**
      * @brief Updates the standing animation state based on the current camera view.
@@ -48,11 +55,12 @@ namespace SPF_CabinWalk
     void TriggerWalkStepTowards(const Animation::CurrentCameraState& current_state, bool is_walking_forward);
 
     /**
-     * @brief Checks if the player can immediately sit down, or initiates a walk back to the home position.
+     * @brief Checks if the player can immediately sit down, or initiates a walk back to a target Z.
      * @param target The CameraPosition to sit down into (Driver or Passenger).
+     * @param target_z The target Z-coordinate to be at before sitting down.
      * @return True if the player is close enough to sit down immediately, false otherwise (a walk back was initiated).
      */
-    bool CanSitDown(AnimationController::CameraPosition target);
+    bool CanSitDown(AnimationController::CameraPosition target, float target_z);
 
     /**
      * @brief Gets the current vertical stance of the camera.
