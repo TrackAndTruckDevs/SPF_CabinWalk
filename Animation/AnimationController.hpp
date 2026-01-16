@@ -3,6 +3,7 @@
 #include <map>
 #include <functional>
 #include <memory> // For std::unique_ptr
+#include <queue>  // For std::queue
 
 // Include new animation system components
 #include "Animation/AnimationSequence.hpp"
@@ -26,6 +27,9 @@ namespace SPF_CabinWalk
             Passenger,
             Standing, // To be implemented
             Bed,      // To be implemented
+            SofaSit1,
+            SofaLie,
+            SofaSit2,
             None      // Represents no position / no pending action
         };
 
@@ -58,6 +62,29 @@ namespace SPF_CabinWalk
         void MoveTo(CameraPosition target);
 
         /**
+         * @brief Main entry point to build and initiate a sequence of moves to a final destination.
+         * @param final_destination The ultimate target position for the entire sequence.
+        */
+        void OnRequestMove(CameraPosition final_destination);
+
+        /**
+         * @brief Adds a camera position to the back of the pending moves queue.
+         * @param target The next desired camera position in a sequence.
+         */
+        void QueueMove(CameraPosition target);
+
+        /**
+         * @brief Clears the entire queue of pending moves.
+         */
+        void ClearPendingMoves();
+
+        /**
+         * @brief Checks if there are any moves waiting in the queue.
+         * @return true if the pending moves queue is not empty, false otherwise.
+         */
+        bool HasPendingMoves();
+
+        /**
          * @brief Checks if an animation is currently in progress.
          * @return true if the camera is currently animating, false otherwise.
          */
@@ -81,6 +108,14 @@ namespace SPF_CabinWalk
             CameraPosition to,
             std::function<std::unique_ptr<Animation::AnimationSequence>(const Animation::CurrentCameraState& start_state, const Animation::CurrentCameraState& target_state)> factory
         );
+
+
+        /**
+         * @brief Helper function to get the target Z-coordinate for a given CameraPosition.
+         * @param pos The CameraPosition for which to get the target Z.
+         * @return The target Z-coordinate.
+         */
+        float GetTargetZForPosition(CameraPosition pos);
 
     } // namespace AnimationController
 } // namespace SPF_CabinWalk
