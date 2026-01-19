@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "ウクライナ語",
+        "en": "英語",
+        "fr": "フランス語",
+        "de": "ドイツ語",
+        "it": "イタリア語",
+        "es": "スペイン語",
+        "zh": "中国語",
+        "ja": "日本語",
+        "ru": "ロシア語",
+        "pl": "ポーランド語",
+        "nl": "オランダ語",
+        "pt": "ポルトガル語",
+        "tr": "トルコ語"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "停止してパーキングブレーキをかけてください！"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "助手席に移動",
+            "desc": "カメラを助手席に移動します。"
+        },
+        "moveToDriverSeat": {
+            "title": "運転席に移動",
+            "desc": "カメラを運転席に移動します。"
+        },
+        "moveToStandingPosition": {
+            "title": "立ち位置に移動 | 前進",
+            "desc": "キャビン内の立ち位置にカメラを移動します。立っているときは歩行に使用されます。"
+        },
+        "cycleSofaPositions": {
+            "title": "ソファに移動 | ソファの位置を切り替え",
+            "desc": "カメラをソファに移動します。ソファにいるときは、位置（座位、横臥位）を切り替えます。"
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "一般",
+            "warning_duration_ms": {
+                "title": "警告の期間",
+                "desc": "「安全に移動できません」という警告が表示される時間。"
+            },
+            "cabin_layout": {
+                "title": "キャビンレイアウト",
+                "desc": "正しいアニメーションのためにハンドルの側を設定します。",
+                "lhd": "左ハンドル",
+                "rhd": "右ハンドル"
+            },
+            "height": {
+                "title": "身長",
+                "desc": "アニメーションでカメラが上昇する高さ（人間の身長をシミュレートします）。"
+            }
+        },
+        "positions": {
+            "title": "カメラ位置",
+            "position_group": { "title": "位置 (X, Y, Z)" },
+            "rotation_group": { "title": "回転 (ヨー, ピッチ)" },
+            "enabled": {
+                "desc": "このカメラ位置を有効または無効にします。"
+            },
+            "coord": {
+                "desc": "位置座標"
+            },
+            "rot": {
+                "desc": "回転座標 (ヨー/ピッチ)"
+            },
+            "passenger_seat": {
+                "title": "助手席",
+                "enabled": { "title": "助手席を有効にする" },
+                "position": {
+                    "x": { "title": "助手席: 位置X (右/左)" },
+                    "y": { "title": "助手席: 位置Y (上/下)" },
+                    "z": { "title": "助手席: 位置Z (前方/後方)" }
+                },
+                "rotation": {
+                    "x": { "title": "助手席: ヨー (左/右)" },
+                    "y": { "title": "助手席: ピッチ (上/下)" }
+                }
+            },
+            "standing": {
+                "title": "立ち位置",
+                "enabled": { "title": "立ち位置を有効にする" },
+                "position": {
+                    "x": { "title": "立ち位置開始: 位置X (右/左)" },
+                    "y": { "title": "立ち位置開始: 位置Y (上/下)" },
+                    "z": { "title": "立ち位置開始: 位置Z (前方/後方)" }
+                },
+                "rotation": {
+                    "x": { "title": "立ち位置開始: ヨー (左/右)" },
+                    "y": { "title": "立ち位置開始: ピッチ (上/下)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "ソファ (座位) ソファのメイン位置",
+                "enabled": { "title": "ソファを有効にする" },
+                "position": {
+                    "x": { "title": "ソファ (座位1): 位置X (右/左)" },
+                    "y": { "title": "ソファ (座位1): 位置Y (上/下)" },
+                    "z": { "title": "ソファ (座位1): 位置Z (前方/後方)" }
+                },
+                "rotation": {
+                    "x": { "title": "ソファ (座位1): ヨー (左/右)" },
+                    "y": { "title": "ソファ (座位1): ピッチ (上/下)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "ソファ (横臥位)",
+                "enabled": { "title": "横臥位を有効にする" },
+                "position": {
+                    "x": { "title": "ソファ (横臥位): 位置X (右/左)" },
+                    "y": { "title": "ソファ (横臥位): 位置Y (上/下)" },
+                    "z": { "title": "ソファ (横臥位): 位置Z (前方/後方)" }
+                },
+                "rotation": {
+                    "x": { "title": "ソファ (横臥位): ヨー (左/右)" },
+                    "y": { "title": "ソファ (横臥位): ピッチ (上/下)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "ソファ (座位 2)",
+                "enabled": { "title": "有効にする (座位 2)" },
+                "position": {
+                    "x": { "title": "ソファ (座位2): 位置X (右/左)" },
+                    "y": { "title": "ソファ (座位2): 位置Y (上/下)" },
+                    "z": { "title": "ソファ (座位2): 位置Z (前方/後方)" }
+                },
+                "rotation": {
+                    "x": { "title": "ソファ (座位2): ヨー (左/右)" },
+                    "y": { "title": "ソファ (座位2): ピッチ (上/下)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "アニメーション時間",
+            "main_animation_speed": {
+                "title": "メインアニメーション速度",
+                "driver_to_passenger": { "title": "運転席 -> 助手席", "desc": "運転席から助手席へのアニメーションの時間。" },
+                "passenger_to_driver": { "title": "助手席 -> 運転席", "desc": "助手席から運転席へのアニメーションの時間。" },
+                "driver_to_standing": { "title": "運転席 -> 立ち位置", "desc": "運転席から立ち位置へのアニメーションの時間。" },
+                "standing_to_driver": { "title": "立ち位置 -> 運転席", "desc": "立ち位置から運転席へのアニメーションの時間。" },
+                "passenger_to_standing": { "title": "助手席 -> 立ち位置", "desc": "助手席から立ち位置へのアニメーションの時間。" },
+                "standing_to_passenger": { "title": "立ち位置 -> 助手席", "desc": "立ち位置から助手席へのアニメーションの時間。" },
+                "standing_to_sofa": { "title": "立ち位置 -> ソファ", "desc": "立ち位置からソファへのアニメーションの時間。" },
+                "sofa_to_standing": { "title": "ソファ -> 立ち位置", "desc": "ソファから立ち位置へのアニメーションの時間。" }
+            },
+            "sofa_animation_speed": {
+                "title": "ソファアニメーション速度",
+                "sofa_sit1_to_lie": { "title": "ソファ (座位 1) -> 横臥位", "desc": "ソファの最初の座位から横臥位へのアニメーションの時間。" },
+                "sofa_lie_to_sit2": { "title": "ソファ (横臥位) -> 座位 2", "desc": "ソファの横臥位から2番目の座位へのアニメーションの時間。" },
+                "sofa_sit2_to_sit1": { "title": "ソファ (座位 2) -> 座位 1", "desc": "ソファの2番目の座位から最初の座位へのアニメーションの時間。" },
+                "sofa_lie_to_sit1_shortcut": { "title": "ソファ (横臥位) -> 座位 1 (ショートカット)", "desc": "横臥位から最初の座位へのアニメーションの時間。" }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "しゃがむ/立つアニメーション速度",
+                "crouch": { "title": "しゃがむ遷移", "desc": "しゃがむまたは立つときのアニメーションの時間。" },
+                "tiptoe": { "title": "つま先立ち遷移", "desc": "つま先立ちになるか、通常の姿勢に戻るときのアニメーションの時間。" }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "歩行アニメーション速度",
+            "walk_step": { "title": "歩行: 歩行時間", "desc": "一歩の歩行時間。" },
+            "walk_first_step_base": { "title": "歩行: 最初のステップの基本時間", "desc": "歩き始めの最初のステップの基本時間。" },
+            "walk_first_step_turn_extra": { "title": "歩行: 最初のステップの回転追加時間", "desc": "歩行中に回転するときの最初のステップに追加される時間。" }
+        },
+        "standing_movement": {
+            "title": "立ち位置での移動",
+            "walking": {
+                "title": "歩行",
+                "step_amount": {
+                    "title": "歩幅",
+                    "desc": "各ステップでカメラが前後に移動する距離。"
+                },
+                "bob_amount": {
+                    "title": "揺れの量",
+                    "desc": "歩行時のカメラの上下の揺れの量。"
+                },
+                "walk_zone_z": {
+                    "title": "歩行ゾーン",
+                    "desc": "キャビンの中央を基準とした前後移動の制限を定義します。",
+                    "min": { "title": "後方制限" },
+                    "max": { "title": "前方制限" }
+                }
+            },
+            "stance_control": {
+                "title": "姿勢制御",
+                "hold_time_ms": {
+                    "title": "トリガー保持時間",
+                    "desc": "姿勢を変更するために上下を見る必要がある時間。"
+                },
+                "activation_angle": {
+                    "desc": "姿勢を有効にするために必要なカメラのピッチ角。"
+                },
+                "deactivation_angle": {
+                    "desc": "ニュートラルな姿勢に戻るために必要なカメラのピッチ角。"
+                },
+                "crouch": {
+                    "title": "しゃがむ",
+                    "depth": {
+                        "title": "しゃがむ深さ",
+                        "desc": "しゃがんだときにカメラがどれだけ下がるか。"
+                    },
+                    "activation_angle": { "title": "しゃがむ有効化角度" },
+                    "deactivation_angle": { "title": "立ち上がる角度" }
+                },
+                "tiptoe": {
+                    "title": "つま先立ち",
+                    "height": {
+                        "title": "つま先立ちの高さ",
+                        "desc": "つま先立ちになったときにカメラがどれだけ上がるか。"
+                    },
+                    "activation_angle": { "title": "つま先立ち有効化角度" },
+                    "deactivation_angle": { "title": "立ち下がる角度" }
+                }
+            }
+        }
+    }
+}

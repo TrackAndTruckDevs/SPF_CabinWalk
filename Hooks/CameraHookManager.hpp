@@ -21,4 +21,10 @@ namespace SPF_CabinWalk::CameraHookManager
      */
     void SetCurrentCameraPosition(AnimationController::CameraPosition new_pos);
 
-} // namespace SPF_CabinWalk::CameraHookManager
+        /**
+         * @brief Notifies the camera hook manager that settings have been updated.
+         *        This will force a re-application of current camera position settings on the next update.
+         */
+        void NotifySettingsUpdated();
+
+    } // namespace SPF_CabinWalk::CameraHookManager

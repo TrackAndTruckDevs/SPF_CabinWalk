@@ -1,5 +1,5 @@
 #include "PassengerToStanding.hpp"
-#include "Animation/AnimationConfig.hpp" // For animation durations
+#include "SPF_CabinWalk.hpp"
 #include "Animation/AnimationController.hpp"
 
 namespace SPF_CabinWalk::AnimationSequences
@@ -10,7 +10,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(Animation::Config::PASSENGER_TO_STANDING); // Using same duration for now
+        seq->Initialize(g_ctx.settings.animation_durations.main_animation_speed.passenger_to_standing * 1000);
 
         // --- Position X Track ---
         {
@@ -48,10 +48,11 @@ namespace SPF_CabinWalk::AnimationSequences
         // --- Rotation Yaw Track ---
         {
             auto track = std::make_unique<Animation::Track<float>>();
+            const float direction_multiplier = (g_ctx.settings.general.cabin_layout == LHD) ? 1.0f : -1.0f;
             track->AddKeyframe({0.0f, start_state.rotation.x, Easing::easeOutCubic});
             track->AddKeyframe({0.1f, 0.0f, Easing::easeInOutCubic});
-            track->AddKeyframe({0.23f, 0.1f, Easing::easeInOutCubic});
-            track->AddKeyframe({0.73f, target_state.rotation.x +0.75f, Easing::easeOutQuad});
+            track->AddKeyframe({0.23f, 0.1f * direction_multiplier, Easing::easeInOutCubic});
+            track->AddKeyframe({0.73f, target_state.rotation.x + (0.75f * direction_multiplier), Easing::easeOutQuad});
 
             // If there's no pending move, complete the animation by returning to the target rotation.
             // Otherwise, the animation will end here, and the next sequence will pick up from this state.

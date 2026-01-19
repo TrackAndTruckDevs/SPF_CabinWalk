@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "Ukraynaca",
+        "en": "İngilizce",
+        "fr": "Fransızca",
+        "de": "Almanca",
+        "it": "İtalyanca",
+        "es": "İspanyolca",
+        "zh": "Çince",
+        "ja": "Japonca",
+        "ru": "Rusça",
+        "pl": "Lehçe",
+        "nl": "Hollandaca",
+        "pt": "Portekizce",
+        "tr": "Türkçe"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "Lütfen durun ve park frenini çekin!"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "Yolcu Koltuğuna Geç",
+            "desc": "Kamerayı yolcu koltuğuna taşır."
+        },
+        "moveToDriverSeat": {
+            "title": "Sürücü Koltuğuna Geç",
+            "desc": "Kamerayı sürücü koltuğuna taşır."
+        },
+        "moveToStandingPosition": {
+            "title": "Ayakta Durma Pozisyonuna Geç | İleri Yürü",
+            "desc": "Kamerayı kabin içinde ayakta durma pozisyonuna taşır. Ayaktayken yürümek için kullanılır."
+        },
+        "cycleSofaPositions": {
+            "title": "Kanepeye Geç | Kanepe Pozisyonlarını Değiştir",
+            "desc": "Kamerayı kanepeye taşır. Kanepedeyken pozisyonlar arasında geçiş yapar (oturma, uzanma)."
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "Genel",
+            "warning_duration_ms": {
+                "title": "Uyarı Süresi",
+                "desc": "'Hareket etmek güvenli değil' uyarısının ne kadar süreyle gösterileceği."
+            },
+            "cabin_layout": {
+                "title": "Kabin Düzeni",
+                "desc": "Doğru animasyonlar için direksiyon tarafını ayarlayın.",
+                "lhd": "Soldan Direksiyon",
+                "rhd": "Sağdan Direksiyon"
+            },
+            "height": {
+                "title": "Yükseklik",
+                "desc": "Animasyonlarda kameranın ne kadar yükseldiği (insan boyunu simüle eder)."
+            }
+        },
+        "positions": {
+            "title": "Kamera Pozisyonları",
+            "position_group": { "title": "Pozisyon (X, Y, Z)" },
+            "rotation_group": { "title": "Dönüş (Sapma, Eğim)" },
+            "enabled": {
+                "desc": "Bu kamera pozisyonunu etkinleştirin veya devre dışı bırakın."
+            },
+            "coord": {
+                "desc": "Pozisyon koordinatı"
+            },
+            "rot": {
+                "desc": "Dönüş koordinatı (Sapma/Eğim)"
+            },
+            "passenger_seat": {
+                "title": "Yolcu Koltuğu",
+                "enabled": { "title": "Yolcu koltuğunu etkinleştir" },
+                "position": {
+                    "x": { "title": "Yolcu Koltuğu: Poz X (Sağ/Sol)" },
+                    "y": { "title": "Yolcu Koltuğu: Poz Y (Yukarı/Aşağı)" },
+                    "z": { "title": "Yolcu Koltuğu: Poz Z (İleri/Geri)" }
+                },
+                "rotation": {
+                    "x": { "title": "Yolcu Koltuğu: Sapma (Sol/Sağ)" },
+                    "y": { "title": "Yolcu Koltuğu: Eğim (Yukarı/Aşağı)" }
+                }
+            },
+            "standing": {
+                "title": "Ayakta Durma Pozisyonu",
+                "enabled": { "title": "Ayakta durma pozisyonunu etkinleştir" },
+                "position": {
+                    "x": { "title": "Ayakta Başlangıç: Poz X (Sağ/Sol)" },
+                    "y": { "title": "Ayakta Başlangıç: Poz Y (Yukarı/Aşağı)" },
+                    "z": { "title": "Ayakta Başlangıç: Poz Z (İleri/Geri)" }
+                },
+                "rotation": {
+                    "x": { "title": "Ayakta Başlangıç: Sapma (Sol/Sağ)" },
+                    "y": { "title": "Ayakta Başlangıç: Eğim (Yukarı/Aşağı)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "Kanepe (Oturma) Ana kanepe pozisyonu",
+                "enabled": { "title": "Kanepeni etkinleştir" },
+                "position": {
+                    "x": { "title": "Kanepe (oturma 1): Poz X (Sağ/Sol)" },
+                    "y": { "title": "Kanepe (oturma 1): Poz Y (Yukarı/Aşağı)" },
+                    "z": { "title": "Kanepe (oturma 1): Poz Z (İleri/Geri)" }
+                },
+                "rotation": {
+                    "x": { "title": "Kanepe (oturma 1): Sapma (Sol/Sağ)" },
+                    "y": { "title": "Kanepe (oturma 1): Eğim (Yukarı/Aşağı)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "Kanepe (Uzanma)",
+                "enabled": { "title": "Uzanma pozisyonunu etkinleştir" },
+                "position": {
+                    "x": { "title": "Kanepe (uzanma): Poz X (Sağ/Sol)" },
+                    "y": { "title": "Kanepe (uzanma): Poz Y (Yukarı/Aşağı)" },
+                    "z": { "title": "Kanepe (uzanma): Poz Z (İleri/Geri)" }
+                },
+                "rotation": {
+                    "x": { "title": "Kanepe (uzanma): Sapma (Sol/Sağ)" },
+                    "y": { "title": "Kanepe (uzanma): Eğim (Yukarı/Aşağı)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "Kanepe (Oturma 2)",
+                "enabled": { "title": "Etkinleştir (oturma 2)" },
+                "position": {
+                    "x": { "title": "Kanepe (oturma 2): Poz X (Sağ/Sol)" },
+                    "y": { "title": "Kanepe (oturma 2): Poz Y (Yukarı/Aşağı)" },
+                    "z": { "title": "Kanepe (oturma 2): Poz Z (İleri/Geri)" }
+                },
+                "rotation": {
+                    "x": { "title": "Kanepe (oturma 2): Sapma (Sol/Sağ)" },
+                    "y": { "title": "Kanepe (oturma 2): Eğim (Yukarı/Aşağı)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "Animasyon Süreleri",
+            "main_animation_speed": {
+                "title": "Ana Animasyon Hızı",
+                "driver_to_passenger": { "title": "Sürücü -> Yolcu", "desc": "Sürücü koltuğundan yolcu koltuğuna animasyon süresi." },
+                "passenger_to_driver": { "title": "Yolcu -> Sürücü", "desc": "Yolcu koltuğundan sürücü koltuğuna animasyon süresi." },
+                "driver_to_standing": { "title": "Sürücü -> Ayakta", "desc": "Sürücü koltuğundan ayakta durma pozisyonuna animasyon süresi." },
+                "standing_to_driver": { "title": "Ayakta -> Sürücü", "desc": "Ayakta durma pozisyonundan sürücü koltuğuna animasyon süresi." },
+                "passenger_to_standing": { "title": "Yolcu -> Ayakta", "desc": "Yolcu koltuğundan ayakta durma pozisyonuna animasyon süresi." },
+                "standing_to_passenger": { "title": "Ayakta -> Yolcu", "desc": "Ayakta durma pozisyonundan yolcu koltuğuna animasyon süresi." },
+                "standing_to_sofa": { "title": "Ayakta -> Kanepe", "desc": "Ayakta durma pozisyonundan kanepeye animasyon süresi." },
+                "sofa_to_standing": { "title": "Kanepe -> Ayakta", "desc": "Kanepeden ayakta durma pozisyonuna animasyon süresi." }
+            },
+            "sofa_animation_speed": {
+                "title": "Kanepe Animasyon Hızı",
+                "sofa_sit1_to_lie": { "title": "Kanepe (Oturma 1) -> Uzanma", "desc": "İlk oturma pozisyonundan kanepede uzanma pozisyonuna animasyon süresi." },
+                "sofa_lie_to_sit2": { "title": "Kanepe (Uzanma) -> Oturma 2", "desc": "Uzanma pozisyonundan kanepede ikinci oturma pozisyonuna animasyon süresi." },
+                "sofa_sit2_to_sit1": { "title": "Kanepe (Oturma 2) -> Oturma 1", "desc": "İkinci oturma pozisyonundan kanepede ilk oturma pozisyonuna animasyon süresi." },
+                "sofa_lie_to_sit1_shortcut": { "title": "Kanepe (Uzanma) -> Oturma 1 (Kısayol)", "desc": "Uzanma pozisyonundan ilk oturma pozisyonuna animasyon süresi." }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "Çömelme/Kalkma Animasyon Hızı",
+                "crouch": { "title": "Çömelme Geçişi", "desc": "Çömelirken veya kalkarken animasyon süresi." },
+                "tiptoe": { "title": "Parmak Ucunda Durma Geçişi", "desc": "Parmak ucunda dururken veya normal duruşa dönerken animasyon süresi." }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "Yürüme Animasyon Hızı",
+            "walk_step": { "title": "Adım: Adım Süresi", "desc": "Yürürken tek bir adımın süresi." },
+            "walk_first_step_base": { "title": "Adım: İlk Adım Taban Süresi", "desc": "Yürümeye başlarken ilk adımın taban süresi." },
+            "walk_first_step_turn_extra": { "title": "Adım: Dönüş İçin Ek Süre", "desc": "Yürürken dönerken ilk adıma eklenen ek süre." }
+        },
+        "standing_movement": {
+            "title": "Ayakta Hareket",
+            "walking": {
+                "title": "Yürüme",
+                "step_amount": {
+                    "title": "Adım Miktarı",
+                    "desc": "Her adımda kameranın ne kadar ileri/geri hareket edeceği."
+                },
+                "bob_amount": {
+                    "title": "Sallanma Miktarı",
+                    "desc": "Yürürken kameranın yukarı/aşağı sallanma miktarı."
+                },
+                "walk_zone_z": {
+                    "title": "Yürüme Alanı",
+                    "desc": "Kabin merkezine göre ileri/geri hareket sınırlarını tanımlar.",
+                    "min": { "title": "Arka Sınır" },
+                    "max": { "title": "Ön Sınır" }
+                }
+            },
+            "stance_control": {
+                "title": "Duruş Kontrolü",
+                "hold_time_ms": {
+                    "title": "Tetikleyici Tutma Süresi",
+                    "desc": "Duruş değiştirmek için ne kadar süre yukarı/aşağı bakmanız gerektiği."
+                },
+                "activation_angle": {
+                    "desc": "Duruşu etkinleştirmek için gereken kamera eğim açısı."
+                },
+                "deactivation_angle": {
+                    "desc": "Nötr duruşa dönmek için gereken kamera eğim açısı."
+                },
+                "crouch": {
+                    "title": "Çömelme",
+                    "depth": {
+                        "title": "Çömelme Derinliği",
+                        "desc": "Çömelirken kameranın ne kadar alçalacağı."
+                    },
+                    "activation_angle": { "title": "Çömelme Etkinleştirme Açısı" },
+                    "deactivation_angle": { "title": "Ayağa Kalkma Açısı" }
+                },
+                "tiptoe": {
+                    "title": "Parmak Ucunda Durma",
+                    "height": {
+                        "title": "Parmak Ucu Yüksekliği",
+                        "desc": "Parmak ucunda dururken kameranın ne kadar yükseleceği."
+                    },
+                    "activation_angle": { "title": "Parmak Ucu Etkinleştirme Açısı" },
+                    "deactivation_angle": { "title": "Aşağı İnme Açısı" }
+                }
+            }
+        }
+    }
+}

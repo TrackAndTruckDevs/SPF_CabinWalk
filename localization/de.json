@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "Ukrainisch",
+        "en": "Englisch",
+        "fr": "Französisch",
+        "de": "Deutsch",
+        "it": "Italienisch",
+        "es": "Spanisch",
+        "zh": "Chinesisch",
+        "ja": "Japanisch",
+        "ru": "Russisch",
+        "pl": "Polnisch",
+        "nl": "Niederländisch",
+        "pt": "Portugiesisch",
+        "tr": "Türkisch"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "Bitte anhalten und die Feststellbremse anziehen!"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "Zum Beifahrersitz wechseln",
+            "desc": "Bewegt die Kamera zum Beifahrersitz."
+        },
+        "moveToDriverSeat": {
+            "title": "Zum Fahrersitz wechseln",
+            "desc": "Bewegt die Kamera zum Fahrersitz."
+        },
+        "moveToStandingPosition": {
+            "title": "In Stehposition wechseln | Vorwärts gehen",
+            "desc": "Bewegt die Kamera in eine stehende Position in der Kabine. Im Stehen zum Gehen verwendet."
+        },
+        "cycleSofaPositions": {
+            "title": "Zum Sofa wechseln | Sofapositionen durchschalten",
+            "desc": "Bewegt die Kamera zum Sofa. Auf dem Sofa werden die Positionen (sitzend, liegend) durchgeschaltet."
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "Allgemein",
+            "warning_duration_ms": {
+                "title": "Warnungsdauer",
+                "desc": "Wie lange die Warnung 'Bewegung nicht sicher' angezeigt wird."
+            },
+            "cabin_layout": {
+                "title": "Kabinen-Layout",
+                "desc": "Stellen Sie die Seite des Lenkrads für korrekte Animationen ein.",
+                "lhd": "Linkslenker",
+                "rhd": "Rechtslenker"
+            },
+            "height": {
+                "title": "Höhe",
+                "desc": "Wie hoch die Kamera in Animationen aufsteigt (simuliert menschliche Größe)."
+            }
+        },
+        "positions": {
+            "title": "Kamerapositionen",
+            "position_group": { "title": "Position (X, Y, Z)" },
+            "rotation_group": { "title": "Rotation (Gier, Nick)" },
+            "enabled": {
+                "desc": "Diese Kameraposition aktivieren oder deaktivieren."
+            },
+            "coord": {
+                "desc": "Positionskoordinate"
+            },
+            "rot": {
+                "desc": "Rotationskoordinate (Gier/Nick)"
+            },
+            "passenger_seat": {
+                "title": "Beifahrersitz",
+                "enabled": { "title": "Beifahrersitz aktivieren" },
+                "position": {
+                    "x": { "title": "Beifahrersitz: Pos X (Rechts/Links)" },
+                    "y": { "title": "Beifahrersitz: Pos Y (Hoch/Runter)" },
+                    "z": { "title": "Beifahrersitz: Pos Z (Vorwärts/Rückwärts)" }
+                },
+                "rotation": {
+                    "x": { "title": "Beifahrersitz: Gier (Links/Rechts)" },
+                    "y": { "title": "Beifahrersitz: Nick (Hoch/Runter)" }
+                }
+            },
+            "standing": {
+                "title": "Stehposition",
+                "enabled": { "title": "Stehposition aktivieren" },
+                "position": {
+                    "x": { "title": "Stehbeginn: Pos X (Rechts/Links)" },
+                    "y": { "title": "Stehbeginn: Pos Y (Hoch/Runter)" },
+                    "z": { "title": "Stehbeginn: Pos Z (Vorwärts/Rückwärts)" }
+                },
+                "rotation": {
+                    "x": { "title": "Stehbeginn: Gier (Links/Rechts)" },
+                    "y": { "title": "Stehbeginn: Nick (Hoch/Runter)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "Sofa (Sitz) Hauptposition auf dem Sofa",
+                "enabled": { "title": "Sofa aktivieren" },
+                "position": {
+                    "x": { "title": "Sofa (Sitz 1): Pos X (Rechts/Links)" },
+                    "y": { "title": "Sofa (Sitz 1): Pos Y (Hoch/Runter)" },
+                    "z": { "title": "Sofa (Sitz 1): Pos Z (Vorwärts/Rückwärts)" }
+                },
+                "rotation": {
+                    "x": { "title": "Sofa (Sitz 1): Gier (Links/Rechts)" },
+                    "y": { "title": "Sofa (Sitz 1): Nick (Hoch/Runter)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "Sofa (Liegend)",
+                "enabled": { "title": "Liegeposition aktivieren" },
+                "position": {
+                    "x": { "title": "Sofa (liegend): Pos X (Rechts/Links)" },
+                    "y": { "title": "Sofa (liegend): Pos Y (Hoch/Runter)" },
+                    "z": { "title": "Sofa (liegend): Pos Z (Vorwärts/Rückwärts)" }
+                },
+                "rotation": {
+                    "x": { "title": "Sofa (liegend): Gier (Links/Rechts)" },
+                    "y": { "title": "Sofa (liegend): Nick (Hoch/Runter)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "Sofa (Sitz 2)",
+                "enabled": { "title": "Aktivieren (Sitz 2)" },
+                "position": {
+                    "x": { "title": "Sofa (Sitz 2): Pos X (Rechts/Links)" },
+                    "y": { "title": "Sofa (Sitz 2): Pos Y (Hoch/Runter)" },
+                    "z": { "title": "Sofa (Sitz 2): Pos Z (Vorwärts/Rückwärts)" }
+                },
+                "rotation": {
+                    "x": { "title": "Sofa (Sitz 2): Gier (Links/Rechts)" },
+                    "y": { "title": "Sofa (Sitz 2): Nick (Hoch/Runter)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "Animationsdauern",
+            "main_animation_speed": {
+                "title": "Hauptanimationsgeschwindigkeit",
+                "driver_to_passenger": { "title": "Fahrer -> Beifahrer", "desc": "Dauer der Animation vom Fahrersitz zum Beifahrersitz." },
+                "passenger_to_driver": { "title": "Beifahrer -> Fahrer", "desc": "Dauer der Animation vom Beifahrersitz zum Fahrersitz." },
+                "driver_to_standing": { "title": "Fahrer -> Stehend", "desc": "Dauer der Animation vom Fahrersitz zur Stehposition." },
+                "standing_to_driver": { "title": "Stehend -> Fahrer", "desc": "Dauer der Animation von der Stehposition zum Fahrersitz." },
+                "passenger_to_standing": { "title": "Beifahrer -> Stehend", "desc": "Dauer der Animation vom Beifahrersitz zur Stehposition." },
+                "standing_to_passenger": { "title": "Stehend -> Beifahrer", "desc": "Dauer der Animation von der Stehposition zum Beifahrersitz." },
+                "standing_to_sofa": { "title": "Stehend -> Sofa", "desc": "Dauer der Animation von der Stehposition zum Sofa." },
+                "sofa_to_standing": { "title": "Sofa -> Stehend", "desc": "Dauer der Animation vom Sofa zur Stehposition." }
+            },
+            "sofa_animation_speed": {
+                "title": "Sofa-Animationsgeschwindigkeit",
+                "sofa_sit1_to_lie": { "title": "Sofa (Sitz 1) -> Liegend", "desc": "Dauer der Animation von der ersten Sitzposition zur Liegeposition auf dem Sofa." },
+                "sofa_lie_to_sit2": { "title": "Sofa (Liegend) -> Sitz 2", "desc": "Dauer der Animation von der Liegeposition zur zweiten Sitzposition auf dem Sofa." },
+                "sofa_sit2_to_sit1": { "title": "Sofa (Sitz 2) -> Sitz 1", "desc": "Dauer der Animation von der zweiten Sitzposition zur ersten Sitzposition auf dem Sofa." },
+                "sofa_lie_to_sit1_shortcut": { "title": "Sofa (Liegend) -> Sitz 1 (Abkürzung)", "desc": "Dauer der Animation von der Liegeposition zur ersten Sitzposition." }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "Hocken/Stehen-Animationsgeschwindigkeit",
+                "crouch": { "title": "Hock-Übergang", "desc": "Dauer der Animation beim Hocken oder Aufstehen." },
+                "tiptoe": { "title": "Zehenspitzen-Übergang", "desc": "Dauer der Animation beim auf die Zehenspitzen stellen oder in die normale Haltung zurückkehren." }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "Gehanimationsgeschwindigkeit",
+            "walk_step": { "title": "Gehen: Schrittdauer", "desc": "Dauer eines einzelnen Gehschritts." },
+            "walk_first_step_base": { "title": "Gehen: Basisdauer des ersten Schritts", "desc": "Basisdauer des ersten Schritts beim Losgehen." },
+            "walk_first_step_turn_extra": { "title": "Gehen: Zusätzliche Dauer für Drehung", "desc": "Zusätzliche Zeit, die dem ersten Schritt beim Drehen während des Gehens hinzugefügt wird." }
+        },
+        "standing_movement": {
+            "title": "Bewegung im Stehen",
+            "walking": {
+                "title": "Gehen",
+                "step_amount": {
+                    "title": "Schrittlänge",
+                    "desc": "Wie weit jeder Schritt die Kamera vorwärts/rückwärts bewegt."
+                },
+                "bob_amount": {
+                    "title": "Wackelbetrag",
+                    "desc": "Das Ausmaß des Auf- und Abschwankens der Kamera beim Gehen."
+                },
+                "walk_zone_z": {
+                    "title": "Gehzone",
+                    "desc": "Definiert die Vorwärts-/Rückwärtsbewegungsgrenzen relativ zur Kabinenmitte.",
+                    "min": { "title": "Hintere Grenze" },
+                    "max": { "title": "Vordere Grenze" }
+                }
+            },
+            "stance_control": {
+                "title": "Haltungssteuerung",
+                "hold_time_ms": {
+                    "title": "Haltezeit des Auslösers",
+                    "desc": "Wie lange Sie nach oben/unten schauen müssen, um die Haltung zu ändern."
+                },
+                "activation_angle": {
+                    "desc": "Der Neigungswinkel der Kamera, der zur Aktivierung der Haltung erforderlich ist."
+                },
+                "deactivation_angle": {
+                    "desc": "Der Neigungswinkel der Kamera, der zur Rückkehr in eine neutrale Haltung erforderlich ist."
+                },
+                "crouch": {
+                    "title": "Hocken",
+                    "depth": {
+                        "title": "Hocktiefe",
+                        "desc": "Wie tief die Kamera beim Hocken sinkt."
+                    },
+                    "activation_angle": { "title": "Aktivierungswinkel Hocken" },
+                    "deactivation_angle": { "title": "Aufstehwinkel" }
+                },
+                "tiptoe": {
+                    "title": "Zehenspitzen",
+                    "height": {
+                        "title": "Zehenspitzenhöhe",
+                        "desc": "Wie hoch die Kamera auf Zehenspitzen steigt."
+                    },
+                    "activation_angle": { "title": "Aktivierungswinkel Zehenspitzen" },
+                    "deactivation_angle": { "title": "Abstellwinkel" }
+                }
+            }
+        }
+    }
+}

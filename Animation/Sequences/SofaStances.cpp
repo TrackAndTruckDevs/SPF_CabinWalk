@@ -1,5 +1,5 @@
 #include "SofaStances.hpp"
-#include "Animation/AnimationConfig.hpp"
+#include "SPF_CabinWalk.hpp"
 #include "Animation/Track.hpp"
 #include "Animation/Easing/Easing.hpp"
 
@@ -11,7 +11,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(5000000);
+        seq->Initialize(g_ctx.settings.animation_durations.sofa_animation_speed.sofa_sit1_to_lie * 1000);
 
         // --- Position X (Sliding along the sofa) ---
         {
@@ -68,7 +68,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(2500000);
+        seq->Initialize(g_ctx.settings.animation_durations.sofa_animation_speed.sofa_lie_to_sit2 * 1000);
 
         // --- Position X (Sliding to the new spot) ---
         {
@@ -122,7 +122,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(1200000); // 1.2 seconds for a shorter slide
+        seq->Initialize(g_ctx.settings.animation_durations.sofa_animation_speed.sofa_sit2_to_sit1 * 1000);
 
         // --- Position X (Sliding back to the first spot) ---
         {
@@ -175,8 +175,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(2800000); // 2.8 seconds for sit up + slide
-
+        seq->Initialize(g_ctx.settings.animation_durations.sofa_animation_speed.sofa_lie_to_sit1_shortcut * 1000);
         // --- Position X (Slide from lie spot to sit spot) ---
         {
             auto track = std::make_unique<Animation::Track<float>>();
@@ -222,6 +221,61 @@ namespace SPF_CabinWalk::AnimationSequences
             track->AddKeyframe({0.6f, target_state.rotation.x - 1.0f, Easing::easeInCubic}); // Turn head while sitting up
             track->AddKeyframe({1.0f, target_state.rotation.x, Easing::linear});
             seq->AddRotationYawTrack(std::move(track));
+        }
+
+        return seq;
+    }
+
+    std::unique_ptr<Animation::AnimationSequence> CreateSofaSit1ToSit2Sequence(
+        const Animation::CurrentCameraState& start_state,
+        const Animation::CurrentCameraState& target_state
+    )
+    {
+        auto seq = std::make_unique<Animation::AnimationSequence>();
+        // Using the same duration as the reverse animation for now. 
+        // A dedicated setting could be added later if needed (e.g. sofa_sit1_to_sit2).
+        seq->Initialize(g_ctx.settings.animation_durations.sofa_animation_speed.sofa_sit2_to_sit1 * 1000);
+
+        // --- Position X (Sliding to the second spot) ---
+        {
+            auto track = std::make_unique<Animation::Track<float>>();
+            track->AddKeyframe({0.0f, start_state.position.x, Easing::easeOutCubic});
+            track->AddKeyframe({1.0f, target_state.position.x, Easing::easeInOutCubic});
+            seq->AddPositionXTrack(std::move(track));
+        }
+
+        // --- Position Y (Slight push-up to move) ---
+        {
+            auto track = std::make_unique<Animation::Track<float>>();
+            track->AddKeyframe({0.0f, start_state.position.y, Easing::easeInQuad});
+            track->AddKeyframe({0.5f, start_state.position.y + 0.05f, Easing::easeOutQuad}); // Push up
+            track->AddKeyframe({1.0f, target_state.position.y, Easing::easeInCubic}); // Settle down
+            seq->AddPositionYTrack(std::move(track));
+        }
+
+        // --- Position Z (Stays constant) ---
+        {
+            auto track = std::make_unique<Animation::Track<float>>();
+            track->AddKeyframe({0.0f, start_state.position.z, Easing::linear});
+            track->AddKeyframe({1.0f, target_state.position.z, Easing::linear});
+            seq->AddPositionZTrack(std::move(track));
+        }
+
+        // --- Rotation Yaw (Slight head turn during slide) ---
+        {
+            auto track = std::make_unique<Animation::Track<float>>();
+            track->AddKeyframe({0.0f, start_state.rotation.x, Easing::easeOutCubic});
+            track->AddKeyframe({0.4f, start_state.rotation.x + 0.15f, Easing::easeOutQuad}); // Look towards destination
+            track->AddKeyframe({1.0f, target_state.rotation.x, Easing::easeInQuad});
+            seq->AddRotationYawTrack(std::move(track));
+        }
+
+        // --- Rotation Pitch (Keep it steady) ---
+        {
+            auto track = std::make_unique<Animation::Track<float>>();
+            track->AddKeyframe({0.0f, start_state.rotation.y, Easing::easeOutCubic});
+            track->AddKeyframe({1.0f, target_state.rotation.y, Easing::easeInCubic});
+            seq->AddRotationPitchTrack(std::move(track));
         }
 
         return seq;

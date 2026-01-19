@@ -37,4 +37,12 @@ namespace SPF_CabinWalk::AnimationSequences
         const Animation::CurrentCameraState& target_state
     );
 
+    /**
+     * @brief Creates the animation sequence for transitioning from Sit1 to Sit2 on the sofa.
+     */
+    std::unique_ptr<Animation::AnimationSequence> CreateSofaSit1ToSit2Sequence(
+        const Animation::CurrentCameraState& start_state,
+        const Animation::CurrentCameraState& target_state
+    );
+
 } // namespace SPF_CabinWalk::AnimationSequences

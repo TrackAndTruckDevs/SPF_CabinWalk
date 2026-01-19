@@ -64,6 +64,11 @@ namespace SPF_CabinWalk::Offsets
         if (!last_pattern_addr) { g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_ERROR, "[Offsets] Could not find G_END_AZIMUTH_SIGNATURE."); return false; }
         g_offsets.end_azimuth_offset = *(uint8_t*)(last_pattern_addr + 7);
 
+        // --- Find azimuth_outside_flag_offset (0x18) ---
+        uintptr_t outside_flag_addr = hooks_api->FindPatternFrom(G_AZIMUTH_OUTSIDE_FLAG_SIGNATURE, interior_cam_fn_address, 200);
+        if (!outside_flag_addr) { g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_ERROR, "[Offsets] Could not find G_AZIMUTH_OUTSIDE_FLAG_SIGNATURE."); return false; }
+        g_offsets.azimuth_outside_flag_offset = *(uint8_t*)(outside_flag_addr + 10);
+
         // --- Find head_offsets (0x3C and 0x48) ---
         uintptr_t pattern_addr = hooks_api->FindPatternFrom(G_HEAD_OFFSETS_SIGNATURE, last_pattern_addr, 100);
         if (!pattern_addr) { g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_ERROR, "[Offsets] Could not find G_HEAD_OFFSETS_SIGNATURE."); return false; }
@@ -92,12 +97,12 @@ namespace SPF_CabinWalk::Offsets
             char log_buffer[512];
             g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer), 
                 "[Offsets] All offsets found dynamically. "
-                "start_azimuth: 0x%X, end_azimuth: 0x%X, "
+                "start_azimuth: 0x%X, end_azimuth: 0x%X, azimuth_outside_flag: 0x%X, "
                 "azimuth_array: 0x%X, azimuth_count: 0x%X, "
                 "start_head_x: 0x%X, end_head_x: 0x%X, "
                 "pivot: 0x%X, "
                 "CacheExtSoundFn: 0x%llX",
-                g_offsets.start_azimuth_offset, g_offsets.end_azimuth_offset,
+                g_offsets.start_azimuth_offset, g_offsets.end_azimuth_offset, g_offsets.azimuth_outside_flag_offset,
                 g_offsets.azimuth_array_offset, g_offsets.azimuth_count_offset,
                 g_offsets.start_head_offset_x_offset, g_offsets.end_head_offset_x_offset,
                 g_offsets.camera_pivot_offset, 

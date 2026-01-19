@@ -34,7 +34,7 @@
 // If an API is only used in the .cpp implementation (e.g., for a commented-out function body),
 
 #include <SPF_Config_API.h> // For SPF_Config_Handle
-// #include <SPF_Localization_API.h>   // For SPF_Localization_Handle
+#include <SPF_Localization_API.h>   // For SPF_Localization_Handle
 #include <SPF_KeyBinds_API.h>  // For SPF_KeyBinds_Handle
 #include <SPF_UI_API.h>        // For SPF_UI_API, SPF_Window_Handle
 #include <SPF_Telemetry_API.h> // For SPF_Telemetry_Handle
@@ -43,7 +43,7 @@
 // #include <SPF_VirtInput_API.h>      // For SPF_VirtualDevice_Handle
 #include <SPF_Camera_API.h> // For SPF_Camera_API
 // #include <SPF_GameLog_API.h>        // For SPF_GameLog_Callback_Handle
-// #include <SPF_JsonReader_API.h>     // For SPF_JsonValue_Handle, SPF_JsonReader_API (often with OnSettingChanged)
+#include <SPF_JsonReader_API.h>     // For SPF_JsonValue_Handle, SPF_JsonReader_API (often with OnSettingChanged)
 
 // =================================================================================================
 // 2. Standard Library Includes
@@ -59,14 +59,125 @@ struct AzimuthBackup {
     float end;
     SPF_FVector start_head_offset;
     SPF_FVector end_head_offset;
+    char outside_flag; // Added to store the byte at 0x18
 };
 
 namespace SPF_CabinWalk
 {
+    enum CabinLayout
+    {
+        LHD = 0,
+        RHD = 1
+    };
 
-  // =================================================================================================
-  // 3. Core Plugin Architecture
-  // =================================================================================================
+    // =================================================================================================
+    // 3. Core Plugin Architecture
+    // =================================================================================================
+
+    // --- App-wide Settings Structure ---
+
+    struct AppSettings
+    {
+        struct General
+        {
+            int32_t warning_duration_ms;
+            int32_t cabin_layout;
+            float height;
+        } general;
+      struct PositionSetting
+      {
+          bool enabled;
+          SPF_FVector position;
+          SPF_FVector rotation;
+      };
+
+      struct Positions
+      {
+          PositionSetting passenger_seat;
+          PositionSetting standing;
+          PositionSetting sofa_sit1;
+          PositionSetting sofa_lie;
+          PositionSetting sofa_sit2;
+      } positions;
+
+      struct AnimationDurations
+      {
+          struct MainAnimationSpeed
+          {
+              int32_t driver_to_passenger;
+              int32_t passenger_to_driver;
+              int32_t driver_to_standing;
+              int32_t standing_to_driver;
+              int32_t passenger_to_standing;
+              int32_t standing_to_passenger;
+              int32_t standing_to_sofa;
+              int32_t sofa_to_standing;
+          } main_animation_speed;
+
+          struct SofaAnimationSpeed
+          {
+              int32_t sofa_sit1_to_lie;
+              int32_t sofa_lie_to_sit2;
+              int32_t sofa_sit2_to_sit1;
+              int32_t sofa_lie_to_sit1_shortcut;
+          } sofa_animation_speed;
+
+          struct CrouchAndStandAnimationSpeed
+          {
+              int32_t crouch;
+              int32_t tiptoe;
+          } crouch_and_stand_animation_speed;
+
+      } animation_durations;
+
+      struct WalkingAnimationSpeed
+      {
+          int32_t walk_step;
+          int32_t walk_first_step_base;
+          int32_t walk_first_step_turn_extra;
+      } walking_animation_speed;      
+
+      struct StandingMovement
+      {
+          struct Walking
+          {
+              float step_amount;
+              float bob_amount;
+              struct WalkZone
+              {
+                  float min;
+                  float max;
+              } walk_zone_z;
+          } walking;
+
+          struct StanceControl
+          {
+              int32_t hold_time_ms;
+              struct Crouch
+              {
+                  float depth;
+                  float activation_angle;
+                  float deactivation_angle;
+              } crouch;
+
+              struct Tiptoe
+              {
+                  float height;
+                  float activation_angle;
+                  float deactivation_angle;
+              } tiptoe;
+          } stance_control;
+      } standing_movement;
+
+      struct SofaLimits
+      {
+          float yaw_left;
+          float yaw_right;
+          float pitch_up;
+          float pitch_down;
+      } sofa_limits;
+  };
+
 
   // --- Plugin Context ---
 
@@ -80,6 +191,9 @@ namespace SPF_CabinWalk
    */
   struct PluginContext
   {
+    // --- App Settings ---
+    AppSettings settings;
+
     // --- Primary API Pointers (Essential) ---
     // These are the main gateways to the framework's functionality, provided during
     // the plugin's lifecycle.
@@ -95,8 +209,10 @@ namespace SPF_CabinWalk
     // Uncomment these members if your plugin uses the corresponding API.
     // Remember to also uncomment the relevant #include directives in this .hpp file.
 
+    const SPF_Config_API* configAPI = nullptr;
     SPF_Config_Handle *configHandle = nullptr; // Requires: SPF_Config_API.h
-    // SPF_Localization_Handle* localizationHandle = nullptr; // Requires: SPF_Localization_API.h
+    const SPF_JsonReader_API* jsonReaderAPI = nullptr;
+    SPF_Localization_Handle* localizationHandle = nullptr; // Requires: SPF_Localization_API.h
     SPF_KeyBinds_Handle *keybindsHandle = nullptr;    // Requires: SPF_KeyBinds_API.h
     SPF_UI_API *uiAPI = nullptr;                      // Requires: SPF_UI_API.h
     SPF_Window_Handle *warningWindowHandle = nullptr; // Requires: SPF_UI_API.h
@@ -131,7 +247,6 @@ namespace SPF_CabinWalk
 
     bool is_warning_active = false;
     uint64_t warning_start_time = 0;
-    uint32_t warning_duration_ms = 3000000; // 3 seconds, where 1 sec = 100,000 units
 
     SPF_TruckData last_truck_data = {0}; // Cache for last known truck data
       };  /**
@@ -184,6 +299,13 @@ namespace SPF_CabinWalk
    */
   void OnUnload();
 
+  /**
+   * @brief Loads all plugin settings from the configuration system into g_ctx.settings.
+   * @param configAPI The config API interface.
+   * @param configHandle The configuration context handle for this plugin.
+   */
+  void LoadSettings(const SPF_Config_API* configAPI, SPF_Config_Handle* configHandle);
+
   // =================================================================================================
   // 4.1. Function Prototypes - Optional Callbacks (Commented Out)
   // =================================================================================================
@@ -205,7 +327,7 @@ namespace SPF_CabinWalk
    * @param config_handle The configuration context handle for this plugin.
    * @param keyPath The full path to the setting that changed (e.g., "settings.some_bool").
    */
-  // void OnSettingChanged(SPF_Config_Handle *config_handle, const char *keyPath);
+  void OnSettingChanged(SPF_Config_Handle *config_handle, const char *keyPath);
 
   /**
    * @brief Called once to allow the plugin to register its UI rendering callbacks.

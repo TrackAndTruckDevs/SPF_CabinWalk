@@ -30,6 +30,10 @@ namespace SPF_CabinWalk::Offsets
     // Used to get `end_azimuth_offset` (0x14).
     const char *const G_END_AZIMUTH_SIGNATURE = "0f 57 db f3 0f 10";
 
+    // Finds `CMP byte ptr [RCX + ?], 0x0` followed by `MOVZX EAX, byte ptr [RDX + 0x18]`.
+    // Used to get `azimuth_outside_flag_offset` (0x18).
+    const char* const G_AZIMUTH_OUTSIDE_FLAG_SIGNATURE = "80 B9 ?? ?? ?? ?? ?? 0F B6";
+
     // Finds the entire block that reads both start and end head offsets to ensure uniqueness.
     // Used to find `start_head_offset_x_offset` (from `MOVSD XMM0, qword ptr [RDX + 0x3C]`)
     // and `end_head_offset_x_offset` (from `MOVSD XMM0, qword ptr [RDX + 0x48]`).
@@ -62,6 +66,7 @@ namespace SPF_CabinWalk::Offsets
         // --- Dynamically Found Offsets (from Azimuth Struct) ---
         uint32_t start_azimuth_offset;       // Offset within an azimuth struct to the start angle
         uint32_t end_azimuth_offset;         // Offset within an azimuth struct to the end angle
+        uint32_t azimuth_outside_flag_offset; // Offset within an azimuth struct to the outside flag
         uint32_t start_head_offset_x_offset; // Offset within an azimuth struct to the start head_offset vector
         uint32_t end_head_offset_x_offset;   // Offset within an azimuth struct to the end head_offset vector
 

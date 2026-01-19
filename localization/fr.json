@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "Ukrainien",
+        "en": "Anglais",
+        "fr": "Français",
+        "de": "Allemand",
+        "it": "Italien",
+        "es": "Espagnol",
+        "zh": "Chinois",
+        "ja": "Japonais",
+        "ru": "Russe",
+        "pl": "Polonais",
+        "nl": "Néerlandais",
+        "pt": "Portugais",
+        "tr": "Turc"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "Veuillez vous arrêter et serrer le frein de stationnement !"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "Aller au siège passager",
+            "desc": "Déplace la caméra vers le siège passager."
+        },
+        "moveToDriverSeat": {
+            "title": "Aller au siège conducteur",
+            "desc": "Déplace la caméra vers le siège du conducteur."
+        },
+        "moveToStandingPosition": {
+            "title": "Se mettre debout | Marcher en avant",
+            "desc": "Déplace la caméra en position debout dans la cabine. En position debout, utilisé pour marcher."
+        },
+        "cycleSofaPositions": {
+            "title": "Aller au canapé | Changer de position sur le canapé",
+            "desc": "Déplace la caméra vers le canapé. Sur le canapé, change les positions (assis, allongé)."
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "Général",
+            "warning_duration_ms": {
+                "title": "Durée de l'avertissement",
+                "desc": "Durée d'affichage de l'avertissement 'déplacement non sécurisé'."
+            },
+            "cabin_layout": {
+                "title": "Configuration de la cabine",
+                "desc": "Réglez le côté du volant pour des animations correctes.",
+                "lhd": "Conduite à gauche",
+                "rhd": "Conduite à droite"
+            },
+            "height": {
+                "title": "Hauteur",
+                "desc": "À quelle hauteur la caméra s'élève-t-elle dans les animations (simule la taille humaine)."
+            }
+        },
+        "positions": {
+            "title": "Positions de la caméra",
+            "position_group": { "title": "Position (X, Y, Z)" },
+            "rotation_group": { "title": "Rotation (Lacet, Tangage)" },
+            "enabled": {
+                "desc": "Activer ou désactiver cette position de caméra."
+            },
+            "coord": {
+                "desc": "Coordonnée de position"
+            },
+            "rot": {
+                "desc": "Coordonnée de rotation (Lacet/Tangage)"
+            },
+            "passenger_seat": {
+                "title": "Siège passager",
+                "enabled": { "title": "Activer le siège passager" },
+                "position": {
+                    "x": { "title": "Siège passager: Pos X (Droite/Gauche)" },
+                    "y": { "title": "Siège passager: Pos Y (Haut/Bas)" },
+                    "z": { "title": "Siège passager: Pos Z (Avant/Arrière)" }
+                },
+                "rotation": {
+                    "x": { "title": "Siège passager: Lacet (Gauche/Droite)" },
+                    "y": { "title": "Siège passager: Tangage (Haut/Bas)" }
+                }
+            },
+            "standing": {
+                "title": "Position debout",
+                "enabled": { "title": "Activer la position debout" },
+                "position": {
+                    "x": { "title": "Début debout: Pos X (Droite/Gauche)" },
+                    "y": { "title": "Début debout: Pos Y (Haut/Bas)" },
+                    "z": { "title": "Début debout: Pos Z (Avant/Arrière)" }
+                },
+                "rotation": {
+                    "x": { "title": "Début debout: Lacet (Gauche/Droite)" },
+                    "y": { "title": "Début debout: Tangage (Haut/Bas)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "Canapé (Assis) Position principale sur le canapé",
+                "enabled": { "title": "Activer le canapé" },
+                "position": {
+                    "x": { "title": "Canapé (assis 1): Pos X (Droite/Gauche)" },
+                    "y": { "title": "Canapé (assis 1): Pos Y (Haut/Bas)" },
+                    "z": { "title": "Canapé (assis 1): Pos Z (Avant/Arrière)" }
+                },
+                "rotation": {
+                    "x": { "title": "Canapé (assis 1): Lacet (Gauche/Droite)" },
+                    "y": { "title": "Canapé (assis 1): Tangage (Haut/Bas)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "Canapé (Allongé)",
+                "enabled": { "title": "Activer la position allongée" },
+                "position": {
+                    "x": { "title": "Canapé (allongé): Pos X (Droite/Gauche)" },
+                    "y": { "title": "Canapé (allongé): Pos Y (Haut/Bas)" },
+                    "z": { "title": "Canapé (allongé): Pos Z (Avant/Arrière)" }
+                },
+                "rotation": {
+                    "x": { "title": "Canapé (allongé): Lacet (Gauche/Droite)" },
+                    "y": { "title": "Canapé (allongé): Tangage (Haut/Bas)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "Canapé (Assis 2)",
+                "enabled": { "title": "Activer (assis 2)" },
+                "position": {
+                    "x": { "title": "Canapé (assis 2): Pos X (Droite/Gauche)" },
+                    "y": { "title": "Canapé (assis 2): Pos Y (Haut/Bas)" },
+                    "z": { "title": "Canapé (assis 2): Pos Z (Avant/Arrière)" }
+                },
+                "rotation": {
+                    "x": { "title": "Canapé (assis 2): Lacet (Gauche/Droite)" },
+                    "y": { "title": "Canapé (assis 2): Tangage (Haut/Bas)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "Durées d'animation",
+            "main_animation_speed": {
+                "title": "Vitesse de l'animation principale",
+                "driver_to_passenger": { "title": "Conducteur -> Passager", "desc": "Durée de l'animation du siège conducteur au siège passager." },
+                "passenger_to_driver": { "title": "Passager -> Conducteur", "desc": "Durée de l'animation du siège passager au siège conducteur." },
+                "driver_to_standing": { "title": "Conducteur -> Debout", "desc": "Durée de l'animation du siège conducteur à la position debout." },
+                "standing_to_driver": { "title": "Debout -> Conducteur", "desc": "Durée de l'animation de la position debout au siège conducteur." },
+                "passenger_to_standing": { "title": "Passager -> Debout", "desc": "Durée de l'animation du siège passager à la position debout." },
+                "standing_to_passenger": { "title": "Debout -> Passager", "desc": "Durée de l'animation de la position debout au siège passager." },
+                "standing_to_sofa": { "title": "Debout -> Canapé", "desc": "Durée de l'animation de la position debout au canapé." },
+                "sofa_to_standing": { "title": "Canapé -> Debout", "desc": "Durée de l'animation du canapé à la position debout." }
+            },
+            "sofa_animation_speed": {
+                "title": "Vitesse d'animation du canapé",
+                "sofa_sit1_to_lie": { "title": "Canapé (Assis 1) -> Allongé", "desc": "Durée de l'animation de la première position assise à la position allongée sur le canapé." },
+                "sofa_lie_to_sit2": { "title": "Canapé (Allongé) -> Assis 2", "desc": "Durée de l'animation de la position allongée à la deuxième position assise sur le canapé." },
+                "sofa_sit2_to_sit1": { "title": "Canapé (Assis 2) -> Assis 1", "desc": "Durée de l'animation de la deuxième position assise à la première position assise sur le canapé." },
+                "sofa_lie_to_sit1_shortcut": { "title": "Canapé (Allongé) -> Assis 1 (Raccourci)", "desc": "Durée de l'animation directe de la position allongée à la première position assise." }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "Vitesse d'animation Accroupi/Debout",
+                "crouch": { "title": "Transition Accroupi", "desc": "Durée de l'animation pour s'accroupir ou se relever." },
+                "tiptoe": { "title": "Transition Pointe des pieds", "desc": "Durée de l'animation pour se mettre sur la pointe des pieds ou revenir à une position normale." }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "Vitesse d'animation de la marche",
+            "walk_step": { "title": "Marche : Durée du pas", "desc": "Durée d'un seul pas de marche." },
+            "walk_first_step_base": { "title": "Marche : Durée de base du premier pas", "desc": "Durée de base du premier pas au début de la marche." },
+            "walk_first_step_turn_extra": { "title": "Marche : Durée supplémentaire pour tourner", "desc": "Temps supplémentaire ajouté au premier pas lors d'un virage en marchant." }
+        },
+        "standing_movement": {
+            "title": "Mouvement en position debout",
+            "walking": {
+                "title": "Marche",
+                "step_amount": {
+                    "title": "Ampleur du pas",
+                    "desc": "Distance de déplacement de la caméra à chaque pas en avant/arrière."
+                },
+                "bob_amount": {
+                    "title": "Amplitude du balancement",
+                    "desc": "Ampleur du balancement de la caméra de haut en bas lors de la marche."
+                },
+                "walk_zone_z": {
+                    "title": "Zone de marche",
+                    "desc": "Définit les limites de mouvement avant/arrière par rapport au centre de la cabine.",
+                    "min": { "title": "Limite arrière" },
+                    "max": { "title": "Limite avant" }
+                }
+            },
+            "stance_control": {
+                "title": "Contrôle de la posture",
+                "hold_time_ms": {
+                    "title": "Temps de maintien du déclencheur",
+                    "desc": "Combien de temps vous devez regarder vers le haut/bas pour changer de posture."
+                },
+                "activation_angle": {
+                    "desc": "Angle de tangage de la caméra requis pour activer la posture."
+                },
+                "deactivation_angle": {
+                    "desc": "Angle de tangage de la caméra requis pour revenir à une posture neutre."
+                },
+                "crouch": {
+                    "title": "S'accroupir",
+                    "depth": {
+                        "title": "Profondeur d'accroupissement",
+                        "desc": "À quelle profondeur la caméra descend en s'accroupissant."
+                    },
+                    "activation_angle": { "title": "Angle d'activation de l'accroupissement" },
+                    "deactivation_angle": { "title": "Angle pour se relever" }
+                },
+                "tiptoe": {
+                    "title": "Sur la pointe des pieds",
+                    "height": {
+                        "title": "Hauteur sur la pointe des pieds",
+                        "desc": "À quelle hauteur la caméra monte sur la pointe des pieds."
+                    },
+                    "activation_angle": { "title": "Angle d'activation de la pointe des pieds" },
+                    "deactivation_angle": { "title": "Angle pour redescendre" }
+                }
+            }
+        }
+    }
+}

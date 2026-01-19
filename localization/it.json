@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "Ucraino",
+        "en": "Inglese",
+        "fr": "Francese",
+        "de": "Tedesco",
+        "it": "Italiano",
+        "es": "Spagnolo",
+        "zh": "Cinese",
+        "ja": "Giapponese",
+        "ru": "Russo",
+        "pl": "Polacco",
+        "nl": "Olandese",
+        "pt": "Portoghese",
+        "tr": "Turco"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "Si prega di fermarsi e inserire il freno di stazionamento!"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "Spostati al sedile del passeggero",
+            "desc": "Sposta la telecamera sul sedile del passeggero."
+        },
+        "moveToDriverSeat": {
+            "title": "Spostati al sedile del conducente",
+            "desc": "Sposta la telecamera sul sedile del conducente."
+        },
+        "moveToStandingPosition": {
+            "title": "Spostati in posizione eretta | Cammina in avanti",
+            "desc": "Sposta la telecamera in una posizione eretta nella cabina. In piedi, usato per camminare."
+        },
+        "cycleSofaPositions": {
+            "title": "Spostati sul divano | Cambia posizione sul divano",
+            "desc": "Sposta la telecamera sul divano. Sul divano, alterna le posizioni (seduto, sdraiato)."
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "Generale",
+            "warning_duration_ms": {
+                "title": "Durata avviso",
+                "desc": "Per quanto tempo viene visualizzato l'avviso 'movimento non sicuro'."
+            },
+            "cabin_layout": {
+                "title": "Disposizione cabina",
+                "desc": "Imposta il lato del volante per animazioni corrette.",
+                "lhd": "Guida a sinistra",
+                "rhd": "Guida a destra"
+            },
+            "height": {
+                "title": "Altezza",
+                "desc": "Quanto in alto si alza la telecamera nelle animazioni (simula l'altezza umana)."
+            }
+        },
+        "positions": {
+            "title": "Posizioni telecamera",
+            "position_group": { "title": "Posizione (X, Y, Z)" },
+            "rotation_group": { "title": "Rotazione (Imbardata, Beccheggio)" },
+            "enabled": {
+                "desc": "Abilita o disabilita questa posizione della telecamera."
+            },
+            "coord": {
+                "desc": "Coordinata di posizione"
+            },
+            "rot": {
+                "desc": "Coordinata di rotazione (Imbardata/Beccheggio)"
+            },
+            "passenger_seat": {
+                "title": "Sedile del passeggero",
+                "enabled": { "title": "Abilita sedile passeggero" },
+                "position": {
+                    "x": { "title": "Sedile passeggero: Pos X (Destra/Sinistra)" },
+                    "y": { "title": "Sedile passeggero: Pos Y (Su/Giù)" },
+                    "z": { "title": "Sedile passeggero: Pos Z (Avanti/Indietro)" }
+                },
+                "rotation": {
+                    "x": { "title": "Sedile passeggero: Imbardata (Sinistra/Destra)" },
+                    "y": { "title": "Sedile passeggero: Beccheggio (Su/Giù)" }
+                }
+            },
+            "standing": {
+                "title": "Posizione in piedi",
+                "enabled": { "title": "Abilita posizione in piedi" },
+                "position": {
+                    "x": { "title": "Inizio in piedi: Pos X (Destra/Sinistra)" },
+                    "y": { "title": "Inizio in piedi: Pos Y (Su/Giù)" },
+                    "z": { "title": "Inizio in piedi: Pos Z (Avanti/Indietro)" }
+                },
+                "rotation": {
+                    "x": { "title": "Inizio in piedi: Imbardata (Sinistra/Destra)" },
+                    "y": { "title": "Inizio in piedi: Beccheggio (Su/Giù)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "Divano (Seduto) Posizione principale sul divano",
+                "enabled": { "title": "Abilita divano" },
+                "position": {
+                    "x": { "title": "Divano (seduta 1): Pos X (Destra/Sinistra)" },
+                    "y": { "title": "Divano (seduta 1): Pos Y (Su/Giù)" },
+                    "z": { "title": "Divano (seduta 1): Pos Z (Avanti/Indietro)" }
+                },
+                "rotation": {
+                    "x": { "title": "Divano (seduta 1): Imbardata (Sinistra/Destra)" },
+                    "y": { "title": "Divano (seduta 1): Beccheggio (Su/Giù)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "Divano (Sdraiato)",
+                "enabled": { "title": "Abilita posizione sdraiata" },
+                "position": {
+                    "x": { "title": "Divano (sdraiato): Pos X (Destra/Sinistra)" },
+                    "y": { "title": "Divano (sdraiato): Pos Y (Su/Giù)" },
+                    "z": { "title": "Divano (sdraiato): Pos Z (Avanti/Indietro)" }
+                },
+                "rotation": {
+                    "x": { "title": "Divano (sdraiato): Imbardata (Sinistra/Destra)" },
+                    "y": { "title": "Divano (sdraiato): Beccheggio (Su/Giù)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "Divano (Seduta 2)",
+                "enabled": { "title": "Abilita (seduta 2)" },
+                "position": {
+                    "x": { "title": "Divano (seduta 2): Pos X (Destra/Sinistra)" },
+                    "y": { "title": "Divano (seduta 2): Pos Y (Su/Giù)" },
+                    "z": { "title": "Divano (seduta 2): Pos Z (Avanti/Indietro)" }
+                },
+                "rotation": {
+                    "x": { "title": "Divano (seduta 2): Imbardata (Sinistra/Destra)" },
+                    "y": { "title": "Divano (seduta 2): Beccheggio (Su/Giù)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "Durate animazione",
+            "main_animation_speed": {
+                "title": "Velocità animazione principale",
+                "driver_to_passenger": { "title": "Conducente -> Passeggero", "desc": "Durata dell'animazione dal sedile del conducente a quello del passeggero." },
+                "passenger_to_driver": { "title": "Passeggero -> Conducente", "desc": "Durata dell'animazione dal sedile del passeggero a quello del conducente." },
+                "driver_to_standing": { "title": "Conducente -> In piedi", "desc": "Durata dell'animazione dal sedile del conducente alla posizione in piedi." },
+                "standing_to_driver": { "title": "In piedi -> Conducente", "desc": "Durata dell'animazione dalla posizione in piedi al sedile del conducente." },
+                "passenger_to_standing": { "title": "Passeggero -> In piedi", "desc": "Durata dell'animazione dal sedile del passeggero alla posizione in piedi." },
+                "standing_to_passenger": { "title": "In piedi -> Passeggero", "desc": "Durata dell'animazione dalla posizione in piedi al sedile del passeggero." },
+                "standing_to_sofa": { "title": "In piedi -> Divano", "desc": "Durata dell'animazione dalla posizione in piedi al divano." },
+                "sofa_to_standing": { "title": "Divano -> In piedi", "desc": "Durata dell'animazione dal divano alla posizione in piedi." }
+            },
+            "sofa_animation_speed": {
+                "title": "Velocità animazione divano",
+                "sofa_sit1_to_lie": { "title": "Divano (Seduto 1) -> Sdraiato", "desc": "Durata dell'animazione dalla prima posizione seduta a quella sdraiata sul divano." },
+                "sofa_lie_to_sit2": { "title": "Divano (Sdraiato) -> Seduto 2", "desc": "Durata dell'animazione dalla posizione sdraiata alla seconda posizione seduta sul divano." },
+                "sofa_sit2_to_sit1": { "title": "Divano (Seduto 2) -> Seduto 1", "desc": "Durata dell'animazione dalla seconda posizione seduta alla prima posizione seduta sul divano." },
+                "sofa_lie_to_sit1_shortcut": { "title": "Divano (Sdraiato) -> Seduto 1 (Scorciatoia)", "desc": "Durata dell'animazione dalla posizione sdraiata alla prima posizione seduta." }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "Velocità animazione Accovacciati/In piedi",
+                "crouch": { "title": "Transizione accovacciata", "desc": "Durata dell'animazione quando ci si accovaccia o ci si alza." },
+                "tiptoe": { "title": "Transizione in punta di piedi", "desc": "Durata dell'animazione quando si va in punta di piedi o si torna a una posizione normale." }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "Velocità animazione camminata",
+            "walk_step": { "title": "Camminata: Durata passo", "desc": "Durata di un singolo passo." },
+            "walk_first_step_base": { "title": "Camminata: Durata base primo passo", "desc": "Durata di base del primo passo all'inizio della camminata." },
+            "walk_first_step_turn_extra": { "title": "Camminata: Durata extra per girare", "desc": "Tempo aggiuntivo aggiunto al primo passo quando si gira camminando." }
+        },
+        "standing_movement": {
+            "title": "Movimento in piedi",
+            "walking": {
+                "title": "Camminata",
+                "step_amount": {
+                    "title": "Ampiezza passo",
+                    "desc": "Di quanto si sposta la telecamera a ogni passo avanti/indietro."
+                },
+                "bob_amount": {
+                    "title": "Ampiezza oscillazione",
+                    "desc": "L'entità dell'oscillazione su/giù della telecamera durante la camminata."
+                },
+                "walk_zone_z": {
+                    "title": "Zona di camminata",
+                    "desc": "Definisce i limiti di movimento avanti/indietro rispetto al centro della cabina.",
+                    "min": { "title": "Limite posteriore" },
+                    "max": { "title": "Limite anteriore" }
+                }
+            },
+            "stance_control": {
+                "title": "Controllo della postura",
+                "hold_time_ms": {
+                    "title": "Tempo di mantenimento del grilletto",
+                    "desc": "Per quanto tempo devi guardare in alto/basso per cambiare postura."
+                },
+                "activation_angle": {
+                    "desc": "L'angolo di beccheggio della telecamera necessario per attivare la postura."
+                },
+                "deactivation_angle": {
+                    "desc": "L'angolo di beccheggio della telecamera necessario per tornare a una postura neutra."
+                },
+                "crouch": {
+                    "title": "Accovacciarsi",
+                    "depth": {
+                        "title": "Profondità di accovacciamento",
+                        "desc": "Quanto in basso va la telecamera quando ci si accovaccia."
+                    },
+                    "activation_angle": { "title": "Angolo di attivazione accovacciamento" },
+                    "deactivation_angle": { "title": "Angolo per alzarsi" }
+                },
+                "tiptoe": {
+                    "title": "In punta di piedi",
+                    "height": {
+                        "title": "Altezza in punta di piedi",
+                        "desc": "Quanto in alto va la telecamera quando si è in punta di piedi."
+                    },
+                    "activation_angle": { "title": "Angolo di attivazione punta di piedi" },
+                    "deactivation_angle": { "title": "Angolo per scendere" }
+                }
+            }
+        }
+    }
+}

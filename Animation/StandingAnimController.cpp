@@ -4,21 +4,19 @@
 #include "Animation/Sequences/StandingStances.hpp"
 #include "Animation/AnimationSequence.hpp"
 #include "Animation/AnimationController.hpp"
-#include "Animation/AnimationConfig.hpp"
 #include "SPF_CabinWalk.hpp"
 
 #include <memory>
 
 namespace SPF_CabinWalk::StandingAnimController
 {
-    using namespace Animation::Config;
     // =================================================================================================
     // Internal State
     // =================================================================================================
     static PluginContext* g_stand_ctx = nullptr;
     static Stance g_current_stance = Stance::Standing;
-    static float g_target_walk_z = 0.0f; // New static variable to store the Z-coordinate target for walking
-    static AnimationController::CameraPosition g_final_destination; // For multi-stage transitions
+    static float g_target_walk_z = 0.0f;
+    static AnimationController::CameraPosition g_final_destination;
     static Stance g_transition_to_stance = Stance::Standing;
     static std::unique_ptr<Animation::AnimationSequence> g_active_sequence = nullptr;
     static uint64_t last_simulation_time = 0;
@@ -104,9 +102,9 @@ namespace SPF_CabinWalk::StandingAnimController
                     if (!g_active_sequence || !g_active_sequence->IsPlaying()) // Ensure no other animation is playing
                     {
                         const bool is_walking_forward = (current_state.rotation.x >= -M_PI_2 && current_state.rotation.x <= M_PI_2);
-                        const float next_z_pos = current_state.position.z + (is_walking_forward ? -Animation::Config::Walking::STEP_AMOUNT : Animation::Config::Walking::STEP_AMOUNT);
+                        const float next_z_pos = current_state.position.z + (is_walking_forward ? -g_stand_ctx->settings.standing_movement.walking.step_amount : g_stand_ctx->settings.standing_movement.walking.step_amount);
 
-                        if (next_z_pos >= Animation::Config::Walking::MIN_Z && next_z_pos <= Animation::Config::Walking::MAX_Z) // Check boundaries before triggering step
+                        if (next_z_pos >= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.min && next_z_pos <= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.max) // Check boundaries before triggering step
                         {
                             if (!g_has_taken_first_step)
                             {
@@ -135,11 +133,11 @@ namespace SPF_CabinWalk::StandingAnimController
                 if (!g_active_sequence || !g_active_sequence->IsPlaying())
                 {
                     // Check for crouch
-                    if (current_state.rotation.y < Stances::Triggers::CROUCH_DOWN_ANGLE)
+                    if (current_state.rotation.y < g_stand_ctx->settings.standing_movement.stance_control.crouch.activation_angle)
                     {
                         g_time_in_crouch_zone += delta_time_ms;
                         g_time_in_tiptoe_zone = 0; // Reset other timer
-                        if (g_time_in_crouch_zone >= Stances::Triggers::HOLD_TIME_MS)
+                        if (g_time_in_crouch_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
                         {
                             g_time_in_crouch_zone = 0;
                             AnimationController::GazeDirection current_gaze_for_stance = GetGazeDirection(current_state.rotation.x);
@@ -153,11 +151,11 @@ namespace SPF_CabinWalk::StandingAnimController
                         }
                     }
                     // Check for tiptoes
-                    else if (current_state.rotation.y > Stances::Triggers::TIPTOE_UP_ANGLE)
+                    else if (current_state.rotation.y > g_stand_ctx->settings.standing_movement.stance_control.tiptoe.activation_angle)
                     {
                         g_time_in_tiptoe_zone += delta_time_ms;
                         g_time_in_crouch_zone = 0; // Reset other timer
-                        if (g_time_in_tiptoe_zone >= Stances::Triggers::HOLD_TIME_MS)
+                        if (g_time_in_tiptoe_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
                         {
                             g_time_in_tiptoe_zone = 0;
                             AnimationController::GazeDirection current_gaze_for_stance = GetGazeDirection(current_state.rotation.x);
@@ -184,10 +182,10 @@ namespace SPF_CabinWalk::StandingAnimController
                 g_time_in_crouch_zone = 0; // Reset other state timers
                 g_time_in_tiptoe_zone = 0;
 
-                if (current_state.rotation.y > Stances::Triggers::STAND_UP_ANGLE)
+                if (current_state.rotation.y > g_stand_ctx->settings.standing_movement.stance_control.crouch.deactivation_angle)
                 {
                     g_time_in_standup_zone += delta_time_ms;
-                    if (g_time_in_standup_zone >= Stances::Triggers::HOLD_TIME_MS)
+                    if (g_time_in_standup_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
                     {
                         g_time_in_standup_zone = 0;
                         TriggerStandUp(); // Use the refactored function
@@ -204,10 +202,10 @@ namespace SPF_CabinWalk::StandingAnimController
                 g_time_in_crouch_zone = 0; // Reset other state timers
                 g_time_in_tiptoe_zone = 0;
 
-                if (current_state.rotation.y < Stances::Triggers::STAND_DOWN_ANGLE)
+                if (current_state.rotation.y < g_stand_ctx->settings.standing_movement.stance_control.tiptoe.deactivation_angle)
                 {
                     g_time_in_standdown_zone += delta_time_ms;
-                    if (g_time_in_standdown_zone >= Stances::Triggers::HOLD_TIME_MS)
+                    if (g_time_in_standdown_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
                     {
                         g_time_in_standdown_zone = 0;
                         TriggerStandDown(); // Use the refactored function
@@ -225,11 +223,10 @@ namespace SPF_CabinWalk::StandingAnimController
             {
                 // Logic for automatically walking towards g_target_walk_z
                 const float z_target = g_target_walk_z;
-                const float z_current = current_state.position.z;
-                const float step_amount = Walking::STEP_AMOUNT;
+const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_amount;
 
                 // Determine if we are close enough to the target Z
-                if (std::fabs(z_current - z_target) <= step_amount)
+                if (std::fabs(current_state.position.z - z_target) <= step_amount)
                 {
                     // Close enough to target. Transition to sitting.
                     g_current_stance = Stance::Standing; // Reset stance to Standing
@@ -239,7 +236,7 @@ namespace SPF_CabinWalk::StandingAnimController
                 else // Still far from target, trigger another walk step
                 {
                     // Determine if we need to walk forward (-Z) or backward (+Z)
-                    bool is_walking_forward = (z_current > z_target); // If current Z is greater than target Z, walk forward (-Z)
+                    bool is_walking_forward = (current_state.position.z > z_target); // If current Z is greater than target Z, walk forward (-Z)
 
                     // Trigger a walk step.
                     TriggerWalkStepTowards(current_state, is_walking_forward);
@@ -267,9 +264,9 @@ namespace SPF_CabinWalk::StandingAnimController
             return; // Don't trigger a new step if an animation is already playing
         }
 
-        const float next_z_pos = current_state.position.z + (is_walking_forward ? -Walking::STEP_AMOUNT : Walking::STEP_AMOUNT);
+        const float next_z_pos = current_state.position.z + (is_walking_forward ? -g_stand_ctx->settings.standing_movement.walking.step_amount : g_stand_ctx->settings.standing_movement.walking.step_amount);
 
-        if (next_z_pos >= Walking::MIN_Z && next_z_pos <= Walking::MAX_Z)
+        if (next_z_pos >= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.min && next_z_pos <= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.max)
         {
             if (!g_has_taken_first_step)
             {
@@ -277,7 +274,6 @@ namespace SPF_CabinWalk::StandingAnimController
                 // The yaw component of STANDING_POSITION_TARGET should be used for rotation.
                 // CreateDynamicFirstStepSequence might need to be adapted or a new sequence created
                 // that handles turning towards STANDING_POSITION_TARGET.rotation.x (yaw).
-                // For now, let's assume CreateDynamicFirstStepSequence can handle the target rotation or will be adapted.
                 g_active_sequence = AnimationSequences::CreateDynamicFirstStepSequence(current_state, is_walking_forward); // This sequence should eventually handle yaw correction
                 g_has_taken_first_step = true;
             }
@@ -308,7 +304,7 @@ namespace SPF_CabinWalk::StandingAnimController
             current_state.rotation.z = 0.0f; // Roll is not retrieved
     
             const float z_current = current_state.position.z;
-            const float step_amount = Walking::STEP_AMOUNT;
+            const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_amount;
     
             // Check if we are close enough to the target Z
             if (std::fabs(z_current - target_z) <= step_amount)

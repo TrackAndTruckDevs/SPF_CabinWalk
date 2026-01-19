@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "Oekraïens",
+        "en": "Engels",
+        "fr": "Frans",
+        "de": "Duits",
+        "it": "Italiaans",
+        "es": "Spaans",
+        "zh": "Chinees",
+        "ja": "Japans",
+        "ru": "Russisch",
+        "pl": "Pools",
+        "nl": "Nederlands",
+        "pt": "Portugees",
+        "tr": "Turks"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "Stop en trek de parkeerrem aan!"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "Naar passagiersstoel verplaatsen",
+            "desc": "Verplaatst de camera naar de passagiersstoel."
+        },
+        "moveToDriverSeat": {
+            "title": "Naar bestuurdersstoel verplaatsen",
+            "desc": "Verplaatst de camera naar de bestuurdersstoel."
+        },
+        "moveToStandingPosition": {
+            "title": "Naar staande positie | Vooruit lopen",
+            "desc": "Verplaatst de camera naar een staande positie in de cabine. In staande positie gebruikt voor lopen."
+        },
+        "cycleSofaPositions": {
+            "title": "Naar bank verplaatsen | Wissel van positie op de bank",
+            "desc": "Verplaatst de camera naar de bank. Op de bank wisselt het tussen posities (zittend, liggend)."
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "Algemeen",
+            "warning_duration_ms": {
+                "title": "Duur van waarschuwing",
+                "desc": "Hoe lang de waarschuwing 'niet veilig om te bewegen' wordt weergegeven."
+            },
+            "cabin_layout": {
+                "title": "Cabine-indeling",
+                "desc": "Stel de kant van het stuur in voor correcte animaties.",
+                "lhd": "Stuur links",
+                "rhd": "Stuur rechts"
+            },
+            "height": {
+                "title": "Hoogte",
+                "desc": "Hoe hoog de camera stijgt in animaties (simuleert menselijke lengte)."
+            }
+        },
+        "positions": {
+            "title": "Cameraposities",
+            "position_group": { "title": "Positie (X, Y, Z)" },
+            "rotation_group": { "title": "Rotatie (Gier, Stamp)" },
+            "enabled": {
+                "desc": "Schakel deze camerapositie in of uit."
+            },
+            "coord": {
+                "desc": "Positiecoördinaat"
+            },
+            "rot": {
+                "desc": "Rotatiecoördinaat (Gier/Stamp)"
+            },
+            "passenger_seat": {
+                "title": "Passagiersstoel",
+                "enabled": { "title": "Passagiersstoel inschakelen" },
+                "position": {
+                    "x": { "title": "Passagiersstoel: Pos X (Rechts/Links)" },
+                    "y": { "title": "Passagiersstoel: Pos Y (Omhoog/Omlaag)" },
+                    "z": { "title": "Passagiersstoel: Pos Z (Vooruit/Achteruit)" }
+                },
+                "rotation": {
+                    "x": { "title": "Passagiersstoel: Gier (Links/Rechts)" },
+                    "y": { "title": "Passagiersstoel: Stamp (Omhoog/Omlaag)" }
+                }
+            },
+            "standing": {
+                "title": "Staande positie",
+                "enabled": { "title": "Staande positie inschakelen" },
+                "position": {
+                    "x": { "title": "Staande start: Pos X (Rechts/Links)" },
+                    "y": { "title": "Staande start: Pos Y (Omhoog/Omlaag)" },
+                    "z": { "title": "Staande start: Pos Z (Vooruit/Achteruit)" }
+                },
+                "rotation": {
+                    "x": { "title": "Staande start: Gier (Links/Rechts)" },
+                    "y": { "title": "Staande start: Stamp (Omhoog/Omlaag)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "Bank (Zitten) Hoofdpositie op de bank",
+                "enabled": { "title": "Bank inschakelen" },
+                "position": {
+                    "x": { "title": "Bank (Zitten 1): Pos X (Rechts/Links)" },
+                    "y": { "title": "Bank (Zitten 1): Pos Y (Omhoog/Omlaag)" },
+                    "z": { "title": "Bank (Zitten 1): Pos Z (Vooruit/Achteruit)" }
+                },
+                "rotation": {
+                    "x": { "title": "Bank (Zitten 1): Gier (Links/Rechts)" },
+                    "y": { "title": "Bank (Zitten 1): Stamp (Omhoog/Omlaag)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "Bank (Liggen)",
+                "enabled": { "title": "Ligpositie inschakelen" },
+                "position": {
+                    "x": { "title": "Bank (Liggen): Pos X (Rechts/Links)" },
+                    "y": { "title": "Bank (Liggen): Pos Y (Omhoog/Omlaag)" },
+                    "z": { "title": "Bank (Liggen): Pos Z (Vooruit/Achteruit)" }
+                },
+                "rotation": {
+                    "x": { "title": "Bank (Liggen): Gier (Links/Rechts)" },
+                    "y": { "title": "Bank (Liggen): Stamp (Omhoog/Omlaag)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "Bank (Zitten 2)",
+                "enabled": { "title": "Inschakelen (Zitten 2)" },
+                "position": {
+                    "x": { "title": "Bank (Zitten 2): Pos X (Rechts/Links)" },
+                    "y": { "title": "Bank (Zitten 2): Pos Y (Omhoog/Omlaag)" },
+                    "z": { "title": "Bank (Zitten 2): Pos Z (Vooruit/Achteruit)" }
+                },
+                "rotation": {
+                    "x": { "title": "Bank (Zitten 2): Gier (Links/Rechts)" },
+                    "y": { "title": "Bank (Zitten 2): Stamp (Omhoog/Omlaag)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "Animatieduur",
+            "main_animation_speed": {
+                "title": "Hoofdanimatie snelheid",
+                "driver_to_passenger": { "title": "Bestuurder -> Passagier", "desc": "Duur van de animatie van de bestuurdersstoel naar de passagiersstoel." },
+                "passenger_to_driver": { "title": "Passagier -> Bestuurder", "desc": "Duur van de animatie van de passagiersstoel naar de bestuurdersstoel." },
+                "driver_to_standing": { "title": "Bestuurder -> Staand", "desc": "Duur van de animatie van de bestuurdersstoel naar de staande positie." },
+                "standing_to_driver": { "title": "Staand -> Bestuurder", "desc": "Duur van de animatie van de staande positie naar de bestuurdersstoel." },
+                "passenger_to_standing": { "title": "Passagier -> Staand", "desc": "Duur van de animatie van de passagiersstoel naar de staande positie." },
+                "standing_to_passenger": { "title": "Staand -> Passagier", "desc": "Duur van de animatie van de staande positie naar de passagiersstoel." },
+                "standing_to_sofa": { "title": "Staand -> Bank", "desc": "Duur van de animatie van de staande positie naar de bank." },
+                "sofa_to_standing": { "title": "Bank -> Staand", "desc": "Duur van de animatie van de bank naar de staande positie." }
+            },
+            "sofa_animation_speed": {
+                "title": "Sofa-animatie snelheid",
+                "sofa_sit1_to_lie": { "title": "Bank (Zit 1) -> Liggen", "desc": "Duur van de animatie van de eerste zitpositie naar de ligpositie op de bank." },
+                "sofa_lie_to_sit2": { "title": "Bank (Liggen) -> Zit 2", "desc": "Duur van de animatie van de ligpositie naar de tweede zitpositie op de bank." },
+                "sofa_sit2_to_sit1": { "title": "Bank (Zit 2) -> Zit 1", "desc": "Duur van de animatie van de tweede zitpositie naar de eerste zitpositie op de bank." },
+                "sofa_lie_to_sit1_shortcut": { "title": "Bank (Liggen) -> Zit 1 (Snelkoppeling)", "desc": "Duur van de animatie van de ligpositie naar de eerste zitpositie." }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "Bukken/Staan animatiesnelheid",
+                "crouch": { "title": "Bukken overgang", "desc": "Duur van de animatie bij bukken of opstaan." },
+                "tiptoe": { "title": "Tenen staan overgang", "desc": "Duur van de animatie bij op de tenen staan of terugkeren naar een normale houding." }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "Loopanimatiesnelheid",
+            "walk_step": { "title": "Lopen: Stapduur", "desc": "Duur van een enkele loopstap." },
+            "walk_first_step_base": { "title": "Lopen: Basisduur eerste stap", "desc": "Basisduur van de eerste stap bij het beginnen met lopen." },
+            "walk_first_step_turn_extra": { "title": "Lopen: Extra duur voor draaien", "desc": "Extra tijd toegevoegd aan de eerste stap bij het draaien tijdens het lopen." }
+        },
+        "standing_movement": {
+            "title": "Staande beweging",
+            "walking": {
+                "title": "Lopen",
+                "step_amount": {
+                    "title": "Stapgrootte",
+                    "desc": "Hoe ver elke stap de camera vooruit/achteruit beweegt."
+                },
+                "bob_amount": {
+                    "title": "Schudbedrag",
+                    "desc": "De hoeveelheid op- en neerwaartse camerabeweging tijdens het lopen."
+                },
+                "walk_zone_z": {
+                    "title": "Loopzone",
+                    "desc": "Definieert de voorwaartse/achterwaartse bewegingslimieten ten opzichte van het cabinecentrum.",
+                    "min": { "title": "Achterlimiet" },
+                    "max": { "title": "Voorlimiet" }
+                }
+            },
+            "stance_control": {
+                "title": "Houdingscontrole",
+                "hold_time_ms": {
+                    "title": "Trigger-houdtijd",
+                    "desc": "Hoe lang je omhoog/omlaag moet kijken om van houding te veranderen."
+                },
+                "activation_angle": {
+                    "desc": "De camerahoek die nodig is om de houding te activeren."
+                },
+                "deactivation_angle": {
+                    "desc": "De camerahoek die nodig is om terug te keren naar een neutrale houding."
+                },
+                "crouch": {
+                    "title": "Bukken",
+                    "depth": {
+                        "title": "Bukdiepte",
+                        "desc": "Hoe laag de camera gaat bij het bukken."
+                    },
+                    "activation_angle": { "title": "Activatiehoek bukken" },
+                    "deactivation_angle": { "title": "Opstaanhoek" }
+                },
+                "tiptoe": {
+                    "title": "Op tenen",
+                    "height": {
+                        "title": "Tenenhoogte",
+                        "desc": "Hoe hoog de camera gaat als je op je tenen staat."
+                    },
+                    "activation_angle": { "title": "Activatiehoek tenen" },
+                    "deactivation_angle": { "title": "Neerlaten hoek" }
+                }
+            }
+        }
+    }
+}

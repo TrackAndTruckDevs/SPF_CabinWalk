@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "乌克兰语",
+        "en": "英语",
+        "fr": "法语",
+        "de": "德语",
+        "it": "意大利语",
+        "es": "西班牙语",
+        "zh": "中文",
+        "ja": "日语",
+        "ru": "俄语",
+        "pl": "波兰语",
+        "nl": "荷兰语",
+        "pt": "葡萄牙语",
+        "tr": "土耳其语"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "请停车并拉上手刹！"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "移动到乘客座位",
+            "desc": "将摄像头移动到乘客座位。"
+        },
+        "moveToDriverSeat": {
+            "title": "移动到驾驶员座位",
+            "desc": "将摄像头移动到驾驶员座位。"
+        },
+        "moveToStandingPosition": {
+            "title": "移动到站立位置 | 向前走",
+            "desc": "将摄像头移动到驾驶室内的站立位置。站立时用于行走。"
+        },
+        "cycleSofaPositions": {
+            "title": "移动到沙发 | 循环沙发位置",
+            "desc": "将摄像头移动到沙发。在沙发上时，循环切换位置（坐着，躺着）。"
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "常规",
+            "warning_duration_ms": {
+                "title": "警告持续时间",
+                "desc": "“移动不安全”警告的显示时间。"
+            },
+            "cabin_layout": {
+                "title": "驾驶室布局",
+                "desc": "为正确的动画设置方向盘侧。",
+                "lhd": "左舵驾驶",
+                "rhd": "右舵驾驶"
+            },
+            "height": {
+                "title": "高度",
+                "desc": "摄像机在动画中升高的高度 (模拟人体高度)."
+            }
+        },
+        "positions": {
+            "title": "摄像头位置",
+            "position_group": { "title": "位置 (X, Y, Z)" },
+            "rotation_group": { "title": "旋转 (偏航, 俯仰)" },
+            "enabled": {
+                "desc": "启用或禁用此摄像头位置。"
+            },
+            "coord": {
+                "desc": "位置坐标"
+            },
+            "rot": {
+                "desc": "旋转坐标 (偏航/俯仰)"
+            },
+            "passenger_seat": {
+                "title": "乘客座位",
+                "enabled": { "title": "启用乘客座位" },
+                "position": {
+                    "x": { "title": "乘客座位: 位置X (右/左)" },
+                    "y": { "title": "乘客座位: 位置Y (上/下)" },
+                    "z": { "title": "乘客座位: 位置Z (前/后)" }
+                },
+                "rotation": {
+                    "x": { "title": "乘客座位: 偏航 (左/右)" },
+                    "y": { "title": "乘客座位: 俯仰 (上/下)" }
+                }
+            },
+            "standing": {
+                "title": "站立位置",
+                "enabled": { "title": "启用站立位置" },
+                "position": {
+                    "x": { "title": "站立起点: 位置X (右/左)" },
+                    "y": { "title": "站立起点: 位置Y (上/下)" },
+                    "z": { "title": "站立起点: 位置Z (前/后)" }
+                },
+                "rotation": {
+                    "x": { "title": "站立起点: 偏航 (左/右)" },
+                    "y": { "title": "站立起点: 俯仰 (上/下)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "沙发 (坐) 沙发上的主要位置",
+                "enabled": { "title": "启用沙发" },
+                "position": {
+                    "x": { "title": "沙发 (坐 1): 位置X (右/左)" },
+                    "y": { "title": "沙发 (坐 1): 位置Y (上/下)" },
+                    "z": { "title": "沙发 (坐 1): 位置Z (前/后)" }
+                },
+                "rotation": {
+                    "x": { "title": "沙发 (坐 1): 偏航 (左/右)" },
+                    "y": { "title": "沙发 (坐 1): 俯仰 (上/下)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "沙发 (躺)",
+                "enabled": { "title": "启用躺下位置" },
+                "position": {
+                    "x": { "title": "沙发 (躺): 位置X (右/左)" },
+                    "y": { "title": "沙发 (躺): 位置Y (上/下)" },
+                    "z": { "title": "沙发 (躺): 位置Z (前/后)" }
+                },
+                "rotation": {
+                    "x": { "title": "沙发 (躺): 偏航 (左/右)" },
+                    "y": { "title": "沙发 (躺): 俯仰 (上/下)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "沙发 (坐 2)",
+                "enabled": { "title": "启用 (坐 2)" },
+                "position": {
+                    "x": { "title": "沙发 (坐 2): 位置X (右/左)" },
+                    "y": { "title": "沙发 (坐 2): 位置Y (上/下)" },
+                    "z": { "title": "沙发 (坐 2): 位置Z (前/后)" }
+                },
+                "rotation": {
+                    "x": { "title": "沙发 (坐 2): 偏航 (左/右)" },
+                    "y": { "title": "沙发 (坐 2): 俯仰 (上/下)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "动画持续时间",
+            "main_animation_speed": {
+                "title": "主动画速度",
+                "driver_to_passenger": { "title": "驾驶员 -> 乘客", "desc": "从驾驶员座位到乘客座位的动画持续时间。" },
+                "passenger_to_driver": { "title": "乘客 -> 驾驶员", "desc": "从乘客座位到驾驶员座位的动画持续时间。" },
+                "driver_to_standing": { "title": "驾驶员 -> 站立", "desc": "从驾驶员座位到站立位置的动画持续时间。" },
+                "standing_to_driver": { "title": "站立 -> 驾驶员", "desc": "从站立位置到驾驶员座位的动画持续时间。" },
+                "passenger_to_standing": { "title": "乘客 -> 站立", "desc": "从乘客座位到站立位置的动画持续时间。" },
+                "standing_to_passenger": { "title": "站立 -> 乘客", "desc": "从站立位置到乘客座位的动画持续时间。" },
+                "standing_to_sofa": { "title": "站立 -> 沙发", "desc": "从站立位置到沙发的动画持续时间。" },
+                "sofa_to_standing": { "title": "沙发 -> 站立", "desc": "从沙发到站立位置的动画持续时间。" }
+            },
+            "sofa_animation_speed": {
+                "title": "沙发动画速度",
+                "sofa_sit1_to_lie": { "title": "沙发 (坐姿 1) -> 躺下", "desc": "从第一个坐姿到沙发上躺下位置的动画持续时间。" },
+                "sofa_lie_to_sit2": { "title": "沙发 (躺着) -> 坐姿 2", "desc": "从躺着位置到沙发上第二个坐姿的动画持续时间。" },
+                "sofa_sit2_to_sit1": { "title": "沙发 (坐姿 2) -> 坐姿 1", "desc": "从第二个坐姿到沙发上第一个坐姿的动画持续时间。" },
+                "sofa_lie_to_sit1_shortcut": { "title": "沙发 (躺着) -> 坐姿 1 (快捷方式)", "desc": "从躺着位置到第一个坐姿的动画持续时间。" }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "蹲下和站起动画速度",
+                "crouch": { "title": "蹲下过渡", "desc": "蹲下或站起时的动画持续时间。" },
+                "tiptoe": { "title": "踮脚过渡", "desc": "踮起脚尖或恢复正常姿势时的动画持续时间。" }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "行走动画速度",
+            "walk_step": { "title": "行走: 步长时间", "desc": "单步行走的时间。" },
+            "walk_first_step_base": { "title": "行走: 第一步基本持续时间", "desc": "开始行走时第一步的基本持续时间。" },
+            "walk_first_step_turn_extra": { "title": "行走: 第一步转向额外持续时间", "desc": "行走时转弯时第一步增加的额外时间。" }
+        },
+        "standing_movement": {
+            "title": "站立移动",
+            "walking": {
+                "title": "行走",
+                "step_amount": {
+                    "title": "步长",
+                    "desc": "每一步摄像头向前/向后移动的距离。"
+                },
+                "bob_amount": {
+                    "title": "晃动量",
+                    "desc": "行走时摄像头上下晃动的幅度。"
+                },
+                "walk_zone_z": {
+                    "title": "行走区域",
+                    "desc": "定义相对于驾驶室中心的向前/向后移动限制。",
+                    "min": { "title": "后方限制" },
+                    "max": { "title": "前方限制" }
+                }
+            },
+            "stance_control": {
+                "title": "姿态控制",
+                "hold_time_ms": {
+                    "title": "触发器保持时间",
+                    "desc": "你需要向上/向下看多久才能改变姿态。"
+                },
+                "activation_angle": {
+                    "desc": "激活姿态所需的摄像头俯仰角。"
+                },
+                "deactivation_angle": {
+                    "desc": "恢复到中立姿态所需的摄像头俯仰角。"
+                },
+                "crouch": {
+                    "title": "蹲下",
+                    "depth": {
+                        "title": "蹲下深度",
+                        "desc": "蹲下时摄像头下降的深度。"
+                    },
+                    "activation_angle": { "title": "蹲下激活角度" },
+                    "deactivation_angle": { "title": "站起角度" }
+                },
+                "tiptoe": {
+                    "title": "踮脚",
+                    "height": {
+                        "title": "踮脚高度",
+                        "desc": "踮起脚尖时摄像头上升的高度。"
+                    },
+                    "activation_angle": { "title": "踮脚激活角度" },
+                    "deactivation_angle": { "title": "站下角度" }
+                }
+            }
+        }
+    }
+}

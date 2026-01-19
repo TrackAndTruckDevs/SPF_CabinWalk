@@ -1,17 +1,14 @@
 #include "Animation/AnimationController.hpp"
 #include "SPF_CabinWalk.hpp"
 #include "Hooks/CameraHookManager.hpp"
-#include "Utils/Utils.hpp" // Placeholder for potential utility functions
-#include "Animation/StandingAnimController.hpp" // Integrate the new controller
-#include "Animation/AnimationConfig.hpp"      // For STEP_AMOUNT and other constants
-
+#include "Animation/StandingAnimController.hpp" 
 #include <utility> // For std::pair
 #include <map>
 #include <functional>
 #include <memory>
 
 #include "Sequences/DriverToPassenger.hpp"
-#include "Sequences/PassengerToDriver.hpp" // Include the actual sequence factory
+#include "Sequences/PassengerToDriver.hpp"
 #include "Sequences/DriverToStanding.hpp"
 #include "Sequences/StandingToDriver.hpp"
 #include "Sequences/PassengerToStanding.hpp"
@@ -22,7 +19,6 @@
 
 namespace SPF_CabinWalk::AnimationController
 {
-    using namespace Animation::Config;
     // =================================================================================================
     // Internal State
     // =================================================================================================
@@ -45,10 +41,43 @@ namespace SPF_CabinWalk::AnimationController
     static uint64_t last_simulation_time = 0;
     // Stores a sequence of moves for a chained animation.
     static std::queue<CameraPosition> g_pending_moves;
+    // Flag to indicate that settings have been updated and may need to be reapplied.
+    static bool g_settings_dirty = false;
+
+    // =================================================================================================
+    // Internal Helpers
+    // =================================================================================================
+    
+    Animation::Transform GetTargetTransformForPosition(CameraPosition pos)
+    {
+        switch (pos)
+        {
+            case CameraPosition::Passenger:
+                return { g_anim_ctx->settings.positions.passenger_seat.position, g_anim_ctx->settings.positions.passenger_seat.rotation };
+            case CameraPosition::Standing:
+                return { g_anim_ctx->settings.positions.standing.position, g_anim_ctx->settings.positions.standing.rotation };
+            case CameraPosition::SofaSit1:
+                return { g_anim_ctx->settings.positions.sofa_sit1.position, g_anim_ctx->settings.positions.sofa_sit1.rotation };
+            case CameraPosition::SofaLie:
+                return { g_anim_ctx->settings.positions.sofa_lie.position, g_anim_ctx->settings.positions.sofa_lie.rotation };
+            case CameraPosition::SofaSit2:
+                return { g_anim_ctx->settings.positions.sofa_sit2.position, g_anim_ctx->settings.positions.sofa_sit2.rotation };
+            case CameraPosition::Driver:
+                // Driver position is dynamic and cached, not from settings.
+                return { g_cached_driver_state.position, g_cached_driver_state.rotation };
+            default:
+                return { {0,0,0}, {0,0,0} };
+        }
+    }
 
     // =================================================================================================
     // Public Functions
     // =================================================================================================
+
+    void NotifySettingsUpdated()
+    {
+        g_settings_dirty = true;
+    }
 
     void Initialize(PluginContext *ctx)
     {
@@ -103,6 +132,7 @@ namespace SPF_CabinWalk::AnimationController
 
         // --- Sofa Internal Sequences ---
         RegisterSequence(CameraPosition::SofaSit1, CameraPosition::SofaLie, AnimationSequences::CreateSofaSit1ToLieSequence);
+        RegisterSequence(CameraPosition::SofaSit1, CameraPosition::SofaSit2, AnimationSequences::CreateSofaSit1ToSit2Sequence);
         RegisterSequence(CameraPosition::SofaLie, CameraPosition::SofaSit2, AnimationSequences::CreateSofaLieToSit2Sequence);
         RegisterSequence(CameraPosition::SofaLie, CameraPosition::SofaSit1, AnimationSequences::CreateSofaLieToSofa1Sequence); // Shortcut animation
         RegisterSequence(CameraPosition::SofaSit2, CameraPosition::SofaSit1, AnimationSequences::CreateSofaSit2ToSit1Sequence);
@@ -112,6 +142,37 @@ namespace SPF_CabinWalk::AnimationController
         if (!g_anim_ctx || !g_anim_ctx->coreAPI)
         {
             return;
+        }
+
+        // --- Handle settings update ---
+        if (g_settings_dirty)
+        {
+            if (!IsAnimating() && !StandingAnimController::IsAnimating())
+            {
+                // If we are idle and settings have changed, snap to the new position for the current state.
+                // This should ONLY apply to positions that are actually defined by settings.
+                if (g_current_pos != CameraPosition::Driver)
+                {
+                    const auto& target_transform = GetTargetTransformForPosition(g_current_pos);
+                    if (g_anim_ctx->cameraAPI)
+                    {
+                        g_anim_ctx->cameraAPI->SetInteriorSeatPos(target_transform.position.x, target_transform.position.y, target_transform.position.z);
+                        g_anim_ctx->cameraAPI->SetInteriorHeadRot(target_transform.rotation.x, target_transform.rotation.y);
+                        if (g_anim_ctx->loggerHandle) {
+                            char log_buffer[256];
+                            g_anim_ctx->formattingAPI->Format(log_buffer, sizeof(log_buffer), "[AnimationController] Applied settings directly to camera for position %d.", static_cast<int>(g_current_pos));
+                            g_anim_ctx->loadAPI->logger->Log(g_anim_ctx->loggerHandle, SPF_LOG_DEBUG, log_buffer);
+                        }
+                    }
+                }
+
+                // Notify the CameraHookManager that settings have changed so it can re-evaluate its state.
+                // This needs to happen regardless of the current position.
+                CameraHookManager::NotifySettingsUpdated();
+                
+                // Reset the flag ONLY after the settings have been applied.
+                g_settings_dirty = false;
+            }
         }
 
         // --- Handle pending chained animation ---
@@ -267,41 +328,19 @@ namespace SPF_CabinWalk::AnimationController
 
             // Determine the target_state for the animation
             Animation::CurrentCameraState animation_target_state;
-            if (target == CameraPosition::Passenger)
-            {
-                animation_target_state.position = Animation::CameraPositions::PASSENGER_SEAT_TARGET.position;
-                animation_target_state.rotation = Animation::CameraPositions::PASSENGER_SEAT_TARGET.rotation;
-                // Roll is currently not handled by CameraPositions or GetInteriorHeadRot, default to initial.
-                animation_target_state.rotation.z = initial_state.rotation.z;
-            }
-            else if (target == CameraPosition::Driver)
+            if (target == CameraPosition::Driver)
             {
                 // For returning to driver, the target is the cached driver's state
                 animation_target_state = g_cached_driver_state;
             }
-            else if (target == CameraPosition::Standing)
+            else
             {
-                animation_target_state.position = Animation::CameraPositions::STANDING_POSITION_TARGET.position;
-                animation_target_state.rotation = Animation::CameraPositions::STANDING_POSITION_TARGET.rotation;
-                animation_target_state.rotation.z = initial_state.rotation.z;
-            }
-            else if (target == CameraPosition::SofaSit1)
-            {
-                animation_target_state.position = Animation::CameraPositions::SOFA_SIT1_TARGET.position;
-                animation_target_state.rotation = Animation::CameraPositions::SOFA_SIT1_TARGET.rotation;
-                animation_target_state.rotation.z = initial_state.rotation.z;
-            }
-            else if (target == CameraPosition::SofaLie)
-            {
-                animation_target_state.position = Animation::CameraPositions::SOFA_LIE_TARGET.position;
-                animation_target_state.rotation = Animation::CameraPositions::SOFA_LIE_TARGET.rotation;
-                animation_target_state.rotation.z = initial_state.rotation.z;
-            }
-            else if (target == CameraPosition::SofaSit2)
-            {
-                animation_target_state.position = Animation::CameraPositions::SOFA_SIT2_TARGET.position;
-                animation_target_state.rotation = Animation::CameraPositions::SOFA_SIT2_TARGET.rotation;
-                animation_target_state.rotation.z = initial_state.rotation.z;
+                // For all other positions, get the target from our settings
+                const auto& target_transform = GetTargetTransformForPosition(target);
+                animation_target_state.position = target_transform.position;
+                animation_target_state.rotation = target_transform.rotation;
+                // Roll is currently not handled by CameraPositions or GetInteriorHeadRot, default to initial.
+                animation_target_state.rotation.z = initial_state.rotation.z; // This might need adjustment if roll becomes configurable
             }
 
             // Found a factory, create the sequence and start it
@@ -310,6 +349,7 @@ namespace SPF_CabinWalk::AnimationController
             last_simulation_time = timestamps.simulation; // Reset time for new animation
 
             g_active_sequence = it->second(initial_state, animation_target_state);
+
             g_active_sequence->Start(initial_state);
             g_target_pos = target;
 
@@ -322,63 +362,34 @@ namespace SPF_CabinWalk::AnimationController
             g_target_pos = target;
             g_active_sequence.reset();
 
-            // Direct snap to target
-            if (target == CameraPosition::Passenger)
+            // Direct snap to target using settings or cached driver state
+            if (target == CameraPosition::Driver)
             {
-                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.x,
-                                                           Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.y,
-                                                           Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.z);
-                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::PASSENGER_SEAT_TARGET.rotation.x,
-                                                           Animation::CameraPositions::PASSENGER_SEAT_TARGET.rotation.y);
-            }
-            else if (target == CameraPosition::Driver)
-            {
-                // Snap back to the cached driver position if available
-                if (g_cached_driver_state.position.x != 0.0f || g_cached_driver_state.position.y != 0.0f || g_cached_driver_state.position.z != 0.0f ||
-                    g_cached_driver_state.rotation.x != 0.0f || g_cached_driver_state.rotation.y != 0.0f)
+                if (g_anim_ctx->cameraAPI)
                 {
-                    g_anim_ctx->cameraAPI->SetInteriorSeatPos(g_cached_driver_state.position.x, g_cached_driver_state.position.y, g_cached_driver_state.position.z);
-                    g_anim_ctx->cameraAPI->SetInteriorHeadRot(g_cached_driver_state.rotation.x, g_cached_driver_state.rotation.y);
-                }
-                // else, snap to 0,0,0 and 0,0 if cached state is default or invalid.
-                else
-                {
-                     g_anim_ctx->cameraAPI->SetInteriorSeatPos(0.0f, 0.0f, 0.0f);
-                     g_anim_ctx->cameraAPI->SetInteriorHeadRot(0.0f, 0.0f);
+                    g_anim_ctx->cameraAPI->SetInteriorSeatPos(g_cached_driver_state.position.x,
+                                                               g_cached_driver_state.position.y,
+                                                               g_cached_driver_state.position.z);
+                    g_anim_ctx->cameraAPI->SetInteriorHeadRot(g_cached_driver_state.rotation.x,
+                                                               g_cached_driver_state.rotation.y);
                 }
             }
-            else if (target == CameraPosition::Standing)
+            else
             {
-                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::STANDING_POSITION_TARGET.position.x,
-                                                           Animation::CameraPositions::STANDING_POSITION_TARGET.position.y,
-                                                           Animation::CameraPositions::STANDING_POSITION_TARGET.position.z);
-                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::STANDING_POSITION_TARGET.rotation.x,
-                                                           Animation::CameraPositions::STANDING_POSITION_TARGET.rotation.y);
-                StandingAnimController::OnEnterStandingState(); // Reset stance on snap
+                const auto& target_transform = GetTargetTransformForPosition(target);
+                if (g_anim_ctx->cameraAPI)
+                {
+                    g_anim_ctx->cameraAPI->SetInteriorSeatPos(target_transform.position.x,
+                                                               target_transform.position.y,
+                                                               target_transform.position.z);
+                    g_anim_ctx->cameraAPI->SetInteriorHeadRot(target_transform.rotation.x,
+                                                               target_transform.rotation.y);
+                }
             }
-            else if (target == CameraPosition::SofaSit1)
+            // Special handling for Standing position reset stance
+            if (target == CameraPosition::Standing)
             {
-                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::SOFA_SIT1_TARGET.position.x,
-                                                           Animation::CameraPositions::SOFA_SIT1_TARGET.position.y,
-                                                           Animation::CameraPositions::SOFA_SIT1_TARGET.position.z);
-                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::SOFA_SIT1_TARGET.rotation.x,
-                                                           Animation::CameraPositions::SOFA_SIT1_TARGET.rotation.y);
-            }
-            else if (target == CameraPosition::SofaLie)
-            {
-                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::SOFA_LIE_TARGET.position.x,
-                                                           Animation::CameraPositions::SOFA_LIE_TARGET.position.y,
-                                                           Animation::CameraPositions::SOFA_LIE_TARGET.position.z);
-                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::SOFA_LIE_TARGET.rotation.x,
-                                                           Animation::CameraPositions::SOFA_LIE_TARGET.rotation.y);
-            }
-            else if (target == CameraPosition::SofaSit2)
-            {
-                g_anim_ctx->cameraAPI->SetInteriorSeatPos(Animation::CameraPositions::SOFA_SIT2_TARGET.position.x,
-                                                           Animation::CameraPositions::SOFA_SIT2_TARGET.position.y,
-                                                           Animation::CameraPositions::SOFA_SIT2_TARGET.position.z);
-                g_anim_ctx->cameraAPI->SetInteriorHeadRot(Animation::CameraPositions::SOFA_SIT2_TARGET.rotation.x,
-                                                           Animation::CameraPositions::SOFA_SIT2_TARGET.rotation.y);
+                StandingAnimController::OnEnterStandingState();
             }
             CameraHookManager::SetCurrentCameraPosition(target);
         }
@@ -506,11 +517,13 @@ namespace SPF_CabinWalk::AnimationController
             case CameraPosition::Driver:
                 return g_cached_driver_state.position.z;
             case CameraPosition::Passenger:
-                return Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.z;
+                return g_anim_ctx->settings.positions.passenger_seat.position.z;
             case CameraPosition::SofaSit1:
-            case CameraPosition::SofaLie: // Assuming all sofa positions share the same approach Z
+                return g_anim_ctx->settings.positions.sofa_sit1.position.z;
+            case CameraPosition::SofaLie:
+                return g_anim_ctx->settings.positions.sofa_lie.position.z;
             case CameraPosition::SofaSit2:
-                return Animation::CameraPositions::SOFA_SIT1_TARGET.position.z; // Use SofaSit1 as the approach Z
+                return g_anim_ctx->settings.positions.sofa_sit2.position.z;
             default:
                 return 0.0f; // Default for other positions, or error handling
         }

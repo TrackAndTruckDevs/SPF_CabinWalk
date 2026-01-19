@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "Ukraiński",
+        "en": "Angielski",
+        "fr": "Francuski",
+        "de": "Niemiecki",
+        "it": "Włoski",
+        "es": "Hiszpański",
+        "zh": "Chiński",
+        "ja": "Japoński",
+        "ru": "Rosyjski",
+        "pl": "Polski",
+        "nl": "Holenderski",
+        "pt": "Portugalski",
+        "tr": "Turecki"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "Proszę się zatrzymać i zaciągnąć hamulec postojowy!"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "Przesuń na miejsce pasażera",
+            "desc": "Przesuwa kamerę na miejsce pasażera."
+        },
+        "moveToDriverSeat": {
+            "title": "Przesuń na miejsce kierowcy",
+            "desc": "Przesuwa kamerę na miejsce kierowcy."
+        },
+        "moveToStandingPosition": {
+            "title": "Przejdź do pozycji stojącej | Idź prosto",
+            "desc": "Przesuwa kamerę do pozycji stojącej w kabinie. W pozycji stojącej służy do chodzenia."
+        },
+        "cycleSofaPositions": {
+            "title": "Przesuń na kanapę | Zmień pozycję na kanapie",
+            "desc": "Przesuwa kamerę na kanapę. Na kanapie przełącza pozycje (siedząca, leżąca)."
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "Ogólne",
+            "warning_duration_ms": {
+                "title": "Czas trwania ostrzeżenia",
+                "desc": "Jak długo wyświetlane jest ostrzeżenie 'ruch nie jest bezpieczny'."
+            },
+            "cabin_layout": {
+                "title": "Układ kabiny",
+                "desc": "Ustaw stronę kierownicy dla prawidłowych animacji.",
+                "lhd": "Kierownica po lewej stronie",
+                "rhd": "Kierownica po prawej stronie"
+            },
+            "height": {
+                "title": "Wysokość",
+                "desc": "Jak wysoko unosi się kamera w animacjach (symuluje wzrost człowieka)."
+            }
+        },
+        "positions": {
+            "title": "Pozycje kamery",
+            "position_group": { "title": "Pozycja (X, Y, Z)" },
+            "rotation_group": { "title": "Obrót (Odchylenie, Pochylenie)" },
+            "enabled": {
+                "desc": "Włącz lub wyłącz tę pozycję kamery."
+            },
+            "coord": {
+                "desc": "Współrzędna pozycji"
+            },
+            "rot": {
+                "desc": "Współrzędna obrotu (Odchylenie/Pochylenie)"
+            },
+            "passenger_seat": {
+                "title": "Miejsce pasażera",
+                "enabled": { "title": "Włącz miejsce pasażera" },
+                "position": {
+                    "x": { "title": "Miejsce pasażera: Poz X (Prawo/Lewo)" },
+                    "y": { "title": "Miejsce pasażera: Poz Y (Góra/Dół)" },
+                    "z": { "title": "Miejsce pasażera: Poz Z (Przód/Tył)" }
+                },
+                "rotation": {
+                    "x": { "title": "Miejsce pasażera: Odchylenie (Lewo/Prawo)" },
+                    "y": { "title": "Miejsce pasażera: Pochylenie (Góra/Dół)" }
+                }
+            },
+            "standing": {
+                "title": "Pozycja stojąca",
+                "enabled": { "title": "Włącz pozycję stojącą" },
+                "position": {
+                    "x": { "title": "Start stojący: Poz X (Prawo/Lewo)" },
+                    "y": { "title": "Start stojący: Poz Y (Góra/Dół)" },
+                    "z": { "title": "Start stojący: Poz Z (Przód/Tył)" }
+                },
+                "rotation": {
+                    "x": { "title": "Start stojący: Odchylenie (Lewo/Prawo)" },
+                    "y": { "title": "Start stojący: Pochylenie (Góra/Dół)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "Kanapa (Siedzenie) Główna pozycja na kanapie",
+                "enabled": { "title": "Włącz kanapę" },
+                "position": {
+                    "x": { "title": "Kanapa (siedzenie 1): Poz X (Prawo/Lewo)" },
+                    "y": { "title": "Kanapa (siedzenie 1): Poz Y (Góra/Dół)" },
+                    "z": { "title": "Kanapa (siedzenie 1): Poz Z (Przód/Tył)" }
+                },
+                "rotation": {
+                    "x": { "title": "Kanapa (siedzenie 1): Odchylenie (Lewo/Prawo)" },
+                    "y": { "title": "Kanapa (siedzenie 1): Pochylenie (Góra/Dół)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "Kanapa (Leżenie)",
+                "enabled": { "title": "Włącz pozycję leżącą" },
+                "position": {
+                    "x": { "title": "Kanapa (leżenie): Poz X (Prawo/Lewo)" },
+                    "y": { "title": "Kanapa (leżenie): Poz Y (Góra/Dół)" },
+                    "z": { "title": "Kanapa (leżenie): Poz Z (Przód/Tył)" }
+                },
+                "rotation": {
+                    "x": { "title": "Kanapa (leżenie): Odchylenie (Lewo/Prawo)" },
+                    "y": { "title": "Kanapa (leżenie): Pochylenie (Góra/Dół)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "Kanapa (Siedzenie 2)",
+                "enabled": { "title": "Włącz (siedzenie 2)" },
+                "position": {
+                    "x": { "title": "Kanapa (siedzenie 2): Poz X (Prawo/Lewo)" },
+                    "y": { "title": "Kanapa (siedzenie 2): Poz Y (Góra/Dół)" },
+                    "z": { "title": "Kanapa (siedzenie 2): Poz Z (Przód/Tył)" }
+                },
+                "rotation": {
+                    "x": { "title": "Kanapa (siedzenie 2): Odchylenie (Lewo/Prawo)" },
+                    "y": { "title": "Kanapa (siedzenie 2): Pochylenie (Góra/Dół)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "Czasy trwania animacji",
+            "main_animation_speed": {
+                "title": "Główna prędkość animacji",
+                "driver_to_passenger": { "title": "Kierowca -> Pasażer", "desc": "Czas trwania animacji z fotela kierowcy na fotel pasażera." },
+                "passenger_to_driver": { "title": "Pasażer -> Kierowca", "desc": "Czas trwania animacji z fotela pasażera na fotel kierowcy." },
+                "driver_to_standing": { "title": "Kierowca -> Stojący", "desc": "Czas trwania animacji z fotela kierowcy do pozycji stojącej." },
+                "standing_to_driver": { "title": "Stojący -> Kierowca", "desc": "Czas trwania animacji z pozycji stojącej na fotel kierowcy." },
+                "passenger_to_standing": { "title": "Pasażer -> Stojący", "desc": "Czas trwania animacji z fotela pasażera do pozycji stojącej." },
+                "standing_to_passenger": { "title": "Stojący -> Pasażer", "desc": "Czas trwania animacji z pozycji stojącej na fotel pasażera." },
+                "standing_to_sofa": { "title": "Stojący -> Kanapa", "desc": "Czas trwania animacji z pozycji stojącej na kanapę." },
+                "sofa_to_standing": { "title": "Kanapa -> Stojący", "desc": "Czas trwania animacji z kanapy do pozycji stojącej." }
+            },
+            "sofa_animation_speed": {
+                "title": "Prędkość animacji na kanapie",
+                "sofa_sit1_to_lie": { "title": "Kanapa (Siedzenie 1) -> Leżenie", "desc": "Czas trwania animacji z pierwszej pozycji siedzącej do leżącej na kanapie." },
+                "sofa_lie_to_sit2": { "title": "Kanapa (Leżenie) -> Siedzenie 2", "desc": "Czas trwania animacji z pozycji leżącej do drugiej pozycji siedzącej na kanapie." },
+                "sofa_sit2_to_sit1": { "title": "Kanapa (Siedzenie 2) -> Siedzenie 1", "desc": "Czas trwania animacji z drugiej pozycji siedzącej do pierwszej pozycji siedzącej na kanapie." },
+                "sofa_lie_to_sit1_shortcut": { "title": "Kanapa (Leżenie) -> Siedzenie 1 (Skrót)", "desc": "Czas trwania animacji z pozycji leżącej do pierwszej pozycji siedzącej." }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "Prędkość animacji kucania/wstawania",
+                "crouch": { "title": "Przejście do kucania", "desc": "Czas trwania animacji podczas kucania lub wstawania." },
+                "tiptoe": { "title": "Przejście na palce", "desc": "Czas trwania animacji podczas stawania na palcach lub powrotu do normalnej postawy." }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "Prędkość animacji chodzenia",
+            "walk_step": { "title": "Chód: Czas trwania kroku", "desc": "Czas trwania pojedynczego kroku." },
+            "walk_first_step_base": { "title": "Chód: Podstawowy czas trwania pierwszego kroku", "desc": "Podstawowy czas trwania pierwszego kroku na początku chodzenia." },
+            "walk_first_step_turn_extra": { "title": "Chód: Dodatkowy czas na obrót", "desc": "Dodatkowy czas dodawany do pierwszego kroku podczas obracania się w trakcie chodzenia." }
+        },
+        "standing_movement": {
+            "title": "Ruch w pozycji stojącej",
+            "walking": {
+                "title": "Chodzenie",
+                "step_amount": {
+                    "title": "Długość kroku",
+                    "desc": "Jak daleko kamera przesuwa się do przodu/tyłu z każdym krokiem."
+                },
+                "bob_amount": {
+                    "title": "Wielkość kołysania",
+                    "desc": "Wielkość kołysania kamery w górę/dół podczas chodzenia."
+                },
+                "walk_zone_z": {
+                    "title": "Strefa chodzenia",
+                    "desc": "Określa granice ruchu do przodu/tyłu względem środka kabiny.",
+                    "min": { "title": "Granica tylna" },
+                    "max": { "title": "Granica przednia" }
+                }
+            },
+            "stance_control": {
+                "title": "Kontrola postawy",
+                "hold_time_ms": {
+                    "title": "Czas przytrzymania spustu",
+                    "desc": "Jak długo trzeba patrzeć w górę/dół, aby zmienić postawę."
+                },
+                "activation_angle": {
+                    "desc": "Kąt nachylenia kamery wymagany do aktywacji postawy."
+                },
+                "deactivation_angle": {
+                    "desc": "Kąt nachylenia kamery wymagany do powrotu do postawy neutralnej."
+                },
+                "crouch": {
+                    "title": "Kucanie",
+                    "depth": {
+                        "title": "Głębokość kucania",
+                        "desc": "Jak nisko kamera opada podczas kucania."
+                    },
+                    "activation_angle": { "title": "Kąt aktywacji kucania" },
+                    "deactivation_angle": { "title": "Kąt wstawania" }
+                },
+                "tiptoe": {
+                    "title": "Na palcach",
+                    "height": {
+                        "title": "Wysokość na palcach",
+                        "desc": "Jak wysoko kamera unosi się na palcach."
+                    },
+                    "activation_angle": { "title": "Kąt aktywacji na palcach" },
+                    "deactivation_angle": { "title": "Kąt schodzenia" }
+                }
+            }
+        }
+    }
+}

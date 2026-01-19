@@ -1,14 +1,14 @@
 #define _USE_MATH_DEFINES // For M_PI on MSVC
 #include <cmath>          // For M_PI
 #include "Hooks/CameraHookManager.hpp"
-#include "Hooks/Offsets.hpp"
+#include "Hooks/Offsets.hpp" // Added to resolve 'Offsets' and 'g_offsets'
+#include "Animation/AnimationController.hpp" // Added to resolve IsAnimating()
+#include "Animation/StandingAnimController.hpp" // Added to resolve IsAnimating()
 #include "Animation/Positions/CameraPositions.hpp" // For accessing predefined camera positions
-#include "SPF_CabinWalk.hpp"                       // For access to g_ctx for logging and passenger seat position.
-#include "Animation/AnimationConfig.hpp"
+#include "SPF_CabinWalk.hpp" // For g_ctx, PluginContext
 
 namespace SPF_CabinWalk::CameraHookManager
 {
-    using namespace Animation::Config;
     // =================================================================================================
     // Internal State
     // =================================================================================================
@@ -74,6 +74,7 @@ namespace SPF_CabinWalk::CameraHookManager
 
     static void Detour_UpdateCameraFromInput(long long camera_object, float delta_time)
     {
+
         // If the logical camera position has not changed, just run the original function and 360-wrap logic.
         if (g_current_camera_pos == g_previous_camera_pos)
         {
@@ -155,9 +156,9 @@ namespace SPF_CabinWalk::CameraHookManager
         g_original_camera_pivot.y = *p_camera_pivot_y;
         g_original_camera_pivot.z = *p_camera_pivot_z;
 
-        *p_camera_pivot_x = Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.x;
-        *p_camera_pivot_y = Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.y;
-        *p_camera_pivot_z = Animation::CameraPositions::PASSENGER_SEAT_TARGET.position.z;
+        *p_camera_pivot_x = g_ctx.settings.positions.passenger_seat.position.x;
+        *p_camera_pivot_y = g_ctx.settings.positions.passenger_seat.position.y;
+        *p_camera_pivot_z = g_ctx.settings.positions.passenger_seat.position.z;
 
         // 2. Handle Mouse Limits via API
         if (g_ctx.cameraAPI)
@@ -193,6 +194,9 @@ namespace SPF_CabinWalk::CameraHookManager
                 float *p_end_azimuth = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_azimuth_offset);
                 g_original_azimuth_values[i].start = *p_start_azimuth;
                 g_original_azimuth_values[i].end = *p_end_azimuth;
+
+                char *p_outside_flag = (char *)((char *)azimuth_struct_ptr + Offsets::g_offsets.azimuth_outside_flag_offset);
+                g_original_azimuth_values[i].outside_flag = *p_outside_flag;
 
                 float *p_start_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_head_offset_x_offset);
                 float *p_end_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_head_offset_x_offset);
@@ -235,33 +239,6 @@ namespace SPF_CabinWalk::CameraHookManager
                     p_end_offset_vec[1] = g_original_azimuth_values[i].end_head_offset.y;
                     p_end_offset_vec[2] = g_original_azimuth_values[i].end_head_offset.z;
                 }
-
-                // --- Logging ---
-                if (g_ctx.loggerHandle && g_ctx.formattingAPI)
-                {
-                    char log_buffer[1024];
-                    g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer),
-                                                "[CabinWalk] Azimuth[%d] Angles: [%.2f, %.2f] -> [%.2f, %.2f]. Swapped: %s.",
-                                                i,
-                                                g_original_azimuth_values[i].start, g_original_azimuth_values[i].end,
-                                                *p_start_azimuth, *p_end_azimuth,
-                                                angles_were_swapped ? "YES" : "NO");
-                    g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, log_buffer);
-
-                    g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer),
-                                                "[CabinWalk] Azimuth[%d] Start Offset: (%.2f, %.2f, %.2f) -> (%.2f, %.2f, %.2f)",
-                                                i,
-                                                g_original_azimuth_values[i].start_head_offset.x, g_original_azimuth_values[i].start_head_offset.y, g_original_azimuth_values[i].start_head_offset.z,
-                                                p_start_offset_vec[0], p_start_offset_vec[1], p_start_offset_vec[2]);
-                    g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, log_buffer);
-
-                    g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer),
-                                                "[CabinWalk] Azimuth[%d] End Offset: (%.2f, %.2f, %.2f) -> (%.2f, %.2f, %.2f)",
-                                                i,
-                                                g_original_azimuth_values[i].end_head_offset.x, g_original_azimuth_values[i].end_head_offset.y, g_original_azimuth_values[i].end_head_offset.z,
-                                                p_end_offset_vec[0], p_end_offset_vec[1], p_end_offset_vec[2]);
-                    g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, log_buffer);
-                }
             }
         }
 
@@ -270,10 +247,6 @@ namespace SPF_CabinWalk::CameraHookManager
         {
             CacheExteriorSoundAngleRange_t pfnCache = (CacheExteriorSoundAngleRange_t)Offsets::g_offsets.pfnCacheExteriorSoundAngleRange;
             pfnCache(camera_object);
-            if (g_ctx.loggerHandle)
-            {
-                g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, "[CabinWalk] Called CacheExteriorSoundAngleRange after modifying azimuths.");
-            }
         }
     }
 
@@ -310,6 +283,10 @@ namespace SPF_CabinWalk::CameraHookManager
                 *p_start_azimuth = g_original_azimuth_values[i].start;
                 *p_end_azimuth = g_original_azimuth_values[i].end;
 
+                // Restore outside flag
+                char *p_outside_flag = (char *)((char *)azimuth_struct_ptr + Offsets::g_offsets.azimuth_outside_flag_offset);
+                *p_outside_flag = g_original_azimuth_values[i].outside_flag;
+
                 // Restore full head offset vectors
                 float *p_start_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_head_offset_x_offset);
                 p_start_offset_vec[0] = g_original_azimuth_values[i].start_head_offset.x;
@@ -328,10 +305,6 @@ namespace SPF_CabinWalk::CameraHookManager
         {
             CacheExteriorSoundAngleRange_t pfnCache = (CacheExteriorSoundAngleRange_t)Offsets::g_offsets.pfnCacheExteriorSoundAngleRange;
             pfnCache(camera_object);
-            if (g_ctx.loggerHandle)
-            {
-                g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, "[CabinWalk] Called CacheExteriorSoundAngleRange after restoring azimuths.");
-            }
         }
     }
 
@@ -361,10 +334,10 @@ namespace SPF_CabinWalk::CameraHookManager
                 case AnimationController::CameraPosition::SofaSit2:
                     // Set custom limits for sofa positions
                     g_ctx.cameraAPI->SetInteriorRotationLimits(
-                        Sofa::Limits::YAW_LEFT,
-                        Sofa::Limits::YAW_RIGHT,
-                        Sofa::Limits::PITCH_UP,
-                        Sofa::Limits::PITCH_DOWN
+                        g_ctx.settings.sofa_limits.yaw_left,
+                        g_ctx.settings.sofa_limits.yaw_right,
+                        g_ctx.settings.sofa_limits.pitch_up,
+                        g_ctx.settings.sofa_limits.pitch_down
                     );
                     break;
                 
@@ -390,14 +363,18 @@ namespace SPF_CabinWalk::CameraHookManager
                 g_original_azimuth_values[i].start = *p_start_azimuth;
                 g_original_azimuth_values[i].end = *p_end_azimuth;
 
+                char *p_outside_flag = (char *)((char *)azimuth_struct_ptr + Offsets::g_offsets.azimuth_outside_flag_offset);
+                g_original_azimuth_values[i].outside_flag = *p_outside_flag;
+
                 float *p_start_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_head_offset_x_offset);
                 float *p_end_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_head_offset_x_offset);
                 g_original_azimuth_values[i].start_head_offset = {p_start_offset_vec[0], p_start_offset_vec[1], p_start_offset_vec[2]};
                 g_original_azimuth_values[i].end_head_offset = {p_end_offset_vec[0], p_end_offset_vec[1], p_end_offset_vec[2]};
 
-                // Zero out the azimuths and head offsets
+                // Zero out the azimuths, head offsets and outside flag
                 *p_start_azimuth = 0.0f;
                 *p_end_azimuth = 0.0f;
+                *p_outside_flag = 0;
 
                 float *p_start_offset_vec_current = p_start_offset_vec;
                 float *p_end_offset_vec_current = p_end_offset_vec;
@@ -408,32 +385,6 @@ namespace SPF_CabinWalk::CameraHookManager
                 p_end_offset_vec[0] = 0.0f;
                 p_end_offset_vec[1] = 0.0f;
                 p_end_offset_vec[2] = 0.0f;
-
-                // --- Logging ---
-                if (g_ctx.loggerHandle && g_ctx.formattingAPI)
-                {
-                    char log_buffer[1024];
-                    g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer),
-                                                "[CabinWalk] Zeroing Azimuth[%d] Angles: [%.2f, %.2f] -> [%.2f, %.2f].",
-                                                i,
-                                                g_original_azimuth_values[i].start, g_original_azimuth_values[i].end,
-                                                *p_start_azimuth, *p_end_azimuth);
-                    g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, log_buffer);
-
-                    g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer),
-                                                "[CabinWalk] Zeroing Azimuth[%d] Start Offset: (%.2f, %.2f, %.2f) -> (%.2f, %.2f, %.2f)",
-                                                i,
-                                                g_original_azimuth_values[i].start_head_offset.x, g_original_azimuth_values[i].start_head_offset.y, g_original_azimuth_values[i].start_head_offset.z,
-                                                p_start_offset_vec_current[0], p_start_offset_vec_current[1], p_start_offset_vec_current[2]);
-                    g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, log_buffer);
-
-                    g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer),
-                                                "[CabinWalk] Zeroing Azimuth[%d] End Offset: (%.2f, %.2f, %.2f) -> (%.2f, %.2f, %.2f)",
-                                                i,
-                                                g_original_azimuth_values[i].end_head_offset.x, g_original_azimuth_values[i].end_head_offset.y, g_original_azimuth_values[i].end_head_offset.z,
-                                                p_end_offset_vec_current[0], p_end_offset_vec_current[1], p_end_offset_vec_current[2]);
-                    g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, log_buffer);
-                }
             }
         }
 
@@ -442,11 +393,19 @@ namespace SPF_CabinWalk::CameraHookManager
         {
             CacheExteriorSoundAngleRange_t pfnCache = (CacheExteriorSoundAngleRange_t)Offsets::g_offsets.pfnCacheExteriorSoundAngleRange;
             pfnCache(camera_object);
-            if (g_ctx.loggerHandle)
-            {
-                g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_DEBUG, "[CabinWalk] Called CacheExteriorSoundAngleRange after zeroing azimuths.");
-            }
         }
     }
 
+void NotifySettingsUpdated()
+    {
+        // Only force re-evaluation if we are not actively animating a major sequence,
+        // as the animation itself will handle position updates.
+        // Also, ensure there's a current valid position to re-evaluate.
+        if (g_current_camera_pos != AnimationController::CameraPosition::None &&
+            !SPF_CabinWalk::AnimationController::IsAnimating() &&
+            !SPF_CabinWalk::StandingAnimController::IsAnimating())
+        {
+            g_previous_camera_pos = AnimationController::CameraPosition::None; // Force re-evaluation on next update
+        }
+    }
 } // namespace SPF_CabinWalk::CameraHookManager
