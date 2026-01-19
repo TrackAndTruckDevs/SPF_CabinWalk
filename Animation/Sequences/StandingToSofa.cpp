@@ -1,5 +1,5 @@
 #include "StandingToSofa.hpp"
-#include "Animation/AnimationConfig.hpp"
+#include "SPF_CabinWalk.hpp"
 #include "Animation/Track.hpp"
 #include "Animation/Easing/Easing.hpp"
 
@@ -11,7 +11,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(Animation::Config::STANDING_TO_SOFA_DURATION);
+        seq->Initialize(g_ctx.settings.animation_durations.main_animation_speed.standing_to_sofa * 1000);
 
         // --- Position X Track ---
         {

@@ -25,8 +25,8 @@ namespace SPF_CabinWalk
         {
             Driver,
             Passenger,
-            Standing, // To be implemented
-            Bed,      // To be implemented
+            Standing,
+            Bed,
             SofaSit1,
             SofaLie,
             SofaSit2,
@@ -83,6 +83,11 @@ namespace SPF_CabinWalk
          * @return true if the pending moves queue is not empty, false otherwise.
          */
         bool HasPendingMoves();
+
+        /**
+         * @brief Notifies the animation controller that global settings have been updated.
+        */
+        void NotifySettingsUpdated();
 
         /**
          * @brief Checks if an animation is currently in progress.

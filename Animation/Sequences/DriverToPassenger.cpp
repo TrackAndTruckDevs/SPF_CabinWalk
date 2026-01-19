@@ -1,5 +1,5 @@
 #include "DriverToPassenger.hpp"
-#include "Animation/AnimationConfig.hpp" // For animation durations
+#include "SPF_CabinWalk.hpp" // For g_ctx
 
 namespace SPF_CabinWalk::AnimationSequences
 {
@@ -9,7 +9,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(Animation::Config::DRIVER_TO_PASSENGER_DURATION);
+        seq->Initialize(g_ctx.settings.animation_durations.main_animation_speed.driver_to_passenger * 1000);
 
         // --- Position X Track (Move Right) ---
         {
@@ -25,9 +25,9 @@ namespace SPF_CabinWalk::AnimationSequences
         {
             auto track = std::make_unique<Animation::Track<float>>();
             track->AddKeyframe({0.0f, start_state.position.y, Easing::linear});
-            track->AddKeyframe({0.35f, 0.250f, Easing::easeOutCubic});
-            track->AddKeyframe({0.55f, 0.260f, Easing::easeInOutQuint});
-            track->AddKeyframe({0.75f, 0.250f, Easing::easeInQuint});
+            track->AddKeyframe({0.35f, g_ctx.settings.general.height, Easing::easeOutCubic});
+            track->AddKeyframe({0.55f, g_ctx.settings.general.height + 0.01f, Easing::easeInOutQuint});
+            track->AddKeyframe({0.75f, g_ctx.settings.general.height, Easing::easeInQuint});
             track->AddKeyframe({1.0f, target_state.position.y, Easing::easeInOutCubic});
             seq->AddPositionYTrack(std::move(track));
         }
@@ -47,11 +47,12 @@ namespace SPF_CabinWalk::AnimationSequences
         // --- Rotation Yaw Track (Look Left/Right) ---
         {
             auto track = std::make_unique<Animation::Track<float>>();
+            const float direction_multiplier = (g_ctx.settings.general.cabin_layout == LHD) ? 1.0f : -1.0f;
             track->AddKeyframe({0.0f, start_state.rotation.x, Easing::linear});
-            track->AddKeyframe({0.2f, -1.15f, Easing::easeOutCubic});
-            track->AddKeyframe({0.4f, -0.85f, Easing::easeInOutQuad});
-            track->AddKeyframe({0.6f, -1.0f, Easing::easeInOutQuad});
-            track->AddKeyframe({0.85f, 0.5f, Easing::easeInOutQuad});
+            track->AddKeyframe({0.2f, -1.15f * direction_multiplier, Easing::easeOutCubic});
+            track->AddKeyframe({0.4f, -0.85f * direction_multiplier, Easing::easeInOutQuad});
+            track->AddKeyframe({0.6f, -1.0f * direction_multiplier, Easing::easeInOutQuad});
+            track->AddKeyframe({0.85f, 0.5f * direction_multiplier, Easing::easeInOutQuad});
             track->AddKeyframe({1.0f, target_state.rotation.x, Easing::easeInOutCubic});
             seq->AddRotationYawTrack(std::move(track));
         }

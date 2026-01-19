@@ -1,5 +1,5 @@
 #include "StandingToPassenger.hpp"
-#include "Animation/AnimationConfig.hpp" // For animation durations
+#include "SPF_CabinWalk.hpp"
 
 namespace SPF_CabinWalk::AnimationSequences
 {
@@ -9,7 +9,7 @@ namespace SPF_CabinWalk::AnimationSequences
     )
     {
         auto seq = std::make_unique<Animation::AnimationSequence>();
-        seq->Initialize(Animation::Config::DRIVER_TO_PASSENGER_DURATION); // Using same duration for now
+        seq->Initialize(g_ctx.settings.animation_durations.main_animation_speed.standing_to_passenger * 1000);
 
         // --- Position X Track ---
         {
@@ -48,10 +48,11 @@ namespace SPF_CabinWalk::AnimationSequences
         // --- Rotation Yaw Track ---
         {
             auto track = std::make_unique<Animation::Track<float>>();
+            const float direction_multiplier = (g_ctx.settings.general.cabin_layout == LHD) ? 1.0f : -1.0f;
             track->AddKeyframe({0.0f, start_state.rotation.x, Easing::easeOutCubic});
             track->AddKeyframe({0.15f, 0.0f, Easing::easeInOutCubic});
-            track->AddKeyframe({0.45f, - 0.75f, Easing::easeInOutCubic});
-            track->AddKeyframe({0.65f, + 0.15f, Easing::easeOutCubic});
+            track->AddKeyframe({0.45f, -0.75f * direction_multiplier, Easing::easeInOutCubic});
+            track->AddKeyframe({0.65f, 0.15f * direction_multiplier, Easing::easeOutCubic});
             track->AddKeyframe({1.0f, 0.0f, Easing::easeOutQuad});
             seq->AddRotationYawTrack(std::move(track));
         }

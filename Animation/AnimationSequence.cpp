@@ -28,7 +28,6 @@ namespace SPF_CabinWalk::Animation
         m_initial_camera_state = initial_state;
         m_current_elapsed_time_ms = 0;
         m_is_playing = true;
-        // std::cout << "AnimationSequence Started. Initial Pos: {" << initial_state.position.x << "," << initial_state.position.y << "," << initial_state.position.z << "}" << std::endl; // Debug
     }
 
     bool AnimationSequence::Update(uint64_t delta_time_ms, const SPF_Camera_API* camera_api)

@@ -1,0 +1,219 @@
+{
+    "language": {
+        "uk": "Ukrainian",
+        "en": "English",
+        "fr": "French",
+        "de": "German",
+        "it": "Italian",
+        "es": "Spanish",
+        "zh": "Chinese",
+        "ja": "Japanese",
+        "ru": "Russian",
+        "pl": "Polish",
+        "nl": "Dutch",
+        "pt": "Portuguese",
+        "tr": "Turkish"
+    },
+    "messages": {
+        "warning_not_safe_to_move": "Please stop and apply the parking brake!"
+    },
+    "keybinds": {
+        "moveToPassengerSeat": {
+            "title": "Move to Passenger Seat",
+            "desc": "Moves the camera to the passenger seat."
+        },
+        "moveToDriverSeat": {
+            "title": "Move to Driver Seat",
+            "desc": "Moves the camera to the driver's seat."
+        },
+        "moveToStandingPosition": {
+            "title": "Move to Standing Position | Walk Forward",
+            "desc": "Moves the camera to a standing position in the cabin. When standing, used for walking."
+        },
+        "cycleSofaPositions": {
+            "title": "Move to Sofa | Cycle Sofa Positions",
+            "desc": "Moves the camera to the sofa. When on the sofa, cycles through positions (sitting, lying down)."
+        }
+    },
+    "settings": {
+        "general": {
+            "title": "General",
+            "warning_duration_ms": {
+                "title": "Warning Duration",
+                "desc": "How long the 'not safe to move' warning is displayed."
+            },
+            "cabin_layout": {
+                "title": "Cabin Layout",
+                "desc": "Set the steering wheel side for correct animations.",
+                "lhd": "Left-Hand Drive",
+                "rhd": "Right-Hand Drive"
+            },
+            "height": {
+                "title": "Height",
+                "desc": "How high the camera rises in animations (simulates human height)."
+            }
+        },
+        "positions": {
+            "title": "Camera Positions",
+            "position_group": { "title": "Position (X, Y, Z)" },
+            "rotation_group": { "title": "Rotation (Yaw, Pitch)" },
+            "enabled": {
+                "desc": "Enable or disable this camera position."
+            },
+            "coord": {
+                "desc": "Position coordinate"
+            },
+            "rot": {
+                "desc": "Rotation coordinate (Yaw/Pitch)"
+            },
+            "passenger_seat": {
+                "title": "Passenger Seat",
+                "enabled": { "title": "Enable Passenger Seat" },
+                "position": {
+                    "x": { "title": "Passenger Seat: Pos X (Right/Left)" },
+                    "y": { "title": "Passenger Seat: Pos Y (Up/Down)" },
+                    "z": { "title": "Passenger Seat: Pos Z (Forward/Back)" }
+                },
+                "rotation": {
+                    "x": { "title": "Passenger Seat: Yaw (Left/Right)" },
+                    "y": { "title": "Passenger Seat: Pitch (Up/Down)" }
+                }
+            },
+            "standing": {
+                "title": "Standing Position",
+                "enabled": { "title": "Enable Standing Position" },
+                "position": {
+                    "x": { "title": "Standing Start: Pos X (Right/Left)" },
+                    "y": { "title": "Standing Start: Pos Y (Up/Down)" },
+                    "z": { "title": "Standing Start: Pos Z (Forward/Back)" }
+                },
+                "rotation": {
+                    "x": { "title": "Standing Start: Yaw (Left/Right)" },
+                    "y": { "title": "Standing Start: Pitch (Up/Down)" }
+                }
+            },
+            "sofa_sit1": {
+                "title": "Sofa (Sit) Main position on the sofa",
+                "enabled": { "title": "Enable Sofa" },
+                "position": {
+                    "x": { "title": "Sofa (Sit 1): Pos X (Right/Left)" },
+                    "y": { "title": "Sofa (Sit 1): Pos Y (Up/Down)" },
+                    "z": { "title": "Sofa (Sit 1): Pos Z (Forward/Back)" }
+                },
+                "rotation": {
+                    "x": { "title": "Sofa (Sit 1): Yaw (Left/Right)" },
+                    "y": { "title": "Sofa (Sit 1): Pitch (Up/Down)" }
+                }
+            },
+            "sofa_lie": {
+                "title": "Sofa (Lie Down)",
+                "enabled": { "title": "Enable Lie Down Position" },
+                "position": {
+                    "x": { "title": "Sofa (Lie Down): Pos X (Right/Left)" },
+                    "y": { "title": "Sofa (Lie Down): Pos Y (Up/Down)" },
+                    "z": { "title": "Sofa (Lie Down): Pos Z (Forward/Back)" }
+                },
+                "rotation": {
+                    "x": { "title": "Sofa (Lie Down): Yaw (Left/Right)" },
+                    "y": { "title": "Sofa (Lie Down): Pitch (Up/Down)" }
+                }
+            },
+            "sofa_sit2": {
+                "title": "Sofa (Sit 2)",
+                "enabled": { "title": "Enable (Sit 2)" },
+                "position": {
+                    "x": { "title": "Sofa (Sit 2): Pos X (Right/Left)" },
+                    "y": { "title": "Sofa (Sit 2): Pos Y (Up/Down)" },
+                    "z": { "title": "Sofa (Sit 2): Pos Z (Forward/Back)" }
+                },
+                "rotation": {
+                    "x": { "title": "Sofa (Sit 2): Yaw (Left/Right)" },
+                    "y": { "title": "Sofa (Sit 2): Pitch (Up/Down)" }
+                }
+            }
+        },
+        "animation_durations": {
+            "title": "Animation Durations",
+            "main_animation_speed": {
+                "title": "Main Animation Speed",
+                "driver_to_passenger": { "title": "Driver -> Passenger", "desc": "Duration of the animation from the driver's seat to the passenger's seat." },
+                "passenger_to_driver": { "title": "Passenger -> Driver", "desc": "Duration of the animation from the passenger's seat to the driver's seat." },
+                "driver_to_standing": { "title": "Driver -> Standing", "desc": "Duration of the animation from the driver's seat to the standing position." },
+                "standing_to_driver": { "title": "Standing -> Driver", "desc": "Duration of the animation from the standing position to the driver's seat." },
+                "passenger_to_standing": { "title": "Passenger -> Standing", "desc": "Duration of the animation from the passenger's seat to the standing position." },
+                "standing_to_passenger": { "title": "Standing -> Passenger", "desc": "Duration of the animation from the standing position to the passenger's seat." },
+                "standing_to_sofa": { "title": "Standing -> Sofa", "desc": "Duration of the animation from the standing position to the sofa." },
+                "sofa_to_standing": { "title": "Sofa -> Standing", "desc": "Duration of the animation from the sofa to the standing position." }
+            },
+            "sofa_animation_speed": {
+                "title": "Sofa Animation Speed",
+                "sofa_sit1_to_lie": { "title": "Sofa (Sit 1) -> Lie Down", "desc": "Duration of the animation from the first sitting position to the lying position on the sofa." },
+                "sofa_lie_to_sit2": { "title": "Sofa (Lie) -> Sit 2", "desc": "Duration of the animation from the lying position to the second sitting position on the sofa." },
+                "sofa_sit2_to_sit1": { "title": "Sofa (Sit 2) -> Sit 1", "desc": "Duration of the animation from the second sitting position to the first sitting position on the sofa." },
+                "sofa_lie_to_sit1_shortcut": { "title": "Sofa (Lie) -> Sit 1 (Shortcut)", "desc": "Duration of the animation from the lying position to the first sitting position." }
+            },
+            "crouch_and_stand_animation_speed": {
+                "title": "Crouch and Stand Animation Speed",
+                "crouch": { "title": "Crouch Transition", "desc": "Duration of the animation when crouching or standing up." },
+                "tiptoe": { "title": "Tiptoe Transition", "desc": "Duration of the animation when going on tiptoes or returning to a normal stance." }
+            }
+        },
+        "walking_animation_speed": {
+            "title": "Walking Animation Speed",
+            "walk_step": { "title": "Walk: Step Duration", "desc": "Duration of a single walking step." },
+            "walk_first_step_base": { "title": "Walk: First Step Base Duration", "desc": "Base duration of the first step when starting to walk." },
+            "walk_first_step_turn_extra": { "title": "Walk: First Step Turn Extra Duration", "desc": "Additional time added to the first step when turning while walking." }
+        },        
+        "standing_movement": {
+            "title": "Standing Movement",
+            "walking": {
+                "title": "Walking",
+                "step_amount": {
+                    "title": "Step Amount",
+                    "desc": "How far each step moves the camera forward/backward."
+                },
+                "bob_amount": {
+                    "title": "Bob Amount",
+                    "desc": "The amount of camera shake up/down when walking."
+                },
+                "walk_zone_z": {
+                    "title": "Walking Zone",
+                    "desc": "Defines the forward/backward movement limits relative to the cabin center.",
+                    "min": { "title": "Back Limit" },
+                    "max": { "title": "Front Limit" }
+                }
+            },
+            "stance_control": {
+                "title": "Stance Control",
+                "hold_time_ms": {
+                    "title": "Trigger Hold Time",
+                    "desc": "How long you need to look up/down to change stance."
+                },
+                "activation_angle": {
+                    "desc": "The camera pitch angle required to activate the stance."
+                },
+                "deactivation_angle": {
+                    "desc": "The camera pitch angle required to return to a neutral stance."
+                },
+                "crouch": {
+                    "title": "Crouch",
+                    "depth": {
+                        "title": "Crouch Depth",
+                        "desc": "How low the camera goes when crouching."
+                    },
+                    "activation_angle": { "title": "Crouch Activation Angle" },
+                    "deactivation_angle": { "title": "Stand Up Angle" }
+                },
+                "tiptoe": {
+                    "title": "Tiptoe",
+                    "height": {
+                        "title": "Tiptoe Height",
+                        "desc": "How high the camera goes when on tiptoes."
+                    },
+                    "activation_angle": { "title": "Tiptoe Activation Angle" },
+                    "deactivation_angle": { "title": "Stand Down Angle" }
+                }
+            }
+        }
+    }
+}
