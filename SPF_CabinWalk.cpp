@@ -14,6 +14,7 @@
 
 #include <cmath>   // For math functions like fabsf
 #include <cstring> // For C-style string manipulation functions like strncpy_s.
+#include <string>  // For std::string and std::to_string
 
 namespace SPF_CabinWalk
 {
@@ -26,7 +27,7 @@ namespace SPF_CabinWalk
 
     /**
      * @brief A constant for the plugin's name.
-     * @details This MUST match the name used in `GetContext` calls for various APIs
+     * @details This MUST match the name used in `Cfg_GetContext` calls for various APIs
      * and the plugin's directory name.
      */
     const char *PLUGIN_NAME = "SPF_CabinWalk";
@@ -46,57 +47,44 @@ namespace SPF_CabinWalk
     // 2. Manifest Implementation
     // =================================================================================================
 
-    void GetManifestData(SPF_ManifestData_C &out_manifest)
+    void BuildManifest(SPF_Manifest_Builder_Handle *h, const SPF_Manifest_Builder_API *api)
     {
         // This function defines all the metadata for your plugin. The framework calls this
         // function *before* loading your plugin DLL to understand what it is.
 
-        // --- 2.1. Plugin Information (SPF_InfoData_C) ---
+        // --- 2.1. Plugin Information ---
         // This section provides the basic identity of your plugin.
         {
-            auto &info = out_manifest.info;
-            strncpy_s(info.name, PLUGIN_NAME, sizeof(info.name));
-            strncpy_s(info.version, "1.0.1", sizeof(info.version));
-            strncpy_s(info.min_framework_version, "1.0.7", sizeof(info.min_framework_version));
-            strncpy_s(info.author, "Track'n'Truck Devs", sizeof(info.author));
-            strncpy_s(info.descriptionLiteral, "A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you to unchain the camera from the driver's seat and freely walk around your truck's cabin. Explore your interior with smooth, animated camera movements.", sizeof(info.descriptionKey));
+            api->Info_SetName(h, PLUGIN_NAME);
+            api->Info_SetVersion(h, "1.0.2");
+            api->Info_SetMinFrameworkVersion(h, "1.1.0");
+            api->Info_SetAuthor(h, "Track'n'Truck Devs");
+            api->Info_SetDescriptionLiteral(h, "A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you to unchain the camera from the driver's seat and freely walk around your truck's cabin. Explore your interior with smooth, animated camera movements.");
 
-            strncpy_s(info.email, "mailto:spf.framework@gmail.com", sizeof(info.email));
-            strncpy_s(info.youtubeUrl, "https://www.youtube.com/@TrackAndTruck", sizeof(info.youtubeUrl));
-            strncpy_s(info.patreonUrl, "https://www.patreon.com/TrackAndTruckDevs", sizeof(info.patreonUrl));
+            api->Info_SetEmail(h, "mailto:spf.framework@gmail.com");
+            api->Info_SetYoutubeUrl(h, "https://www.youtube.com/@TrackAndTruck");
+            api->Info_SetPatreonUrl(h, "https://www.patreon.com/TrackAndTruckDevs");
         }
 
-        // --- 2.2. Configuration Policy (SPF_ConfigPolicyData_C) ---
+        // --- 2.2. Configuration Policy ---
         // This section defines how your plugin interacts with the framework's configuration system.
         {
-            auto &policy = out_manifest.configPolicy;
-
             // `allowUserConfig`: Set to `true` if you want a `settings.json` file to be created
             // for your plugin, allowing users (or the framework UI) to override default settings.
-            policy.allowUserConfig = true;
+            api->Policy_SetAllowUserConfig(h, true);
 
-            // `userConfigurableSystemsCount`: The number of framework systems (e.g., "settings", "logging", "localization", "ui")
-            // that should have a configuration section generated in the settings UI for your plugin.
-            // IMPORTANT: Always initialize this to 0 if you are not listing any systems to avoid errors.
-            policy.userConfigurableSystemsCount = 2; // To enable configurable systems, uncomment the block below and set the count accordingly
-            // strncpy_s(policy.userConfigurableSystems[0], "logging", sizeof(policy.userConfigurableSystems[0]));
-            strncpy_s(policy.userConfigurableSystems[0], "settings", sizeof(policy.userConfigurableSystems[0]));
-            strncpy_s(policy.userConfigurableSystems[1], "localization", sizeof(policy.userConfigurableSystems[1]));
-            // strncpy_s(policy.userConfigurableSystems[2], "ui", sizeof(policy.userConfigurableSystems[2]));
-
-            // `requiredHooksCount`: List any game hooks your plugin absolutely requires to function.
-            // The framework will ensure these hooks are enabled whenever your plugin is active,
-            // regardless of user settings.
-            // IMPORTANT: Always initialize this to 0 if you are not listing any hooks to avoid errors.
-            policy.requiredHooksCount = 0; // To enable required hooks, uncomment the lines below and set the count accordingly.
-            // strncpy_s(policy.requiredHooks[0], "GameConsole", sizeof(policy.requiredHooks[0])); // Example: Requires GameConsole hook
+            // Enable specific systems in the settings UI.
+            api->Policy_AddConfigurableSystem(h, "settings");
+            api->Policy_AddConfigurableSystem(h, "localization");
+            
+            // Required hooks (none for this plugin yet)
+            // api->Policy_AddRequiredHook(h, "GameConsole");
         }
 
-        // --- 2.3. Custom Settings (settingsJson) ---
+        // --- 2.3. Custom Settings Defaults (settingsJson) ---
         // A JSON string literal that defines the default values for your plugin's custom settings.
-        // If `policy.allowUserConfig` is true, the framework creates a `settings.json` file.
-        // The JSON object you provide here will be inserted under a top-level key named "settings".
-        out_manifest.settingsJson = R"json(
+        // These will be inserted under a top-level key named "settings" in settings.json.
+        api->Settings_SetJson(h, R"json(
             {
                 "general": {
                     "warning_duration_ms": 3000,
@@ -167,290 +155,128 @@ namespace SPF_CabinWalk
                     "pitch_down": -65.0
                 }
             }
-        )json";
+        )json");
 
-        // --- 2.4. Default Settings for Framework Systems ---
-        // Here you can provide default configurations for various framework systems.
+        // --- 2.4. System Defaults ---
 
-        // --- Logging ---
-        // Requires: SPF_Logger_API.h
+        // Logging
+        api->Defaults_SetLogging(h, "debug", false);
+
+        // Localization
+        api->Defaults_SetLocalization(h, "en");
+
+        // Keybinds
         {
-            auto &logging = out_manifest.logging;
-            // `level`: Default minimum log level for this plugin (e.g., "trace", "debug", "info", "warn", "error", "critical").
-            strncpy_s(logging.level, "debug", sizeof(logging.level));
-            // `sinks.file`: If true, logs from this plugin will be written to a dedicated file
-            // (e.g., `SPF_CabinWalk/logs/SPF_CabinWalk.log`) in addition to the main framework log.
-            logging.sinks.file = false;
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToPassengerSeat", "keyboard", "KEY_NUMPAD3", "short", 0, "always", "toggle");
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToDriverSeat", "keyboard", "KEY_NUMPAD5", "short", 0, "always", "toggle");
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToStandingPosition", "keyboard", "KEY_NUMPAD2", "short", 0, "always", "hold");
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "cycleSofaPositions", "keyboard", "KEY_NUMPAD1", "short", 0, "always", "toggle");
         }
 
-        // --- Localization ---
-        // Requires: SPF_Localization_API.h
-        // Uncomment if your plugin uses localized strings.
+        // UI Windows
         {
-            auto &localization = out_manifest.localization;
-            // `language`: Default language code (e.g., "en", "de", "uk").
-            strncpy_s(localization.language, "en", sizeof(localization.language));
-        }
-
-        auto &keybinds = out_manifest.keybinds;
-        keybinds.actionCount = 4; // Incremented to 4
-        {
-            // --- Action 0: Move to Passenger seat ---
-            auto &action = keybinds.actions[0];
-            strncpy_s(action.groupName, "SPF_CabinWalk.Movement", sizeof(action.groupName));
-            strncpy_s(action.actionName, "moveToPassengerSeat", sizeof(action.actionName));
-
-            // Define one or more default key combinations for this action.
-            action.definitionCount = 1;
-            {
-                auto &def = action.definitions[0];
-                strncpy_s(def.type, "keyboard", sizeof(def.type));
-                strncpy_s(def.key, "KEY_NUMPAD3", sizeof(def.key));
-                strncpy_s(def.pressType, "short", sizeof(def.pressType));
-                strncpy_s(def.consume, "always", sizeof(def.consume));
-                strncpy_s(def.behavior, "toggle", sizeof(def.behavior));
-            }
-        }
-        {
-            // --- Action 1: Move to driver seat ---
-            auto &action = keybinds.actions[1];
-            strncpy_s(action.groupName, "SPF_CabinWalk.Movement", sizeof(action.groupName));
-            strncpy_s(action.actionName, "moveToDriverSeat", sizeof(action.actionName));
-
-            action.definitionCount = 1;
-            {
-                auto &def = action.definitions[0];
-                strncpy_s(def.type, "keyboard", sizeof(def.type));
-                strncpy_s(def.key, "KEY_NUMPAD5", sizeof(def.key));
-                strncpy_s(def.pressType, "short", sizeof(def.pressType));
-                strncpy_s(def.consume, "always", sizeof(def.consume));
-                strncpy_s(def.behavior, "toggle", sizeof(def.behavior));
-            }
-        }
-        {
-            // --- Action 2: Move to standing position ---
-            auto &action = keybinds.actions[2];
-            strncpy_s(action.groupName, "SPF_CabinWalk.Movement", sizeof(action.groupName));
-            strncpy_s(action.actionName, "moveToStandingPosition", sizeof(action.actionName));
-
-            action.definitionCount = 1;
-            {
-                auto &def = action.definitions[0];
-                strncpy_s(def.type, "keyboard", sizeof(def.type));
-                strncpy_s(def.key, "KEY_NUMPAD2", sizeof(def.key));
-                strncpy_s(def.pressType, "short", sizeof(def.pressType));
-                strncpy_s(def.consume, "always", sizeof(def.consume));
-                strncpy_s(def.behavior, "hold", sizeof(def.behavior));
-            }
-        }
-        {
-            // --- Action 3: Cycle Sofa Positions ---
-            auto &action = keybinds.actions[3];
-            strncpy_s(action.groupName, "SPF_CabinWalk.Movement", sizeof(action.groupName));
-            strncpy_s(action.actionName, "cycleSofaPositions", sizeof(action.actionName));
-
-            action.definitionCount = 1;
-            {
-                auto &def = action.definitions[0];
-                strncpy_s(def.type, "keyboard", sizeof(def.type));
-                strncpy_s(def.key, "KEY_NUMPAD1", sizeof(def.key));
-                strncpy_s(def.pressType, "short", sizeof(def.pressType));
-                strncpy_s(def.consume, "always", sizeof(def.consume));
-                strncpy_s(def.behavior, "toggle", sizeof(def.behavior));
-            }
-        }
-
-        auto &ui = out_manifest.ui;
-        ui.windowsCount = 1; // Number of UI windows defined by your plugin.
-        {
-            // --- Window 0: The main window for the plugin ---
-            auto &window = ui.windows[0];
-            // `name`: Unique ID for this window within the plugin.
-            strncpy_s(window.name, "WarningWindow", sizeof(window.name));
-            // `isVisible`: Default visibility state.
-            window.isVisible = false;
-            // `isInteractive`: If false, mouse clicks pass through the window to the game.
-            window.isInteractive = false;
-            // Default position and size on screen.
-            window.posX = 0;
-            window.posY = 0;
-            window.sizeW = 400;
-            window.sizeH = 100;
-            // `isCollapsed`: Default collapsed state.
-            window.isCollapsed = false;
-            // `autoScroll`: If the window should auto-scroll to the bottom on new content.
-            window.autoScroll = false;
+            api->Defaults_AddWindow(h, "WarningWindow", false, false, 0, 0, 400, 100, false, false);
         }
 
         // =============================================================================================
         // 2.5. Metadata for UI Display (Optional)
         // =============================================================================================
-        // These sections are used to provide human-readable names and descriptions for your
-        // settings, keybinds, and UI windows in the framework's settings panel.
-        // If you don't provide metadata for an item, the framework will use its raw key as a label.
-        //==============================================================================================
 
-        out_manifest.keybindsMetadataCount = 4; // Incremented to 4
+        // Keybinds Metadata
         {
-            auto &meta = out_manifest.keybindsMetadata[0];
-            strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName));
-            strncpy_s(meta.actionName, "moveToPassengerSeat", sizeof(meta.actionName));
-            strncpy_s(meta.titleKey, "keybinds.moveToPassengerSeat.title", sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, "keybinds.moveToPassengerSeat.desc", sizeof(meta.descriptionKey));
-        }
-        {
-            auto &meta = out_manifest.keybindsMetadata[1];
-            strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName));
-            strncpy_s(meta.actionName, "moveToDriverSeat", sizeof(meta.actionName));
-            strncpy_s(meta.titleKey, "keybinds.moveToDriverSeat.title", sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, "keybinds.moveToDriverSeat.desc", sizeof(meta.descriptionKey));
-        }
-        {
-            auto &meta = out_manifest.keybindsMetadata[2];
-            strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName));
-            strncpy_s(meta.actionName, "moveToStandingPosition", sizeof(meta.actionName));
-            strncpy_s(meta.titleKey, "keybinds.moveToStandingPosition.title", sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, "keybinds.moveToStandingPosition.desc", sizeof(meta.descriptionKey));
-        }
-        {
-            auto &meta = out_manifest.keybindsMetadata[3];
-            strncpy_s(meta.groupName, "SPF_CabinWalk.Movement", sizeof(meta.groupName));
-            strncpy_s(meta.actionName, "cycleSofaPositions", sizeof(meta.actionName));
-            strncpy_s(meta.titleKey, "keybinds.cycleSofaPositions.title", sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, "keybinds.cycleSofaPositions.desc", sizeof(meta.descriptionKey));
+            api->Meta_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToPassengerSeat", "keybinds.moveToPassengerSeat.title", "keybinds.moveToPassengerSeat.desc");
+            api->Meta_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToDriverSeat", "keybinds.moveToDriverSeat.title", "keybinds.moveToDriverSeat.desc");
+            api->Meta_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToStandingPosition", "keybinds.moveToStandingPosition.title", "keybinds.moveToStandingPosition.desc");
+            api->Meta_AddKeybind(h, "SPF_CabinWalk.Movement", "cycleSofaPositions", "keybinds.cycleSofaPositions.title", "keybinds.cycleSofaPositions.desc");
         }
 
         // --- Custom Settings Metadata ---
-        out_manifest.customSettingsMetadataCount = 0;
-        auto &settings_meta = out_manifest.customSettingsMetadata;
-
-        auto add_meta = [&](const char *key, const char *title, const char *desc)
-        {
-            auto &meta = settings_meta[out_manifest.customSettingsMetadataCount++];
-            strncpy_s(meta.keyPath, key, sizeof(meta.keyPath));
-            strncpy_s(meta.titleKey, title, sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, desc, sizeof(meta.descriptionKey));
-        };
-
+        
+        // Helper wrappers for Meta_AddCustomSetting. 
+        // We build the JSON string for widget parameters here to keep the loop logic clean.
         auto AddSliderMeta = [&](const char *key, const char *title, const char *desc, float min, float max, const char *format)
         {
-            auto &meta = settings_meta[out_manifest.customSettingsMetadataCount++];
-            strncpy_s(meta.keyPath, key, sizeof(meta.keyPath));
-            strncpy_s(meta.titleKey, title, sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, desc, sizeof(meta.descriptionKey));
-            strncpy_s(meta.widget, "slider", sizeof(meta.widget));
-            meta.widget_params.slider.min_val = min;
-            meta.widget_params.slider.max_val = max;
-            strncpy_s(meta.widget_params.slider.format, format, sizeof(meta.widget_params.slider.format));
+            // Use string concatenation to build parameters JSON without precision loss.
+            std::string params = "{ \"min\": " + std::to_string(min) + 
+                                 ", \"max\": " + std::to_string(max) + 
+                                 ", \"format\": \"" + format + "\" }";
+            api->Meta_AddCustomSetting(h, key, title, desc, "slider", params.c_str(), false);
         };
 
         auto AddDragMeta = [&](const char *key, const char *title, const char *desc, float speed, float min, float max, const char *format)
         {
-            auto &meta = settings_meta[out_manifest.customSettingsMetadataCount++];
-            strncpy_s(meta.keyPath, key, sizeof(meta.keyPath));
-            strncpy_s(meta.titleKey, title, sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, desc, sizeof(meta.descriptionKey));
-            strncpy_s(meta.widget, "drag", sizeof(meta.widget));
-            meta.widget_params.drag.speed = speed;
-            meta.widget_params.drag.min_val = min;
-            meta.widget_params.drag.max_val = max;
-            strncpy_s(meta.widget_params.drag.format, format, sizeof(meta.widget_params.drag.format));
-        };
-
-        auto AddRadioMeta = [&](const char *key, const char *title, const char *desc, const char *options_json)
-        {
-            auto &meta = settings_meta[out_manifest.customSettingsMetadataCount++];
-            strncpy_s(meta.keyPath, key, sizeof(meta.keyPath));
-            strncpy_s(meta.titleKey, title, sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, desc, sizeof(meta.descriptionKey));
-            strncpy_s(meta.widget, "radio", sizeof(meta.widget));
-            strncpy_s(meta.widget_params.choice.options_json, options_json, sizeof(meta.widget_params.choice.options_json));
-        };
-
-        auto AddCheckboxMeta = [&](const char *key, const char *title, const char *desc)
-        {
-            auto &meta = settings_meta[out_manifest.customSettingsMetadataCount++];
-            strncpy_s(meta.keyPath, key, sizeof(meta.keyPath));
-            strncpy_s(meta.titleKey, title, sizeof(meta.titleKey));
-            strncpy_s(meta.descriptionKey, desc, sizeof(meta.descriptionKey));
+            std::string params = "{ \"speed\": " + std::to_string(speed) + 
+                                 ", \"min\": " + std::to_string(min) + 
+                                 ", \"max\": " + std::to_string(max) + 
+                                 ", \"format\": \"" + format + "\" }";
+            api->Meta_AddCustomSetting(h, key, title, desc, "drag", params.c_str(), false);
         };
 
         // Specialized helpers for positions
         auto AddPositionCoordMeta = [&](const char *base_key_path, const char *axis_name)
         {
-            char key_path_buffer[256];
-            char title_key_buffer[256];
-            sprintf_s(key_path_buffer, sizeof(key_path_buffer), "positions.%s.position.%s", base_key_path, axis_name);
-            sprintf_s(title_key_buffer, sizeof(title_key_buffer), "settings.positions.%s.position.%s.title", base_key_path, axis_name);
-            AddDragMeta(key_path_buffer, title_key_buffer, "settings.positions.coord.desc", 0.01f, -5.0f, 5.0f, "%.2f m");
+            std::string key_path = std::string("positions.") + base_key_path + ".position." + axis_name;
+            std::string title_key = std::string("settings.positions.") + base_key_path + ".position." + axis_name + ".title";
+            AddDragMeta(key_path.c_str(), title_key.c_str(), "settings.positions.coord.desc", 0.01f, -5.0f, 5.0f, "%.2f m");
         };
 
         auto AddPositionRotationMeta = [&](const char *base_key_path, const char *axis_name)
         {
-            char key_path_buffer[256];
-            char title_key_buffer[256];
-            sprintf_s(key_path_buffer, sizeof(key_path_buffer), "positions.%s.rotation.%s", base_key_path, axis_name);
-            sprintf_s(title_key_buffer, sizeof(title_key_buffer), "settings.positions.%s.rotation.%s.title", base_key_path, axis_name);
-            AddDragMeta(key_path_buffer, title_key_buffer, "settings.positions.rot.desc", 0.01f, -3.14159f, 3.14159f, "%.2f rad");
+            std::string key_path = std::string("positions.") + base_key_path + ".rotation." + axis_name;
+            std::string title_key = std::string("settings.positions.") + base_key_path + ".rotation." + axis_name + ".title";
+            AddDragMeta(key_path.c_str(), title_key.c_str(), "settings.positions.rot.desc", 0.01f, -3.14159f, 3.14159f, "%.2f rad");
         };
 
-        add_meta("general", "settings.general.title", "");
-        add_meta("positions", "settings.positions.title", "");
-        add_meta("animation_durations", "settings.animation_durations.title", "");
-        add_meta("standing_movement", "settings.standing_movement.title", "");
-        add_meta("standing_movement.walking", "settings.standing_movement.walking.title", "");
-        add_meta("standing_movement.walking.walk_zone_z", "settings.standing_movement.walking.walk_zone_z.title", "");
-        add_meta("standing_movement.stance_control", "settings.standing_movement.stance_control.title", "");
-        add_meta("standing_movement.stance_control.crouch", "settings.standing_movement.stance_control.crouch.title", "");
-        add_meta("standing_movement.stance_control.tiptoe", "settings.standing_movement.stance_control.tiptoe.title", "");
+        api->Meta_AddCustomSetting(h, "general", "settings.general.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "positions", "settings.positions.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "animation_durations", "settings.animation_durations.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "standing_movement", "settings.standing_movement.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "standing_movement.walking", "settings.standing_movement.walking.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "standing_movement.walking.walk_zone_z", "settings.standing_movement.walking.walk_zone_z.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "standing_movement.stance_control", "settings.standing_movement.stance_control.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "standing_movement.stance_control.crouch", "settings.standing_movement.stance_control.crouch.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "standing_movement.stance_control.tiptoe", "settings.standing_movement.stance_control.tiptoe.title", "", nullptr, nullptr, false);
 
         AddSliderMeta("general.warning_duration_ms", "settings.general.warning_duration_ms.title", "settings.general.warning_duration_ms.desc", 0.0f, 30000.0f, "%d ms");
         AddSliderMeta("general.height", "settings.general.height.title", "settings.general.height.desc", 0.0f, 1.0f, "%.2f m");
 
-        const char *cabin_layout_options = R"json([
+        const char *cabin_layout_options = R"json({ "options": [
             { "value": 0, "labelKey": "settings.general.cabin_layout.lhd" },
             { "value": 1, "labelKey": "settings.general.cabin_layout.rhd" }
-        ])json";
-        AddRadioMeta("general.cabin_layout", "settings.general.cabin_layout.title", "settings.general.cabin_layout.desc", cabin_layout_options);
+        ]})json";
+        api->Meta_AddCustomSetting(h, "general.cabin_layout", "settings.general.cabin_layout.title", "settings.general.cabin_layout.desc", "radio", cabin_layout_options, false);
 
         // --- Positions ---
         const char *pos_names[] = {"passenger_seat", "standing", "sofa_sit1", "sofa_lie", "sofa_sit2"};
         for (const char *name : pos_names)
         {
-            char key_buffer[256];
-            char title_key_buffer[256];
-
             // Add title for the position group itself
-            sprintf_s(key_buffer, sizeof(key_buffer), "positions.%s", name);
-            sprintf_s(title_key_buffer, sizeof(title_key_buffer), "settings.positions.%s.title", name);
-            add_meta(key_buffer, title_key_buffer, "");
+            std::string group_key = std::string("positions.") + name;
+            std::string group_title_key = std::string("settings.positions.") + name + ".title";
+            api->Meta_AddCustomSetting(h, group_key.c_str(), group_title_key.c_str(), "", nullptr, nullptr, false);
 
-            sprintf_s(key_buffer, sizeof(key_buffer), "positions.%s.enabled", name);
-            sprintf_s(title_key_buffer, sizeof(title_key_buffer), "settings.positions.%s.enabled.title", name);
-            AddCheckboxMeta(key_buffer, title_key_buffer, "settings.positions.enabled.desc");
+            std::string enabled_key = group_key + ".enabled";
+            std::string enabled_title_key = std::string("settings.positions.") + name + ".enabled.title";
+            api->Meta_AddCustomSetting(h, enabled_key.c_str(), enabled_title_key.c_str(), "settings.positions.enabled.desc", "checkbox", nullptr, false);
 
             // Add titles for the subgroups
-            char group_key[256], group_title[256];
-            sprintf_s(group_key, sizeof(group_key), "positions.%s.position", name);
-            sprintf_s(group_title, sizeof(group_title), "settings.positions.position_group.title");
-            add_meta(group_key, group_title, "");
+            std::string pos_subgroup_key = group_key + ".position";
+            api->Meta_AddCustomSetting(h, pos_subgroup_key.c_str(), "settings.positions.position_group.title", "", nullptr, nullptr, false);
 
             AddPositionCoordMeta(name, "x");
             AddPositionCoordMeta(name, "y");
             AddPositionCoordMeta(name, "z");
 
-            sprintf_s(group_key, sizeof(group_key), "positions.%s.rotation", name);
-            sprintf_s(group_title, sizeof(group_title), "settings.positions.rotation_group.title");
-            add_meta(group_key, group_title, "");
+            std::string rot_subgroup_key = group_key + ".rotation";
+            api->Meta_AddCustomSetting(h, rot_subgroup_key.c_str(), "settings.positions.rotation_group.title", "", nullptr, nullptr, false);
 
             AddPositionRotationMeta(name, "x");
             AddPositionRotationMeta(name, "y");
         }
 
-        add_meta("animation_durations.main_animation_speed", "settings.animation_durations.main_animation_speed.title", "");
-        add_meta("animation_durations.sofa_animation_speed", "settings.animation_durations.sofa_animation_speed.title", "");
-        add_meta("animation_durations.crouch_and_stand_animation_speed", "settings.animation_durations.crouch_and_stand_animation_speed.title", "");
-        // add_meta("animation_durations.walking_animation_speed", "settings.animation_durations.walking_animation_speed.title", "");
+        api->Meta_AddCustomSetting(h, "animation_durations.main_animation_speed", "settings.animation_durations.main_animation_speed.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "animation_durations.sofa_animation_speed", "settings.animation_durations.sofa_animation_speed.title", "", nullptr, nullptr, false);
+        api->Meta_AddCustomSetting(h, "animation_durations.crouch_and_stand_animation_speed", "settings.animation_durations.crouch_and_stand_animation_speed.title", "", nullptr, nullptr, false);
 
         // --- Animation Durations ---
         const char *main_anim_names[] = {
@@ -458,37 +284,28 @@ namespace SPF_CabinWalk
             "passenger_to_standing", "standing_to_passenger", "standing_to_sofa", "sofa_to_standing"};
         for (const char *name : main_anim_names)
         {
-            char key_buffer[256];
-            char title_key_buffer[256];
-            char desc_key_buffer[256];
-            sprintf_s(key_buffer, sizeof(key_buffer), "animation_durations.main_animation_speed.%s", name);
-            sprintf_s(title_key_buffer, sizeof(title_key_buffer), "settings.animation_durations.main_animation_speed.%s.title", name);
-            sprintf_s(desc_key_buffer, sizeof(desc_key_buffer), "settings.animation_durations.main_animation_speed.%s.desc", name);
-            AddSliderMeta(key_buffer, title_key_buffer, desc_key_buffer, 100.0f, 10000.0f, "%d ms");
+            std::string key = std::string("animation_durations.main_animation_speed.") + name;
+            std::string title = std::string("settings.animation_durations.main_animation_speed.") + name + ".title";
+            std::string desc = std::string("settings.animation_durations.main_animation_speed.") + name + ".desc";
+            AddSliderMeta(key.c_str(), title.c_str(), desc.c_str(), 100.0f, 10000.0f, "%d ms");
         }
 
         const char *sofa_anim_names[] = {"sofa_sit1_to_lie", "sofa_lie_to_sit2", "sofa_sit2_to_sit1", "sofa_lie_to_sit1_shortcut"};
         for (const char *name : sofa_anim_names)
         {
-            char key_buffer[256];
-            char title_key_buffer[256];
-            char desc_key_buffer[256];
-            sprintf_s(key_buffer, sizeof(key_buffer), "animation_durations.sofa_animation_speed.%s", name);
-            sprintf_s(title_key_buffer, sizeof(title_key_buffer), "settings.animation_durations.sofa_animation_speed.%s.title", name);
-            sprintf_s(desc_key_buffer, sizeof(desc_key_buffer), "settings.animation_durations.sofa_animation_speed.%s.desc", name);
-            AddSliderMeta(key_buffer, title_key_buffer, desc_key_buffer, 100.0f, 10000.0f, "%d ms");
+            std::string key = std::string("animation_durations.sofa_animation_speed.") + name;
+            std::string title = std::string("settings.animation_durations.sofa_animation_speed.") + name + ".title";
+            std::string desc = std::string("settings.animation_durations.sofa_animation_speed.") + name + ".desc";
+            AddSliderMeta(key.c_str(), title.c_str(), desc.c_str(), 100.0f, 10000.0f, "%d ms");
         }
 
         const char *crouch_anim_names[] = {"crouch", "tiptoe"};
         for (const char *name : crouch_anim_names)
         {
-            char key_buffer[256];
-            char title_key_buffer[256];
-            char desc_key_buffer[256];
-            sprintf_s(key_buffer, sizeof(key_buffer), "animation_durations.crouch_and_stand_animation_speed.%s", name);
-            sprintf_s(title_key_buffer, sizeof(title_key_buffer), "settings.animation_durations.crouch_and_stand_animation_speed.%s.title", name);
-            sprintf_s(desc_key_buffer, sizeof(desc_key_buffer), "settings.animation_durations.crouch_and_stand_animation_speed.%s.desc", name);
-            AddSliderMeta(key_buffer, title_key_buffer, desc_key_buffer, 100.0f, 10000.0f, "%d ms");
+            std::string key = std::string("animation_durations.crouch_and_stand_animation_speed.") + name;
+            std::string title = std::string("settings.animation_durations.crouch_and_stand_animation_speed.") + name + ".title";
+            std::string desc = std::string("settings.animation_durations.crouch_and_stand_animation_speed.") + name + ".desc";
+            AddSliderMeta(key.c_str(), title.c_str(), desc.c_str(), 100.0f, 10000.0f, "%d ms");
         }
 
         // --- Standing Movement ---
@@ -512,17 +329,13 @@ namespace SPF_CabinWalk
         AddSliderMeta("standing_movement.stance_control.tiptoe.deactivation_angle", "settings.standing_movement.stance_control.tiptoe.deactivation_angle.title", "settings.standing_movement.stance_control.deactivation_angle.desc", -1.57f, 0.0f, "%.2f rad");
 
         // Sofa Limits
-        {
-            auto &meta = settings_meta[out_manifest.customSettingsMetadataCount++];
-            strncpy_s(meta.keyPath, "sofa_limits", sizeof(meta.keyPath));
-            meta.hide_in_ui = true;
-        }
+        api->Meta_AddCustomSetting(h, "sofa_limits", nullptr, nullptr, nullptr, nullptr, true);
+        
         // walking animation speed
-        {
-            auto &meta = settings_meta[out_manifest.customSettingsMetadataCount++];
-            strncpy_s(meta.keyPath, "walking_animation_speed", sizeof(meta.keyPath));
-            meta.hide_in_ui = true;
-        }
+        api->Meta_AddCustomSetting(h, "walking_animation_speed", nullptr, nullptr, nullptr, nullptr, true);
+
+        // Window Description
+        api->Meta_AddWindow(h, "WarningWindow", "Warning", "Displayed when it is not safe to leave the driver's seat.");
     }
 
     // =================================================================================================
@@ -550,15 +363,15 @@ namespace SPF_CabinWalk
         // Helper lambdas to simplify getting values
         auto get_int = [&](const char *key, int32_t def)
         {
-            return configAPI->GetInt32(configHandle, key, def);
+            return configAPI->Cfg_GetInt32(configHandle, key, def);
         };
         auto get_float = [&](const char *key, float def)
         {
-            return (float)configAPI->GetFloat(configHandle, key, (double)def);
+            return (float)configAPI->Cfg_GetFloat(configHandle, key, (double)def);
         };
         auto get_bool = [&](const char *key, bool def)
         {
-            return configAPI->GetBool(configHandle, key, def);
+            return configAPI->Cfg_GetBool(configHandle, key, def);
         };
 
         // General
@@ -613,23 +426,16 @@ namespace SPF_CabinWalk
         // Positions
         auto load_pos = [&](const char *name, AppSettings::PositionSetting &pos_setting, const AppSettings::PositionSetting &default_pos)
         {
-            char key_buffer[256];
-            auto format = g_ctx.formattingAPI->Format; // cache the function pointer
+            std::string base_path = std::string("settings.positions.") + name;
 
-            format(key_buffer, sizeof(key_buffer), "settings.positions.%s.enabled", name);
-            pos_setting.enabled = get_bool(key_buffer, default_pos.enabled);
+            pos_setting.enabled = get_bool((base_path + ".enabled").c_str(), default_pos.enabled);
 
-            format(key_buffer, sizeof(key_buffer), "settings.positions.%s.position.x", name);
-            pos_setting.position.x = get_float(key_buffer, default_pos.position.x);
-            format(key_buffer, sizeof(key_buffer), "settings.positions.%s.position.y", name);
-            pos_setting.position.y = get_float(key_buffer, default_pos.position.y);
-            format(key_buffer, sizeof(key_buffer), "settings.positions.%s.position.z", name);
-            pos_setting.position.z = get_float(key_buffer, default_pos.position.z);
+            pos_setting.position.x = get_float((base_path + ".position.x").c_str(), default_pos.position.x);
+            pos_setting.position.y = get_float((base_path + ".position.y").c_str(), default_pos.position.y);
+            pos_setting.position.z = get_float((base_path + ".position.z").c_str(), default_pos.position.z);
 
-            format(key_buffer, sizeof(key_buffer), "settings.positions.%s.rotation.x", name);
-            pos_setting.rotation.x = get_float(key_buffer, default_pos.rotation.x);
-            format(key_buffer, sizeof(key_buffer), "settings.positions.%s.rotation.y", name);
-            pos_setting.rotation.y = get_float(key_buffer, default_pos.rotation.y);
+            pos_setting.rotation.x = get_float((base_path + ".rotation.x").c_str(), default_pos.rotation.x);
+            pos_setting.rotation.y = get_float((base_path + ".rotation.y").c_str(), default_pos.rotation.y);
         };
 
         load_pos("passenger_seat", g_ctx.settings.positions.passenger_seat, {true, {0.95f, 0.0f, -0.03f}, {0.03f, 0.03f, 0.0f}});
@@ -653,6 +459,27 @@ namespace SPF_CabinWalk
         }
     }
 
+    /**
+     * @brief Called when the framework's global interface language is changed.
+     * @details Synchronizes the plugin's language with the framework for a consistent experience.
+     * @param langCode The new language code (e.g., "en", "uk").
+     */
+    void OnLanguageChanged(const char* langCode)
+    {
+        if (!g_ctx.coreAPI || !g_ctx.coreAPI->localization || !langCode) return;
+
+        SPF_Localization_Handle* h = g_ctx.coreAPI->localization->Loc_GetContext(PLUGIN_NAME);
+        
+        // Smart sync: only switch if the plugin supports the new language
+        if (g_ctx.coreAPI->localization->Loc_HasLanguage(h, langCode))
+        {
+            if (g_ctx.coreAPI->localization->Loc_SetLanguage(h, langCode))
+            {
+                g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_INFO, "Plugin language synchronized with framework.");
+            }
+        }
+    }
+
     void OnLoad(const SPF_Load_API *load_api)
     {
         // Cache the provided API pointers in our global context.
@@ -662,13 +489,13 @@ namespace SPF_CabinWalk
         if (g_ctx.loadAPI)
         {
             // Get Logger and Formatting
-            g_ctx.loggerHandle = g_ctx.loadAPI->logger->GetLogger(PLUGIN_NAME);
+            g_ctx.loggerHandle = g_ctx.loadAPI->logger->Log_GetContext(PLUGIN_NAME);
             g_ctx.formattingAPI = g_ctx.loadAPI->formatting;
 
             if (g_ctx.loggerHandle && g_ctx.formattingAPI)
             {
                 char log_buffer[256];
-                g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer), "%s has been loaded!", PLUGIN_NAME);
+                g_ctx.formattingAPI->Fmt_Format(log_buffer, sizeof(log_buffer), "%s has been loaded!", PLUGIN_NAME);
                 g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_INFO, log_buffer);
             }
 
@@ -676,7 +503,7 @@ namespace SPF_CabinWalk
             g_ctx.configAPI = g_ctx.loadAPI->config;
             if (g_ctx.configAPI)
             {
-                g_ctx.configHandle = g_ctx.configAPI->GetContext(PLUGIN_NAME);
+                g_ctx.configHandle = g_ctx.configAPI->Cfg_GetContext(PLUGIN_NAME);
                 if (g_ctx.loggerHandle && !g_ctx.configHandle)
                 {
                     g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_ERROR, "[OnLoad] configHandle is NULL. Plugin may not have 'allowUserConfig=true' in manifest.");
@@ -786,7 +613,7 @@ namespace SPF_CabinWalk
         if (g_ctx.loggerHandle && g_ctx.formattingAPI)
         {
             char log_buffer[256];
-            g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer), "%s has been activated!", PLUGIN_NAME);
+            g_ctx.formattingAPI->Fmt_Format(log_buffer, sizeof(log_buffer), "%s has been activated!", PLUGIN_NAME);
             g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_INFO, log_buffer);
         }
 
@@ -813,19 +640,19 @@ namespace SPF_CabinWalk
             // --- Other API Initialization ---
             if (g_ctx.coreAPI->keybinds)
             {
-                g_ctx.keybindsHandle = g_ctx.coreAPI->keybinds->GetContext(PLUGIN_NAME);
+                g_ctx.keybindsHandle = g_ctx.coreAPI->keybinds->Kbind_GetContext(PLUGIN_NAME);
                 if (g_ctx.keybindsHandle)
                 {
-                    g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToPassengerSeat", OnMoveToPassengerSeat);
-                    g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToDriverSeat", OnMoveToDriverSeat);
-                    g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToStandingPosition", OnMoveToStandingPosition);
-                    g_ctx.coreAPI->keybinds->Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.cycleSofaPositions", OnCycleSofaPositions);
+                    g_ctx.coreAPI->keybinds->Kbind_Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToPassengerSeat", OnMoveToPassengerSeat);
+                    g_ctx.coreAPI->keybinds->Kbind_Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToDriverSeat", OnMoveToDriverSeat);
+                    g_ctx.coreAPI->keybinds->Kbind_Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToStandingPosition", OnMoveToStandingPosition);
+                    g_ctx.coreAPI->keybinds->Kbind_Register(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.cycleSofaPositions", OnCycleSofaPositions);
                 }
             }
 
             if (g_ctx.coreAPI->telemetry)
             {
-                g_ctx.telemetryHandle = g_ctx.coreAPI->telemetry->GetContext(PLUGIN_NAME);
+                g_ctx.telemetryHandle = g_ctx.coreAPI->telemetry->Tel_GetContext(PLUGIN_NAME);
             }
 
             g_ctx.uiAPI = g_ctx.coreAPI->ui;
@@ -848,13 +675,13 @@ namespace SPF_CabinWalk
         if (g_ctx.is_warning_active && g_ctx.coreAPI && g_ctx.coreAPI->telemetry && g_ctx.telemetryHandle)
         {
             SPF_Timestamps timestamps;
-            g_ctx.coreAPI->telemetry->GetTimestamps(g_ctx.telemetryHandle, &timestamps);
+            g_ctx.coreAPI->telemetry->Tel_GetTimestamps(g_ctx.telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
             if ((timestamps.simulation - g_ctx.warning_start_time) > g_ctx.settings.general.warning_duration_ms * 1000)
             {
                 g_ctx.is_warning_active = false;
                 if (g_ctx.uiAPI && g_ctx.warningWindowHandle)
                 {
-                    g_ctx.uiAPI->SetVisibility(g_ctx.warningWindowHandle, false);
+                    g_ctx.uiAPI->UI_SetVisibility(g_ctx.warningWindowHandle, false);
                 }
             }
         }
@@ -868,7 +695,7 @@ namespace SPF_CabinWalk
         if (g_ctx.loadAPI && g_ctx.loggerHandle && g_ctx.formattingAPI)
         {
             char log_buffer[256];
-            g_ctx.formattingAPI->Format(log_buffer, sizeof(log_buffer), "%s is being unloaded.", PLUGIN_NAME);
+            g_ctx.formattingAPI->Fmt_Format(log_buffer, sizeof(log_buffer), "%s is being unloaded.", PLUGIN_NAME);
             g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_INFO, log_buffer);
         }
 
@@ -899,10 +726,10 @@ namespace SPF_CabinWalk
         g_ctx.uiAPI = ui_api;
 
         // Get the handle for our warning window
-        g_ctx.warningWindowHandle = g_ctx.uiAPI->GetWindowHandle(PLUGIN_NAME, "WarningWindow");
+        g_ctx.warningWindowHandle = g_ctx.uiAPI->UI_GetWindowHandle(PLUGIN_NAME, "WarningWindow");
 
         // Register the drawing callback for our warning window
-        g_ctx.uiAPI->RegisterDrawCallback(PLUGIN_NAME, "WarningWindow", DrawWarningWindow, &g_ctx);
+        g_ctx.uiAPI->UI_RegisterDrawCallback(PLUGIN_NAME, "WarningWindow", DrawWarningWindow, &g_ctx);
     }
 
     void DrawWarningWindow(SPF_UI_API *ui, void *user_data)
@@ -914,7 +741,7 @@ namespace SPF_CabinWalk
         // On every frame this window is drawn, calculate its desired position and
         // update the configuration values that the UI framework reads from.
         float viewport_w, viewport_h;
-        ui->GetViewportSize(&viewport_w, &viewport_h);
+        ui->UI_GetViewportSize(&viewport_w, &viewport_h);
 
         const float window_w = 400; // Using the width from the manifest
         const float window_h = 100; // Using a smaller, more reasonable height
@@ -924,34 +751,34 @@ namespace SPF_CabinWalk
         int new_pos_y = static_cast<int>(viewport_h - window_h - offset_from_bottom);
 
         // Update the config values that the UI system reads from for positioning.
-        g_ctx.configAPI->SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.pos_x", new_pos_x);
-        g_ctx.configAPI->SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.pos_y", new_pos_y);
-        g_ctx.configAPI->SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.size_w", static_cast<int>(window_w));
-        g_ctx.configAPI->SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.size_h", static_cast<int>(window_h));
+        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.pos_x", new_pos_x);
+        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.pos_y", new_pos_y);
+        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.size_w", static_cast<int>(window_w));
+        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.size_h", static_cast<int>(window_h));
 
         PluginContext *ctx = static_cast<PluginContext *>(user_data);
         if (ctx->is_warning_active)
         {
             // Get the warning message
             char warning_message[512];
-            g_ctx.loadAPI->localization->GetString(
-                g_ctx.loadAPI->localization->GetContext(PLUGIN_NAME),
+            g_ctx.loadAPI->localization->Loc_GetString(
+                g_ctx.loadAPI->localization->Loc_GetContext(PLUGIN_NAME),
                 "messages.warning_not_safe_to_move",
                 warning_message, sizeof(warning_message));
 
             // Create a style for the warning message
-            SPF_TextStyle_Handle warning_style = ui->Style_Create();
+            SPF_TextStyle_Handle warning_style = ui->UI_Style_Create();
             if (warning_style)
             {
-                ui->Style_SetFont(warning_style, SPF_FONT_H1);             // Make it a header
-                ui->Style_SetAlign(warning_style, SPF_TEXT_ALIGN_CENTER);  // Center it
-                ui->Style_SetColor(warning_style, 1.0f, 0.0f, 0.0f, 1.0f); // Keep it red
+                ui->UI_Style_SetFont(warning_style, SPF_FONT_H1);             // Make it a header
+                ui->UI_Style_SetAlign(warning_style, SPF_TEXT_ALIGN_CENTER);  // Center it
+                ui->UI_Style_SetColor(warning_style, 1.0f, 0.0f, 0.0f, 1.0f); // Keep it red
 
                 // Render the styled text
-                ui->TextStyled(warning_style, warning_message);
+                ui->UI_TextStyled(warning_style, warning_message);
 
                 // Clean up the style object
-                ui->Style_Destroy(warning_style);
+                ui->UI_Style_Destroy(warning_style);
             }
         }
     }
@@ -970,7 +797,7 @@ namespace SPF_CabinWalk
         }
 
         SPF_TruckData truckData;
-        g_ctx.coreAPI->telemetry->GetTruckData(g_ctx.telemetryHandle, &truckData);
+        g_ctx.coreAPI->telemetry->Tel_GetTruckData(g_ctx.telemetryHandle, &truckData, sizeof(SPF_TruckData));
 
         const bool isStationary = fabsf(truckData.speed) < 0.1f;
         if (isStationary && truckData.parking_brake)
@@ -983,10 +810,10 @@ namespace SPF_CabinWalk
             if (g_ctx.uiAPI && g_ctx.warningWindowHandle && !g_ctx.is_warning_active)
             {
                 SPF_Timestamps timestamps;
-                g_ctx.coreAPI->telemetry->GetTimestamps(g_ctx.telemetryHandle, &timestamps);
+                g_ctx.coreAPI->telemetry->Tel_GetTimestamps(g_ctx.telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
                 g_ctx.warning_start_time = timestamps.simulation;
                 g_ctx.is_warning_active = true;
-                g_ctx.uiAPI->SetVisibility(g_ctx.warningWindowHandle, true);
+                g_ctx.uiAPI->UI_SetVisibility(g_ctx.warningWindowHandle, true);
             }
             return false; // Movement is not safe.
         }
@@ -1082,7 +909,7 @@ namespace SPF_CabinWalk
         {
             if (out_api)
             {
-                out_api->GetManifestData = GetManifestData;
+                out_api->BuildManifest = BuildManifest;
                 return true;
             }
             return false;
@@ -1107,6 +934,7 @@ namespace SPF_CabinWalk
                 exports->OnGameWorldReady = OnGameWorldReady; // Assign your OnGameWorldReady function for game-world-dependent logic.
                 exports->OnRegisterUI = OnRegisterUI;         // Assign your OnRegisterUI function if you have UI windows.
                 exports->OnSettingChanged = OnSettingChanged; // Assign your OnSettingChanged function if you implement it.
+                exports->OnLanguageChanged = OnLanguageChanged; // Enable automatic language synchronization.
                 return true;
             }
             return false;

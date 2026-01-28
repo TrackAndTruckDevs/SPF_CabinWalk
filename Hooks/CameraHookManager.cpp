@@ -53,7 +53,7 @@ namespace SPF_CabinWalk::CameraHookManager
             return false;
         }
 
-        return hooks_api->Register(
+        return hooks_api->Hook_Register(
             plugin_name,
             "CabinWalk_UpdateCameraFromInput_Hook",
             "Cabin Walk Camera Update Hook",
@@ -129,18 +129,18 @@ namespace SPF_CabinWalk::CameraHookManager
              && g_ctx.cameraAPI)
         {
             float yaw, pitch;
-            g_ctx.cameraAPI->GetInteriorHeadRot(&yaw, &pitch);
+            g_ctx.cameraAPI->Cam_GetInteriorHeadRot(&yaw, &pitch);
 
             const float wrap_threshold = M_PI; // 180 degrees in radians
             const float wrap_value = 2 * M_PI; // 360 degrees in radians
 
             if (yaw > wrap_threshold)
             {
-                g_ctx.cameraAPI->SetInteriorHeadRot(yaw - wrap_value, pitch);
+                g_ctx.cameraAPI->Cam_SetInteriorHeadRot(yaw - wrap_value, pitch);
             }
             else if (yaw < -wrap_threshold)
             {
-                g_ctx.cameraAPI->SetInteriorHeadRot(yaw + wrap_value, pitch);
+                g_ctx.cameraAPI->Cam_SetInteriorHeadRot(yaw + wrap_value, pitch);
             }
         }
     }
@@ -163,7 +163,7 @@ namespace SPF_CabinWalk::CameraHookManager
         // 2. Handle Mouse Limits via API
         if (g_ctx.cameraAPI)
         {
-            g_ctx.cameraAPI->GetInteriorRotationLimits(
+            g_ctx.cameraAPI->Cam_GetInteriorRotationLimits(
                 &g_original_mouse_left_limit,
                 &g_original_mouse_right_limit,
                 &g_original_mouse_up_limit,
@@ -172,7 +172,7 @@ namespace SPF_CabinWalk::CameraHookManager
             float new_left_limit = g_original_mouse_right_limit * -1.0f;
             float new_right_limit = g_original_mouse_left_limit * -1.0f;
 
-            g_ctx.cameraAPI->SetInteriorRotationLimits(
+            g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(
                 new_left_limit,
                 new_right_limit,
                 g_original_mouse_up_limit,
@@ -263,7 +263,7 @@ namespace SPF_CabinWalk::CameraHookManager
         // 2. Restore Mouse Limits via API
         if (g_ctx.cameraAPI)
         {
-            g_ctx.cameraAPI->SetInteriorRotationLimits(
+            g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(
                 g_original_mouse_left_limit,
                 g_original_mouse_right_limit,
                 g_original_mouse_up_limit,
@@ -316,7 +316,7 @@ namespace SPF_CabinWalk::CameraHookManager
         // 2. Handle Mouse Limits via API
         if (g_ctx.cameraAPI)
         {
-            g_ctx.cameraAPI->GetInteriorRotationLimits(
+            g_ctx.cameraAPI->Cam_GetInteriorRotationLimits(
                 &g_original_mouse_left_limit,
                 &g_original_mouse_right_limit,
                 &g_original_mouse_up_limit,
@@ -326,14 +326,14 @@ namespace SPF_CabinWalk::CameraHookManager
             {
                 case AnimationController::CameraPosition::Standing:
                     // Set wide limits for free look in standing mode
-                    g_ctx.cameraAPI->SetInteriorRotationLimits(231.0f, -231.0f, g_original_mouse_up_limit, -80.0f);
+                    g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(231.0f, -231.0f, g_original_mouse_up_limit, -80.0f);
                     break;
                 
                 case AnimationController::CameraPosition::SofaSit1:
                 case AnimationController::CameraPosition::SofaLie:
                 case AnimationController::CameraPosition::SofaSit2:
                     // Set custom limits for sofa positions
-                    g_ctx.cameraAPI->SetInteriorRotationLimits(
+                    g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(
                         g_ctx.settings.sofa_limits.yaw_left,
                         g_ctx.settings.sofa_limits.yaw_right,
                         g_ctx.settings.sofa_limits.pitch_up,

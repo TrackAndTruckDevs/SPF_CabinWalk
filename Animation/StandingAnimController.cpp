@@ -66,7 +66,7 @@ namespace SPF_CabinWalk::StandingAnimController
         }
 
         SPF_Timestamps timestamps;
-        g_stand_ctx->coreAPI->telemetry->GetTimestamps(g_stand_ctx->telemetryHandle, &timestamps);
+        g_stand_ctx->coreAPI->telemetry->Tel_GetTimestamps(g_stand_ctx->telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
         uint64_t delta_time_ms = timestamps.simulation - last_simulation_time;
         last_simulation_time = timestamps.simulation;
 
@@ -298,9 +298,9 @@ const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_a
         {
             // Get current camera state
             Animation::CurrentCameraState current_state;
-            g_stand_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+            g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
             // Rotation not strictly needed for this check, but good practice to get full state if available.
-            g_stand_ctx->cameraAPI->GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+            g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
             current_state.rotation.z = 0.0f; // Roll is not retrieved
     
             const float z_current = current_state.position.z;
@@ -339,8 +339,8 @@ const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_a
             
                     // Need current state to create the animation
                     Animation::CurrentCameraState current_state;
-                    g_stand_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
-                    g_stand_ctx->cameraAPI->GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+                    g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+                    g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
                     current_state.rotation.z = 0.0f;
             
                     AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);
@@ -362,8 +362,8 @@ const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_a
                 
                         // Need current state to create the animation
                         Animation::CurrentCameraState current_state;
-                        g_stand_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
-                        g_stand_ctx->cameraAPI->GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+                        g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+                        g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
                         current_state.rotation.z = 0.0f;
                 
                         AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);

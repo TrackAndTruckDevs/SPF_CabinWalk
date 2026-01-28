@@ -91,8 +91,8 @@ namespace SPF_CabinWalk::Animation
         // NOTE: Offset tracks are now IGNORED by this logic, and will be removed entirely.
 
         // Apply the final calculated state to the camera
-        camera_api->SetInteriorSeatPos(final_pos.x, final_pos.y, final_pos.z);
-        camera_api->SetInteriorHeadRot(final_rot.x, final_rot.y);
+        camera_api->Cam_SetInteriorSeatPos(final_pos.x, final_pos.y, final_pos.z);
+        camera_api->Cam_SetInteriorHeadRot(final_rot.x, final_rot.y);
 
         return m_is_playing;
     }

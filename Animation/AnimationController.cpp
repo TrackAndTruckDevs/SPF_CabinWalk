@@ -156,11 +156,11 @@ namespace SPF_CabinWalk::AnimationController
                     const auto& target_transform = GetTargetTransformForPosition(g_current_pos);
                     if (g_anim_ctx->cameraAPI)
                     {
-                        g_anim_ctx->cameraAPI->SetInteriorSeatPos(target_transform.position.x, target_transform.position.y, target_transform.position.z);
-                        g_anim_ctx->cameraAPI->SetInteriorHeadRot(target_transform.rotation.x, target_transform.rotation.y);
+                        g_anim_ctx->cameraAPI->Cam_SetInteriorSeatPos(target_transform.position.x, target_transform.position.y, target_transform.position.z);
+                        g_anim_ctx->cameraAPI->Cam_SetInteriorHeadRot(target_transform.rotation.x, target_transform.rotation.y);
                         if (g_anim_ctx->loggerHandle) {
                             char log_buffer[256];
-                            g_anim_ctx->formattingAPI->Format(log_buffer, sizeof(log_buffer), "[AnimationController] Applied settings directly to camera for position %d.", static_cast<int>(g_current_pos));
+                            g_anim_ctx->formattingAPI->Fmt_Format(log_buffer, sizeof(log_buffer), "[AnimationController] Applied settings directly to camera for position %d.", static_cast<int>(g_current_pos));
                             g_anim_ctx->loadAPI->logger->Log(g_anim_ctx->loggerHandle, SPF_LOG_DEBUG, log_buffer);
                         }
                     }
@@ -192,7 +192,7 @@ namespace SPF_CabinWalk::AnimationController
         if (g_active_sequence && g_active_sequence->IsPlaying())
         {
             SPF_Timestamps timestamps;
-            g_anim_ctx->coreAPI->telemetry->GetTimestamps(g_anim_ctx->telemetryHandle, &timestamps);
+            g_anim_ctx->coreAPI->telemetry->Tel_GetTimestamps(g_anim_ctx->telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
             uint64_t delta_time_ms = timestamps.simulation - last_simulation_time;
             last_simulation_time = timestamps.simulation;
 
@@ -229,8 +229,8 @@ namespace SPF_CabinWalk::AnimationController
         else if (g_current_pos == CameraPosition::Standing)
         {
             Animation::CurrentCameraState current_state;
-            g_anim_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
-            g_anim_ctx->cameraAPI->GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+            g_anim_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+            g_anim_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
             current_state.rotation.z = 0.0f; // Roll is not retrieved
 
             StandingAnimController::Update(current_state);
@@ -283,7 +283,7 @@ namespace SPF_CabinWalk::AnimationController
             {
                 // Special logic for seats: only walk if Z is non-negative
                 Animation::CurrentCameraState current_state;
-                g_anim_ctx->cameraAPI->GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+                g_anim_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
 
                 if (current_state.position.z < 0)
                 {
@@ -312,8 +312,8 @@ namespace SPF_CabinWalk::AnimationController
         // --- NORMAL TRANSITION LOGIC ---
         // Cache current camera state before starting animation
         Animation::CurrentCameraState initial_state;
-        g_anim_ctx->cameraAPI->GetInteriorSeatPos(&initial_state.position.x, &initial_state.position.y, &initial_state.position.z);
-        g_anim_ctx->cameraAPI->GetInteriorHeadRot(&initial_state.rotation.x, &initial_state.rotation.y); // .x=yaw, .y=pitch
+        g_anim_ctx->cameraAPI->Cam_GetInteriorSeatPos(&initial_state.position.x, &initial_state.position.y, &initial_state.position.z);
+        g_anim_ctx->cameraAPI->Cam_GetInteriorHeadRot(&initial_state.rotation.x, &initial_state.rotation.y); // .x=yaw, .y=pitch
         initial_state.rotation.z = 0.0f; // Roll is not retrieved by GetInteriorHeadRot
 
         // Look up the factory for the transition
@@ -345,7 +345,7 @@ namespace SPF_CabinWalk::AnimationController
 
             // Found a factory, create the sequence and start it
             SPF_Timestamps timestamps;
-            g_anim_ctx->coreAPI->telemetry->GetTimestamps(g_anim_ctx->telemetryHandle, &timestamps);
+            g_anim_ctx->coreAPI->telemetry->Tel_GetTimestamps(g_anim_ctx->telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
             last_simulation_time = timestamps.simulation; // Reset time for new animation
 
             g_active_sequence = it->second(initial_state, animation_target_state);
@@ -367,10 +367,10 @@ namespace SPF_CabinWalk::AnimationController
             {
                 if (g_anim_ctx->cameraAPI)
                 {
-                    g_anim_ctx->cameraAPI->SetInteriorSeatPos(g_cached_driver_state.position.x,
+                    g_anim_ctx->cameraAPI->Cam_SetInteriorSeatPos(g_cached_driver_state.position.x,
                                                                g_cached_driver_state.position.y,
                                                                g_cached_driver_state.position.z);
-                    g_anim_ctx->cameraAPI->SetInteriorHeadRot(g_cached_driver_state.rotation.x,
+                    g_anim_ctx->cameraAPI->Cam_SetInteriorHeadRot(g_cached_driver_state.rotation.x,
                                                                g_cached_driver_state.rotation.y);
                 }
             }
@@ -379,10 +379,10 @@ namespace SPF_CabinWalk::AnimationController
                 const auto& target_transform = GetTargetTransformForPosition(target);
                 if (g_anim_ctx->cameraAPI)
                 {
-                    g_anim_ctx->cameraAPI->SetInteriorSeatPos(target_transform.position.x,
+                    g_anim_ctx->cameraAPI->Cam_SetInteriorSeatPos(target_transform.position.x,
                                                                target_transform.position.y,
                                                                target_transform.position.z);
-                    g_anim_ctx->cameraAPI->SetInteriorHeadRot(target_transform.rotation.x,
+                    g_anim_ctx->cameraAPI->Cam_SetInteriorHeadRot(target_transform.rotation.x,
                                                                target_transform.rotation.y);
                 }
             }
