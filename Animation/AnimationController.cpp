@@ -144,6 +144,14 @@ namespace SPF_CabinWalk::AnimationController
             return;
         }
 
+        // --- Handle Mouse Blocking during animations ---
+        // Block mouse input (axes, buttons, wheel) if any animation is active to prevent camera jitter.
+        bool is_any_anim_playing = IsAnimating() || StandingAnimController::IsAnimating();
+        if (g_anim_ctx->uiAPI)
+        {
+            g_anim_ctx->uiAPI->UI_SetMouseBlockState(is_any_anim_playing, is_any_anim_playing, is_any_anim_playing);
+        }
+
         // --- Handle settings update ---
         if (g_settings_dirty)
         {

@@ -38,11 +38,6 @@ namespace SPF_CabinWalk
      */
     PluginContext g_ctx;
 
-    /**
-     * @brief Tracks the 'hold' state of the walk key.
-     */
-    static bool g_is_walk_key_down = false;
-
     // =================================================================================================
     // 2. Manifest Implementation
     // =================================================================================================
@@ -56,8 +51,8 @@ namespace SPF_CabinWalk
         // This section provides the basic identity of your plugin.
         {
             api->Info_SetName(h, PLUGIN_NAME);
-            api->Info_SetVersion(h, "1.0.2");
-            api->Info_SetMinFrameworkVersion(h, "1.1.0");
+            api->Info_SetVersion(h, "1.0.3");
+            api->Info_SetMinFrameworkVersion(h, "1.1.3");
             api->Info_SetAuthor(h, "Track'n'Truck Devs");
             api->Info_SetDescriptionLiteral(h, "A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you to unchain the camera from the driver's seat and freely walk around your truck's cabin. Explore your interior with smooth, animated camera movements.");
 
@@ -167,10 +162,10 @@ namespace SPF_CabinWalk
 
         // Keybinds
         {
-            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToPassengerSeat", "keyboard", "KEY_NUMPAD3", "short", 0, "always", "toggle");
-            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToDriverSeat", "keyboard", "KEY_NUMPAD5", "short", 0, "always", "toggle");
-            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToStandingPosition", "keyboard", "KEY_NUMPAD2", "short", 0, "always", "hold");
-            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "cycleSofaPositions", "keyboard", "KEY_NUMPAD1", "short", 0, "always", "toggle");
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToPassengerSeat", "keyboard", "KEY_NUMPAD3", "always");
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToDriverSeat", "keyboard", "KEY_NUMPAD5", "always");
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToStandingPosition", "keyboard", "KEY_NUMPAD2", "always");
+            api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "cycleSofaPositions", "keyboard", "KEY_NUMPAD1", "always");
         }
 
         // UI Windows
@@ -848,10 +843,10 @@ namespace SPF_CabinWalk
             return;
         }
 
-        // If we are already standing, this key toggles the walking state.
+        // If we are already standing, we don't do anything here.
+        // The walking itself is handled by polling the key state in the update loop.
         if (AnimationController::GetCurrentPosition() == AnimationController::CameraPosition::Standing)
         {
-            g_is_walk_key_down = !g_is_walk_key_down;
             return;
         }
 
@@ -865,7 +860,15 @@ namespace SPF_CabinWalk
 
     bool IsWalkKeyDown()
     {
-        return g_is_walk_key_down;
+        if (!g_ctx.coreAPI || !g_ctx.coreAPI->keybinds || !g_ctx.keybindsHandle)
+        {
+            return false;
+        }
+
+        // Check the immediate physical state of the key bound to this action.
+        // Returns 1.0 if pressed, 0.0 if released.
+        float val = g_ctx.coreAPI->keybinds->Kbind_GetActionValue(g_ctx.keybindsHandle, "SPF_CabinWalk.Movement.moveToStandingPosition");
+        return val > 0.5f;
     }
 
     void OnGameWorldReady()

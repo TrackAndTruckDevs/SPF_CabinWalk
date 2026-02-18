@@ -38,12 +38,22 @@
  * 4. **Late Init (OnActivated)**: Access game telemetry, install hooks, and register UI windows.
  * 
  * ================================================================================================
- * IMPORTANT RULES
+ * ABI STABILITY GUARANTEES
  * ================================================================================================
  * 
- * *   **NEVER** change the order of function pointers in the provided API structures.
- * *   **NEVER** delete fields from API structures.
- * *   **ALWAYS** use the provided 'SPF_Formatting_API' for cross-DLL string formatting to avoid crashes.
+ * To ensure your plugin remains compatible with future framework versions without a re-compile:
+ * 1. The order of existing function pointers in API structures will **NEVER** change.
+ * 2. Fields will **NEVER** be deleted from released API structures.
+ * 3. New functionality is only added by appending to the **end** of structures.
+ * 
+ * ================================================================================================
+ * DEVELOPER REQUIREMENTS
+ * ================================================================================================
+ * 
+ * *   **String Safety**: ALWAYS use the 'SPF_Formatting_API' for cross-DLL string formatting 
+ *     (e.g., inside 'Fmt_Format' or 'Log' calls) to avoid memory management crashes.
+ * *   **Handle Validation**: Always check if pointers and handles are non-NULL before use.
+ * *   **Thread Safety**: UI calls must only be made within the registered draw callbacks.
  */
 
 #include <stdbool.h>
@@ -80,6 +90,7 @@ typedef struct SPF_GameConsole_API SPF_GameConsole_API;
 typedef struct SPF_Formatting_API SPF_Formatting_API;
 typedef struct SPF_GameLog_API SPF_GameLog_API;
 typedef struct SPF_JsonReader_API SPF_JsonReader_API;
+typedef struct SPF_Vehicle_API SPF_Vehicle_API;
 
 
 // =================================================================================================
@@ -359,8 +370,13 @@ struct SPF_Core_API {
    *          and then uses the functions within this API (e.g., `GetType`, `GetString`)
    *          to navigate and extract information from that JSON structure.
    */
-  SPF_JsonReader_API* json_reader;
-};
+     SPF_JsonReader_API* json_reader;
+   
+   /**
+    * @brief Vehicle API. For inspecting vehicles and traffic.
+    */
+     SPF_Vehicle_API* vehicle;
+   };
 
 // =================================================================================================
 // 3. THE PLUGIN'S MAIN EXPORTED FUNCTION
