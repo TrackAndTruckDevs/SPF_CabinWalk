@@ -73,9 +73,11 @@ typedef struct ImGuiPayload* SPF_Payload_Handle;
 typedef enum
 {
     SPF_STYLE_VAR_ALPHA,                // float,     Alpha
+    SPF_STYLE_VAR_DISABLED_ALPHA,       // float,     DisabledAlpha
     SPF_STYLE_VAR_WINDOW_PADDING,       // ImVec2,    WindowPadding
     SPF_STYLE_VAR_WINDOW_ROUNDING,      // float,     WindowRounding
     SPF_STYLE_VAR_WINDOW_BORDERSIZE,    // float,     WindowBorderSize
+    SPF_STYLE_VAR_WINDOW_MIN_SIZE,      // ImVec2,    WindowMinSize
     SPF_STYLE_VAR_WINDOW_TITLE_ALIGN,   // ImVec2,    WindowTitleAlign
     SPF_STYLE_VAR_CHILD_ROUNDING,       // float,     ChildRounding
     SPF_STYLE_VAR_CHILD_BORDERSIZE,     // float,     ChildBorderSize
@@ -87,17 +89,148 @@ typedef enum
     SPF_STYLE_VAR_ITEM_SPACING,         // ImVec2,    ItemSpacing
     SPF_STYLE_VAR_ITEM_INNER_SPACING,   // ImVec2,    ItemInnerSpacing
     SPF_STYLE_VAR_INDENT_SPACING,       // float,     IndentSpacing
+    SPF_STYLE_VAR_CELL_PADDING,         // ImVec2,    CellPadding
     SPF_STYLE_VAR_SCROLLBAR_SIZE,       // float,     ScrollbarSize
     SPF_STYLE_VAR_SCROLLBAR_ROUNDING,   // float,     ScrollbarRounding
+    SPF_STYLE_VAR_SCROLLBAR_PADDING,    // float,     ScrollbarPadding
     SPF_STYLE_VAR_GRAB_MINSIZE,         // float,     GrabMinSize
     SPF_STYLE_VAR_GRAB_ROUNDING,        // float,     GrabRounding
+    SPF_STYLE_VAR_IMAGE_ROUNDING,       // float,     ImageRounding
+    SPF_STYLE_VAR_IMAGE_BORDERSIZE,     // float,     ImageBorderSize
     SPF_STYLE_VAR_TAB_ROUNDING,         // float,     TabRounding
     SPF_STYLE_VAR_TAB_BORDERSIZE,       // float,     TabBorderSize
+    SPF_STYLE_VAR_TAB_MIN_WIDTH_BASE,   // float,     TabMinWidthBase
+    SPF_STYLE_VAR_TAB_MIN_WIDTH_SHRINK, // float,     TabMinWidthShrink
+    SPF_STYLE_VAR_TAB_BAR_BORDERSIZE,   // float,     TabBarBorderSize
+    SPF_STYLE_VAR_TAB_BAR_OVERLINE_SIZE,// float,     TabBarOverlineSize
+    SPF_STYLE_VAR_TABLE_ANGLED_HEADERS_ANGLE, // float TableAngledHeadersAngle
+    SPF_STYLE_VAR_TABLE_ANGLED_HEADERS_TEXT_ALIGN, // ImVec2 TableAngledHeadersTextAlign
+    SPF_STYLE_VAR_TREE_LINES_SIZE,      // float,     TreeLinesSize
+    SPF_STYLE_VAR_TREE_LINES_ROUNDING,  // float,     TreeLinesRounding
     SPF_STYLE_VAR_BUTTON_TEXT_ALIGN,    // ImVec2,    ButtonTextAlign
     SPF_STYLE_VAR_SELECTABLE_TEXT_ALIGN,// ImVec2,    SelectableTextAlign
-    SPF_STYLE_VAR_COUNT
+    SPF_STYLE_VAR_SEPARATOR_TEXT_BORDERSIZE, // float, SeparatorTextBorderSize
+    SPF_STYLE_VAR_SEPARATOR_TEXT_ALIGN, // ImVec2,    SeparatorTextAlign
+    SPF_STYLE_VAR_SEPARATOR_TEXT_PADDING, // ImVec2,  SeparatorTextPadding
+    SPF_STYLE_VAR_DOCKING_SEPARATOR_SIZE, // float,   DockingSeparatorSize
+    SPF_STYLE_VAR_COUNT                 // Total number of style variables.
 } SPF_StyleVar;
 
+/**
+ * @enum SPF_StyleColor
+ * @brief C-style enum mirroring ImGui's ImGuiCol_ enum for style colors.
+ */
+typedef enum
+{
+    SPF_COLOR_TEXT,
+    SPF_COLOR_TEXT_DISABLED,
+    SPF_COLOR_WINDOW_BG,              // Background of normal windows
+    SPF_COLOR_CHILD_BG,               // Background of child windows
+    SPF_COLOR_POPUP_BG,               // Background of popups, menus, tooltips windows
+    SPF_COLOR_BORDER,
+    SPF_COLOR_BORDER_SHADOW,
+    SPF_COLOR_FRAME_BG,               // Background of checkbox, radio button, plot, slider, text input
+    SPF_COLOR_FRAME_BG_HOVERED,
+    SPF_COLOR_FRAME_BG_ACTIVE,
+    SPF_COLOR_TITLE_BG,
+    SPF_COLOR_TITLE_BG_ACTIVE,
+    SPF_COLOR_TITLE_BG_COLLAPSED,
+    SPF_COLOR_MENU_BAR_BG,
+    SPF_COLOR_SCROLLBAR_BG,
+    SPF_COLOR_SCROLLBAR_GRAB,
+    SPF_COLOR_SCROLLBAR_GRAB_HOVERED,
+    SPF_COLOR_SCROLLBAR_GRAB_ACTIVE,
+    SPF_COLOR_CHECK_MARK,
+    SPF_COLOR_SLIDER_GRAB,
+    SPF_COLOR_SLIDER_GRAB_ACTIVE,
+    SPF_COLOR_BUTTON,
+    SPF_COLOR_BUTTON_HOVERED,
+    SPF_COLOR_BUTTON_ACTIVE,
+    SPF_COLOR_HEADER,                // Header* colors are used for CollapsingHeader, TreeNode, Selectable, MenuItem
+    SPF_COLOR_HEADER_HOVERED,
+    SPF_COLOR_HEADER_ACTIVE,
+    SPF_COLOR_SEPARATOR,
+    SPF_COLOR_SEPARATOR_HOVERED,
+    SPF_COLOR_SEPARATOR_ACTIVE,
+    SPF_COLOR_RESIZE_GRIP,           // Resize grip in lower-right corner of windows
+    SPF_COLOR_RESIZE_GRIP_HOVERED,
+    SPF_COLOR_RESIZE_GRIP_ACTIVE,
+    SPF_COLOR_TAB,                   // Tab* colors are used by the docking system
+    SPF_COLOR_TAB_HOVERED,
+    SPF_COLOR_TAB_ACTIVE,
+    SPF_COLOR_TAB_UNFOCUSED,
+    SPF_COLOR_TAB_UNFOCUSED_ACTIVE,
+    SPF_COLOR_DOCKING_PREVIEW,       // Preview overlay color when about to docking something
+    SPF_COLOR_DOCKING_EMPTY_BG,      // Background color for empty node (all tabs closed)
+    SPF_COLOR_PLOT_LINES,
+    SPF_COLOR_PLOT_LINES_HOVERED,
+    SPF_COLOR_PLOT_HISTOGRAM,
+    SPF_COLOR_PLOT_HISTOGRAM_HOVERED,
+    SPF_COLOR_TABLE_HEADER_BG,       // Table header background
+    SPF_COLOR_TABLE_BORDER_STRONG,   // Table outer and header borders (prefer using Alpha=1.0 here)
+    SPF_COLOR_TABLE_BORDER_LIGHT,    // Table inner borders (prefer using Alpha=1.0 here)
+    SPF_COLOR_TABLE_ROW_BG,          // Table row background (even rows)
+    SPF_COLOR_TABLE_ROW_BG_ALT,      // Table row background (odd rows)
+    SPF_COLOR_TEXT_SELECTED_BG,
+    SPF_COLOR_DRAG_DROP_TARGET,      // Video gameComp lingo: Desaturation
+    SPF_COLOR_NAV_HIGHLIGHT,         // Gamepad/Keyboard keyboard proximal display
+    SPF_COLOR_NAV_WINDOWING_HIGHLIGHT,
+    SPF_COLOR_NAV_WINDOWING_DIM_BG,  // Darken/clobber entire screen behind the windowing list
+    SPF_COLOR_MODAL_WINDOW_DIM_BG,   // Darken/clobber entire screen behind a modal window
+    SPF_COLOR_COUNT
+} SPF_StyleColor;
+
+/**
+ * @enum SPF_NotificationType
+ * @brief Categorizes framework notifications to determine their visual style (icon and color).
+ */
+typedef enum {
+    SPF_NOTIFICATION_INFO,     /**< Blue. General information or neutral status updates. */
+    SPF_NOTIFICATION_SUCCESS,  /**< Green. Confirmation of a successfully completed operation. */
+    SPF_NOTIFICATION_WARNING,  /**< Yellow. Important notice that doesn't block execution. */
+    SPF_NOTIFICATION_ERROR,    /**< Red. Notification of a failed operation or non-critical error. */
+    SPF_NOTIFICATION_CRITICAL, /**< Deep Red. Critical system failure or severe error. */
+    SPF_NOTIFICATION_HINT      /**< Purple/Violet. Helpful tips or "Did you know?" style suggestions. */
+} SPF_NotificationType;
+
+/**
+ * @enum SPF_Notification_DisplayMode
+ * @brief Defines how and where a notification is displayed on the screen.
+ */
+typedef enum {
+    SPF_NOTIF_MODE_TOP,    /**< Default. Shows at the top center, newer replaces older. */
+    SPF_NOTIF_MODE_STACK,  /**< Shows at bottom-right, stacks upwards when multiple notifications exist. */
+    SPF_NOTIF_MODE_STICKY  /**< Appears at current mouse cursor position, stays until clicked outside or toggled. */
+} SPF_Notification_DisplayMode;
+
+/**
+ * @enum SPF_TransitionType
+ * @brief Defines types of cinematic screen transitions.
+ */
+typedef enum {
+    SPF_TRANS_FADE,             /**< Simple fade in/out. */
+    SPF_TRANS_CROSS,            /**< Automatic 0-100-0 transition. */
+    SPF_TRANS_FLASH,            /**< Quick entry, slow fade out. */
+    SPF_TRANS_LETTERBOX,        /**< Cinematic black bars top/bottom. */
+    SPF_TRANS_WIPE_LEFT,        /**< Slide from right to left. */
+    SPF_TRANS_WIPE_RIGHT,       /**< Slide from left to right. */
+    SPF_TRANS_WIPE_TOP,         /**< Slide from bottom to top. */
+    SPF_TRANS_WIPE_BOTTOM,      /**< Slide from top to bottom. */
+    SPF_TRANS_SHUTTER_H,        /**< Two horizontal curtains closing to center. */
+    SPF_TRANS_SHUTTER_V,        /**< Two vertical curtains closing to center. */
+    SPF_TRANS_RADIAL            /**< Expanding/shrinking circle from center. */
+} SPF_TransitionType;
+
+/**
+ * @enum SPF_TransitionColor
+ * @brief Defines preset colors for transitions.
+ */
+typedef enum {
+    SPF_TRANS_COLOR_BLACK,      /**< Solid black (default). */
+    SPF_TRANS_COLOR_WHITE,      /**< Pure white (flash/dream). */
+    SPF_TRANS_COLOR_SEPIA,      /**< Old cinema / nostalgia. */
+    SPF_TRANS_COLOR_GRAY        /**< Neutral gray. */
+} SPF_TransitionColor;
 
 /**
  * @enum SPF_Font
@@ -140,7 +273,21 @@ typedef enum {
     SPF_WINDOW_FLAG_ALWAYS_AUTO_RESIZE = 1 << 5, // Auto-resize window to fit contents every frame.
     SPF_WINDOW_FLAG_MENU_BAR = 1 << 6,           // The window has a menu bar.
     SPF_WINDOW_FLAG_HORIZONTAL_SCROLLBAR = 1 << 7, // Allow horizontal scrollbar.
+    SPF_WINDOW_FLAG_NO_BACKGROUND = 1 << 8,      // Disable the window background.
 } SPF_Window_Flags;
+
+/**
+ * @enum SPF_Cond
+ * @brief Conditions for setting window position, size, etc.
+ * @details Mirrors ImGuiCond_.
+ */
+typedef enum {
+    SPF_COND_NONE = 0,
+    SPF_COND_ALWAYS = 1 << 0,       // Set the variable
+    SPF_COND_ONCE = 1 << 1,         // Set the variable once per runtime session (only the first call will succeed)
+    SPF_COND_FIRST_USE_EVER = 1 << 2, // Set the variable if the object/window has no session data (no entry in .ini file)
+    SPF_COND_APPEARING = 1 << 3      // Set the variable if the object/window is appearing after being hidden/inactive (or the first time)
+} SPF_Cond;
 
 /**
  * @brief A callback function that a plugin provides to draw the content of its window.
@@ -730,10 +877,11 @@ typedef struct SPF_UI_API {
      * @brief Pushes a color onto the style stack.
      * @details Changes the color of subsequent widgets until `UI_PopStyleColor` is called.
      *          Each `UI_PushStyleColor` must be matched with a `UI_PopStyleColor`.
-     * @param im_gui_color_idx The index of the color variable to change (e.g., `ImGuiCol_Text`).
+     *          Prefer using the `SPF_StyleColor` enum for the `idx` parameter.
+     * @param idx The index of the color variable to change (from SPF_StyleColor).
      * @param r, g, b, a The new color components (0.0f to 1.0f).
      */
-    void (*UI_PushStyleColor)(int im_gui_color_idx, float r, float g, float b, float a);
+    void (*UI_PushStyleColor)(int idx, float r, float g, float b, float a);
 
     /**
      * @brief Pops `count` colors from the style stack.
@@ -746,20 +894,22 @@ typedef struct SPF_UI_API {
      * @brief Pushes a float style variable onto the style stack.
      * @details Changes a float-type style variable until `PopStyleVar` is called.
      *          Each `UI_PushStyleVarFloat` must be matched with a `PopStyleVar`.
-     * @param im_gui_stylevar_idx The index of the style variable to change (e.g., `ImGuiStyleVar_Alpha`).
+     *          Prefer using the `SPF_StyleVar` enum for the `idx` parameter.
+     * @param idx The index of the style variable to change (from SPF_StyleVar).
      * @param val The new float value.
      */
-    void (*UI_PushStyleVarFloat)(int im_gui_stylevar_idx, float val);
+    void (*UI_PushStyleVarFloat)(int idx, float val);
 
     /**
      * @brief Pushes a 2-element vector style variable onto the style stack.
      * @details Changes an ImVec2-type style variable until `UI_PopStyleVar` is called.
      *          Each `UI_PushStyleVarVec2` must be matched with a `UI_PopStyleVar`.
-     * @param im_gui_stylevar_idx The index of the style variable to change (e.g., `ImGuiStyleVar_WindowPadding`).
+     *          Prefer using the `SPF_StyleVar` enum for the `idx` parameter.
+     * @param idx The index of the style variable to change (from SPF_StyleVar).
      * @param val_x The X component of the new vector value.
      * @param val_y The Y component of the new vector value.
      */
-    void (*UI_PushStyleVarVec2)(int im_gui_stylevar_idx, float val_x, float val_y);
+    void (*UI_PushStyleVarVec2)(int idx, float val_x, float val_y);
 
     /**
      * @brief Pops `count` style variables from the style stack.
@@ -1333,5 +1483,206 @@ typedef struct SPF_UI_API {
      * @details Must be called after `UI_BeginDragDropTarget`.
      */
     void (*UI_EndDragDropTarget)();
+
+    /**
+     * @brief Displays a temporary notification popup on the screen.
+     * 
+     * @details This function triggers a non-interactive message that automatically 
+     *          fades out after a pre-defined period. The popup includes an icon 
+     *          corresponding to the type and supports formatted text.
+     * 
+     * @param type The visual category of the message (influences color and icon).
+     * @param message The content to display. Supports Markdown syntax (**bold**, *italic*) 
+     *                and Font Awesome icon macros (e.g., ICON_FA_TRUCK).
+     * @param mode The display mode (TOP, STACK, STICKY).
+     * 
+     * @note The display duration is controlled globally by the framework's configuration 
+     *       and cannot be overridden by individual plugins to ensure a consistent UX.
+     */
+    void (*UI_ShowNotification)(SPF_NotificationType type, const char* message, SPF_Notification_DisplayMode mode);
+
+    /**
+     * @brief Plays a cinematic screen transition.
+     * 
+     * @param type The visual effect to use (Fade, Wipe, etc.).
+     * @param duration Total duration of the effect in seconds.
+     * @param reverse If true, plays the effect backwards (e.g. Fade From Black instead of To Black).
+     * @param color The color preset for the effect.
+     */
+    void (*UI_PlayTransition)(SPF_TransitionType type, float duration, bool reverse, SPF_TransitionColor color);
+
+    /**
+     * @brief Checks if a cinematic transition is currently playing.
+     * @return True if a transition is active.
+     */
+    bool (*UI_IsTransitionActive)();
+
+
+    // --- Layout & Interaction --- NEW v1.1.5 ---
+
+    /**
+     * @brief Begins a self-contained child window with its own scrolling and layout.
+     * @param str_id Unique string identifier for the child region.
+     * @param size_x, size_y Size of the child region. Use 0 for "fill available".
+     * @param border If true, draws a border around the child.
+     * @param flags Additional window flags.
+     * @return True if the child is visible.
+     */
+    bool (*UI_BeginChild)(const char* str_id, float size_x, float size_y, bool border, SPF_Window_Flags flags);
+
+    /**
+     * @brief Ends a child window. 
+     * @details Must be called after a successful call to `UI_BeginChild` to pop the window from the stack.
+     */
+    void (*UI_EndChild)();
+
+    /**
+     * @brief Sets the layout cursor position relative to the current window or child.
+     * @param x The new horizontal cursor position in pixels.
+     * @param y The new vertical cursor position in pixels.
+     */
+    void (*UI_SetCursorPos)(float x, float y);
+
+    /**
+     * @brief Gets the current layout cursor position relative to the current window or child.
+     * @param[out] out_x Pointer to a float to store the current horizontal cursor position.
+     * @param[out] out_y Pointer to a float to store the current vertical cursor position.
+     */
+    void (*UI_GetCursorPos)(float* out_x, float* out_y);
+
+    /**
+     * @brief Checks if the current window or child is hovered by the mouse.
+     * @return True if the mouse is currently over the window/child area and no other window is blocking it.
+     */
+    bool (*UI_IsWindowHovered)();
+
+
+    // --- DrawList Drawing Functions --- NEW v1.1.5 ---
+
+    /**
+     * @brief Adds an outlined circle to the draw list.
+     * @param dl The draw list handle.
+     * @param center_x, center_y The center of the circle.
+     * @param radius The radius of the circle.
+     * @param col The color of the outline.
+     * @param num_segments Number of segments to approximate the circle.
+     * @param thickness Thickness of the outline.
+     */
+    void (*UI_DrawList_AddCircle)(SPF_DrawList_Handle dl, float center_x, float center_y, float radius, uint32_t col, int num_segments, float thickness);
+
+    /**
+     * @brief Adds a multi-color filled rectangle (gradient) to the draw list.
+     * @param dl The draw list handle.
+     * @param p_min_x, p_min_y Top-left corner.
+     * @param p_max_x, p_max_y Bottom-right corner.
+     * @param col_upr_left, col_upr_right, col_bot_right, col_bot_left Corner colors (packed U32).
+     */
+    void (*UI_DrawList_AddRectFilledMultiColor)(SPF_DrawList_Handle dl, float p_min_x, float p_min_y, float p_max_x, float p_max_y, uint32_t col_upr_left, uint32_t col_upr_right, uint32_t col_bot_right, uint32_t col_bot_left);
+
+    /**
+     * @brief Adds a multi-color filled triangle (gradient) to the draw list.
+     * @param dl The draw list handle.
+     * @param p1_x, p1_y First vertex.
+     * @param p2_x, p2_y Second vertex.
+     * @param p3_x, p3_y Third vertex.
+     * @param col1, col2, col3 Colors at each vertex (packed U32).
+     */
+    void (*UI_DrawList_AddTriangleFilledMultiColor)(SPF_DrawList_Handle dl, float p1_x, float p1_y, float p2_x, float p2_y, float p3_x, float p3_y, uint32_t col1, uint32_t col2, uint32_t col3);
+
+    /**
+     * @brief Adds a multi-color filled circle (radial gradient) to the draw list.
+     * @details Renders a "fan" of triangles from the center to the edge.
+     * @param dl The draw list handle.
+     * @param center_x, center_y The center of the circle.
+     * @param radius The radius of the circle.
+     * @param col_inner The color at the center.
+     * @param col_outer The color at the edge.
+     * @param num_segments Number of segments (0 for auto-calculation).
+     */
+    void (*UI_DrawList_AddCircleFilledMultiColor)(SPF_DrawList_Handle dl, float center_x, float center_y, float radius, uint32_t col_inner, uint32_t col_outer, int num_segments);
+
+    /**
+     * @brief Pushes a clipping rectangle onto the draw list stack.
+     * @param dl The draw list handle.
+     * @param p_min_x, p_min_y Top-left corner.
+     * @param p_max_x, p_max_y Bottom-right corner.
+     * @param intersect_with_current_clip_rect If true, clips to the intersection of new and current area.
+     */
+    void (*UI_DrawList_PushClipRect)(SPF_DrawList_Handle dl, float p_min_x, float p_min_y, float p_max_x, float p_max_y, bool intersect_with_current_clip_rect);
+
+    /**
+     * @brief Pops the last clipping rectangle from the stack.
+     * @param dl The draw list handle.
+     */
+    void (*UI_DrawList_PopClipRect)(SPF_DrawList_Handle dl);
+
+
+    // --- Utilities --- NEW v1.1.5 ---
+
+    /**
+     * @brief Gets the time elapsed since the last frame in seconds.
+     * @return Delta time value.
+     */
+    float (*UI_GetIO_DeltaTime)();
+
+    /**
+     * @brief Programmatically overrides mouse control (v1.1.5).
+     * @details If set to true, it reverses the current mouse capture logic (e.g. gives mouse back to game even if UI is open).
+     * @param overridden True to enable override, false to disable.
+     */
+    void (*UI_SetMouseOverride)(bool overridden);
+
+    /**
+     * @brief Checks if mouse control is currently overridden (v1.1.5).
+     * @return True if overridden.
+     */
+    bool (*UI_IsMouseOverridden)();
+
+    /**
+     * @brief Adds an empty invisible element of a specific size.
+     * @details Used to reserve space or expand window boundaries.
+     * @param width The width of the dummy area.
+     * @param height The height of the dummy area.
+     */
+    void (*UI_Dummy)(float width, float height);
+
+    /**
+     * @brief Adds text to the draw list using a specific font and size (v1.1.5).
+     * @param dl The draw list handle.
+     * @param font The font style to use (e.g., SPF_FONT_MEDIUM).
+     * @param font_size The font size in pixels.
+     * @param pos_x, pos_y The top-left screen position.
+     * @param col The color as a packed 32-bit integer.
+     * @param text The text to draw.
+     */
+    void (*UI_DrawList_AddTextWithFont)(SPF_DrawList_Handle dl, SPF_Font font, float font_size, float pos_x, float pos_y, uint32_t col, const char* text);
+
+    /**
+     * @brief Calculates the size of a text string with a specific font and size (v1.1.5).
+     * @param font The font style to use.
+     * @param font_size The font size in pixels.
+     * @param text The text string to measure.
+     * @param[out] out_w Pointer to store the calculated width.
+     * @param[out] out_h Pointer to store the calculated height.
+     */
+    void (*UI_CalcTextSizeWithFont)(SPF_Font font, float font_size, const char* text, float* out_w, float* out_h);
+
+    // --- Window Position & Size --- NEW v1.1.5 ---
+
+    /**
+     * @brief Sets the position of the current window.
+     * @param x The new x-coordinate for the window.
+     * @param y The new y-coordinate for the window.
+     * @param cond The condition for setting the position (from SPF_Cond).
+     */
+    void (*UI_SetWindowPos)(float x, float y, SPF_Cond cond);
+
+    /**
+     * @brief Sets the size of the current window's content region.
+     * @param x The new width for the window.
+     * @param y The new height for the window.
+     * @param cond The condition for setting the size (from SPF_Cond).
+     */
+    void (*UI_SetWindowSize)(float x, float y, SPF_Cond cond);
 
 } SPF_UI_API;

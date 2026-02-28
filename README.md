@@ -1,4 +1,17 @@
-# SPF CabinWalk Plugin
+<h1 align="center">SPF CabinWalk Plugin</h1>
+
+<p align="center">
+    <a href="https://github.com/TrackAndTruckDevs/SPF_CabinWalk/releases/latest/" target="_blank" title="SPF CabinWalk Plugin"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/TrackAndTruckDevs/SPF_CabinWalk"></a>
+    <a href="/LICENSE" title="SPF CabinWalk Plugin license"><img alt="GitHub License" src="https://img.shields.io/github/license/TrackAndTruckDevs/SPF_CabinWalk"></a>
+</p>
+
+<p align="center">
+    <a href="https://www.patreon.com/TrackAndTruckDevs" target="_blank" title="Support us on Patreon"><img alt="Patreon" src="https://img.shields.io/badge/patreon-Becoming a patron-3404021712?style=flat&logo=patreon"></a>
+    <a href="https://github.com/TrackAndTruckDevs/SPF_CabinWalk/stargazers" title="Liked it? Starred"><img src="https://img.shields.io/github/stars/TrackAndTruckDevs/SPF_CabinWalk?style=flat&logo=github" alt="Stars" /></a>
+    <a href="https://youtube.com/@TrackAndTruck" target="_blank" title="Subscribe to our channel"><img alt="Youtube" src="https://img.shields.io/badge/youtube-subscribe-orange?logo=youtube&style=flat"></a>
+</p>
+
+---
 
 A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you to unchain the camera from the driver's seat and freely walk around your truck's cabin. Explore your interior with smooth, animated camera movements.
 
