@@ -51,8 +51,8 @@ namespace SPF_CabinWalk
         // This section provides the basic identity of your plugin.
         {
             api->Info_SetName(h, PLUGIN_NAME);
-            api->Info_SetVersion(h, "1.0.4");
-            api->Info_SetMinFrameworkVersion(h, "1.1.5");
+            api->Info_SetVersion(h, "1.1.6");
+            api->Info_SetMinFrameworkVersion(h, "1.1.6");
             api->Info_SetAuthor(h, "Track'n'Truck Devs");
             api->Info_SetDescriptionLiteral(h, "A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you to unchain the camera from the driver's seat and freely walk around your truck's cabin. Explore your interior with smooth, animated camera movements.");
 
@@ -167,11 +167,6 @@ namespace SPF_CabinWalk
             api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToDriverSeat", "keyboard", "KEY_NUMPAD5", "always");
             api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "moveToStandingPosition", "keyboard", "KEY_NUMPAD2", "always");
             api->Defaults_AddKeybind(h, "SPF_CabinWalk.Movement", "cycleSofaPositions", "keyboard", "KEY_NUMPAD1", "always");
-        }
-
-        // UI Windows
-        {
-            api->Defaults_AddWindow(h, "WarningWindow", false, false, 0, 0, 400, 100, false, false);
         }
 
         // =============================================================================================
@@ -666,21 +661,6 @@ namespace SPF_CabinWalk
 
         // Update our modules
         AnimationController::Update();
-
-        // --- Warning Window Timer ---
-        if (g_ctx.is_warning_active && g_ctx.coreAPI && g_ctx.coreAPI->telemetry && g_ctx.telemetryHandle)
-        {
-            SPF_Timestamps timestamps;
-            g_ctx.coreAPI->telemetry->Tel_GetTimestamps(g_ctx.telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
-            if ((timestamps.simulation - g_ctx.warning_start_time) > g_ctx.settings.general.warning_duration_ms * 1000)
-            {
-                g_ctx.is_warning_active = false;
-                if (g_ctx.uiAPI && g_ctx.warningWindowHandle)
-                {
-                    g_ctx.uiAPI->UI_SetVisibility(g_ctx.warningWindowHandle, false);
-                }
-            }
-        }
     }
 
     void OnUnload()
@@ -706,7 +686,6 @@ namespace SPF_CabinWalk
 
         g_ctx.keybindsHandle = nullptr;
         g_ctx.uiAPI = nullptr;
-        g_ctx.warningWindowHandle = nullptr;
         g_ctx.telemetryHandle = nullptr;
         g_ctx.hooksAPI = nullptr;
         g_ctx.cameraAPI = nullptr;
@@ -720,63 +699,6 @@ namespace SPF_CabinWalk
         }
         // We already cached g_ctx.uiAPI in OnActivated, but it's good practice to ensure it's set here too.
         g_ctx.uiAPI = ui_api;
-
-        // Get the handle for our warning window
-        g_ctx.warningWindowHandle = g_ctx.uiAPI->UI_GetWindowHandle(PLUGIN_NAME, "WarningWindow");
-
-        // Register the drawing callback for our warning window
-        g_ctx.uiAPI->UI_RegisterDrawCallback(PLUGIN_NAME, "WarningWindow", DrawWarningWindow, &g_ctx);
-    }
-
-    void DrawWarningWindow(SPF_UI_API *ui, void *user_data)
-    {
-        if (!ui || !user_data || !g_ctx.configAPI || !g_ctx.configHandle)
-            return;
-
-        // --- Dynamic Positioning ---
-        // On every frame this window is drawn, calculate its desired position and
-        // update the configuration values that the UI framework reads from.
-        float viewport_w, viewport_h;
-        ui->UI_GetViewportSize(&viewport_w, &viewport_h);
-
-        const float window_w = 400; // Using the width from the manifest
-        const float window_h = 100; // Using a smaller, more reasonable height
-        const float offset_from_bottom = 100.0f;
-
-        int new_pos_x = static_cast<int>((viewport_w / 2.0f) - (window_w / 2.0f));
-        int new_pos_y = static_cast<int>(viewport_h - window_h - offset_from_bottom);
-
-        // Update the config values that the UI system reads from for positioning.
-        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.pos_x", new_pos_x);
-        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.pos_y", new_pos_y);
-        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.size_w", static_cast<int>(window_w));
-        g_ctx.configAPI->Cfg_SetInt32(g_ctx.configHandle, "ui.windows.WarningWindow.size_h", static_cast<int>(window_h));
-
-        PluginContext *ctx = static_cast<PluginContext *>(user_data);
-        if (ctx->is_warning_active)
-        {
-            // Get the warning message
-            char warning_message[512];
-            g_ctx.loadAPI->localization->Loc_GetString(
-                g_ctx.loadAPI->localization->Loc_GetContext(PLUGIN_NAME),
-                "messages.warning_not_safe_to_move",
-                warning_message, sizeof(warning_message));
-
-            // Create a style for the warning message
-            SPF_TextStyle_Handle warning_style = ui->UI_Style_Create();
-            if (warning_style)
-            {
-                ui->UI_Style_SetFont(warning_style, SPF_FONT_H1);             // Make it a header
-                ui->UI_Style_SetAlign(warning_style, SPF_TEXT_ALIGN_CENTER);  // Center it
-                ui->UI_Style_SetColor(warning_style, 1.0f, 0.0f, 0.0f, 1.0f); // Keep it red
-
-                // Render the styled text
-                ui->UI_TextStyled(warning_style, warning_message);
-
-                // Clean up the style object
-                ui->UI_Style_Destroy(warning_style);
-            }
-        }
     }
 
     bool IsSafeToLeaveDriverSeat()
@@ -802,14 +724,22 @@ namespace SPF_CabinWalk
         }
         else
         {
-            // Conditions are not met. Show the warning window.
-            if (g_ctx.uiAPI && g_ctx.warningWindowHandle && !g_ctx.is_warning_active)
+            // Conditions are not met. Show a notification.
+            if (g_ctx.uiAPI)
             {
-                SPF_Timestamps timestamps;
-                g_ctx.coreAPI->telemetry->Tel_GetTimestamps(g_ctx.telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
-                g_ctx.warning_start_time = timestamps.simulation;
-                g_ctx.is_warning_active = true;
-                g_ctx.uiAPI->UI_SetVisibility(g_ctx.warningWindowHandle, true);
+                char warning_message[512];
+                g_ctx.loadAPI->localization->Loc_GetString(
+                    g_ctx.loadAPI->localization->Loc_GetContext(PLUGIN_NAME),
+                    "messages.warning_not_safe_to_move",
+                    warning_message, sizeof(warning_message));
+
+                SPF_Notification_Params params;
+                memset(&params, 0, sizeof(SPF_Notification_Params));
+                params.type = SPF_NOTIFICATION_WARNING;
+                params.message = warning_message;
+                params.mode = SPF_NOTIF_MODE_TOP;
+                params.duration = -1.0f; // Automatic duration
+                g_ctx.uiAPI->UI_ShowNotification(&params);
             }
             return false; // Movement is not safe.
         }

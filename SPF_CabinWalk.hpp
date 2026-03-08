@@ -215,7 +215,6 @@ namespace SPF_CabinWalk
     SPF_Localization_Handle* localizationHandle = nullptr; // Requires: SPF_Localization_API.h
     SPF_KeyBinds_Handle *keybindsHandle = nullptr;    // Requires: SPF_KeyBinds_API.h
     SPF_UI_API *uiAPI = nullptr;                      // Requires: SPF_UI_API.h
-    SPF_Window_Handle *warningWindowHandle = nullptr; // Requires: SPF_UI_API.h
     SPF_Telemetry_Handle *telemetryHandle = nullptr;  // Requires: SPF_Telemetry_API.h
     SPF_Hooks_API *hooksAPI = nullptr;                // Requires: SPF_Hooks_API.h
     // SPF_GameConsole_API* gameConsoleAPI = nullptr;     // Requires: SPF_GameConsole_API.h
@@ -244,9 +243,6 @@ namespace SPF_CabinWalk
 
     // --- Plugin State Variables (Optional - Uncomment/Add if needed) ---
     // Add any plugin-specific state variables here.
-
-    bool is_warning_active = false;
-    uint64_t warning_start_time = 0;
 
     SPF_TruckData last_truck_data = {0}; // Cache for last known truck data
       };  /**
@@ -344,15 +340,6 @@ namespace SPF_CabinWalk
    * @param ui_api A pointer to the UI API.
    */
   void OnRegisterUI(SPF_UI_API *ui_api);
-
-  /**
-   * @brief Renders the content of the plugin's warning window.
-   * @details This function is registered as a callback and is called by the UI system every
-   *          frame that the window is visible.
-   * @param ui A pointer to the UI API, used to draw widgets.
-   * @param user_data A pointer to user-defined data passed during registration.
-   */
-  void DrawWarningWindow(SPF_UI_API *ui, void *user_data);
 
   /**
    * @brief Callback executed when a keybind action is triggered by the user.
