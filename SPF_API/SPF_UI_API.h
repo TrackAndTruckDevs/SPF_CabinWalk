@@ -1477,8 +1477,19 @@ typedef enum {
     /** Medium header font (e.g., Level 2 Header). */
     SPF_FONT_H2,
     /** Small header font (e.g., Level 3 Header). */
-    SPF_FONT_H3
+    SPF_FONT_H3,
+    /** Very large bold header font (32px). */
+    SPF_FONT_H1_LARGE_BOLD
 } SPF_Font;
+
+/**
+ * @brief Configuration for loading a custom font.
+ */
+typedef struct SPF_Font_Config_t {
+    float size_pixels;      /**< Font size in pixels. */
+    bool merge_mode;        /**< If true, merge this font into the previously loaded font. Useful for icons. */
+    const uint16_t* ranges; /**< Optional glyph ranges (e.g., from UI_GetIO_GlyphRangesCyrillic). NULL for default. */
+} SPF_Font_Config;
 
 /**
  * @enum SPF_TextAlign
@@ -3542,16 +3553,16 @@ typedef struct SPF_UI_API {
     /**
      * @brief Retrieves a handle to a pre-configured font by its identifier.
      * @param font_key String ID of the font (e.g., "bold", "h1", "regular").
-     * @return SPF_Font_Handle* Handle to the font, or NULL if not found.
+     * @return SPF_Font_Handle Handle to the font, or NULL if not found.
      */
-    SPF_Font_Handle* (*UI_GetFont)(const char* font_key);
+    SPF_Font_Handle (*UI_GetFont)(const char* font_key);
 
     /**
      * @brief Pushes a font onto the stack, making it active for all subsequent text rendering.
      * @details Every UI_PushFont() must be matched with a UI_PopFont().
      * @param font_handle Handle obtained from UI_GetFont().
      */
-    void (*UI_PushFont)(SPF_Font_Handle* font_handle);
+    void (*UI_PushFont)(SPF_Font_Handle font_handle);
 
     /**
      * @brief Restores the previous font from the stack.
@@ -3936,8 +3947,8 @@ typedef struct SPF_UI_API {
     /** @brief Adds text at an absolute screen position. */
     void (*UI_DrawList_AddText)(SPF_DrawList_Handle dl, float pos_x, float pos_y, uint32_t col, const char* text);
 
-    /** @brief Adds text using a specific font handle and size. */
-    void (*UI_DrawList_AddTextWithFont)(SPF_DrawList_Handle dl, SPF_Font_Handle* font, float font_size, float pos_x, float pos_y, uint32_t col, const char* text, float wrap_width);
+    /** @brief Adds text using a specific font enum and size. */
+    void (*UI_DrawList_AddTextWithFont)(SPF_DrawList_Handle dl, SPF_Font font, float font_size, float pos_x, float pos_y, uint32_t col, const char* text, float wrap_width);
 
     // --- Path API (Stateful shape building) ---
 
@@ -4400,5 +4411,77 @@ typedef struct SPF_UI_API {
      * @return bool True if overridden.
      */
     bool (*UI_IsMouseOverridden)();
+
+    /**
+     * @brief Adds text to a draw list using a specific font handle and size.
+     * @param dl Handle to the target draw list.
+     * @param font_handle Valid font handle retrieved via UI_GetFont or LoadFont functions.
+     * @param font_size Desired font size in pixels.
+     * @param pos_x, pos_y Screen coordinates for the text origin.
+     * @param col Text color in RGBA format (0xRRGGBBAA).
+     * @param text The string to be rendered.
+     * @param wrap_width Optional width for automatic text wrapping (use 0.0f for no wrap).
+     */
+    void (*UI_DrawList_AddTextWithFontHandle)(SPF_DrawList_Handle dl, SPF_Font_Handle font_handle, float font_size, float pos_x, float pos_y, uint32_t col, const char* text, float wrap_width);
+
+    // ============================================================================================
+    // XIV. RESOURCE MANAGEMENT (TEXTURES & FONTS)
+    // ============================================================================================
+
+    /**
+     * @brief Creates a GPU texture from compressed image data in memory (PNG, JPG, etc.).
+     * @param data Pointer to the raw compressed image data.
+     * @param size Size of the data buffer in bytes.
+     * @param out_width Optional pointer to receive the texture width in pixels.
+     * @param out_height Optional pointer to receive the texture height in pixels.
+     * @return void* A texture identifier (ShaderResourceView* on DX11/12, GLuint on OpenGL) 
+     *               to be used with UI_Image functions. Returns NULL on failure.
+     */
+    void* (*UI_CreateTextureFromMemory)(const void* data, size_t size, int* out_width, int* out_height);
+    
+    /**
+     * @brief Creates a GPU texture directly from an image file on disk (PNG, JPG, etc.).
+     * @param file_path Absolute path to the image file.
+     * @param out_width Optional pointer to receive the texture width in pixels.
+     * @param out_height Optional pointer to receive the texture height in pixels.
+     * @return void* A texture identifier to be used with UI_Image functions. Returns NULL on failure.
+     */
+    void* (*UI_CreateTextureFromFile)(const char* file_path, int* out_width, int* out_height);
+
+    /**
+     * @brief Destroys a texture previously created via UI_CreateTextureFromMemory or UI_CreateTextureFromFile.
+     * @param texture_id The texture identifier to destroy.
+     */
+    void (*UI_DestroyTexture)(void* texture_id);
+
+    // --- Font Management ---
+
+    /**
+     * @brief Loads a TTF/OTF font from a memory buffer.
+     * @details The framework makes an internal copy of the data, so the plugin can safely free its buffer after call.
+     * @warning This function is ASYNCHRONOUS. It returns NULL immediately because the font atlas
+     *          must be rebuilt at the start of the next frame to prevent rendering glitches.
+     *          The valid SPF_Font_Handle must be retrieved in subsequent frames using UI_GetFont()
+     *          with the same unique name.
+     * @param name A unique name to identify this font (for caching/lookup).
+     * @param data Pointer to the raw font file data.
+     * @param data_size Size of the data buffer.
+     * @param config Font loading parameters (size, merging, etc.).
+     * @return SPF_Font_Handle Always returns NULL on the first call. Retrieve the actual handle later via UI_GetFont.
+     */
+    SPF_Font_Handle (*UI_LoadFontFromMemory)(const char* name, const void* data, size_t data_size, const SPF_Font_Config* config);
+
+    /**
+     * @brief Loads a TTF/OTF font from a file on disk.
+     * @warning This function is ASYNCHRONOUS. It returns NULL immediately because the font atlas
+     *          must be rebuilt at the start of the next frame to prevent rendering glitches.
+     *          The valid SPF_Font_Handle must be retrieved in subsequent frames using UI_GetFont()
+     *          with the same unique name.
+     * @param name A unique name to identify this font.
+     * @param file_path Absolute path to the .ttf or .otf file.
+     * @param config Font loading parameters (size, merging, etc.).
+     * @return SPF_Font_Handle Always returns NULL on the first call. Retrieve the actual handle later via UI_GetFont.
+     */
+    SPF_Font_Handle (*UI_LoadFontFromFile)(const char* name, const char* file_path, const SPF_Font_Config* config);
 
 } SPF_UI_API;
