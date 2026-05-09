@@ -10,7 +10,7 @@ namespace SPF_CabinWalk::Offsets
     // =================================================================================================
 
     // Signature for the camera update function we hook. This is the main entry point for our modifications.
-    const char *const G_UPDATE_CAMERA_FROM_INPUT_SIGNATURE = "48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 70 20 55 ? ? ? ? 48 81 EC ? ? ? ? 0F 29 70 E8 33 DB";
+    const char *const G_UPDATE_CAMERA_FROM_INPUT_SIGNATURE = "48 8B C4 48 89 ? ? ? ? ? ? 48 8d ? ? 48 ? ? ? ? ? ? 48 89 ? ? 45";
 
     // Signature to find where the game loads the pointer to the array of `azimuth_range` structs and the element count.
     // This is searched in `UpdateCameraFromInput` as it's the function that iterates the whole array.
