@@ -93,8 +93,8 @@ namespace SPF_CabinWalk
         // This section provides the basic identity of your plugin.
         {
             api->Info_SetName(h, PLUGIN_NAME);
-            api->Info_SetVersion(h, "1.1.9");
-            api->Info_SetMinFrameworkVersion(h, "1.1.9");
+            api->Info_SetVersion(h, "1.1.10");
+            api->Info_SetMinFrameworkVersion(h, "1.2.0");
             api->Info_SetAuthor(h, "Track'n'Truck Devs");
             api->Info_SetDescriptionLiteral(h, "A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you to unchain the camera from the driver's seat and freely walk around your truck's cabin. Explore your interior with smooth, animated camera movements.");
 

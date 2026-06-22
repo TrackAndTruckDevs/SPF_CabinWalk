@@ -1135,6 +1135,514 @@ typedef uintptr_t (*SPF_Camera_GetCameraParamsObjectPtr_t)();
 typedef bool (*SPF_Camera_Anim_Prepare_t)();
 
 
+// --- New Interior Advanced settings ---
+
+/**
+ * @brief Checks if the interior camera is currently "outside" (e.g., leaning out).
+ * @param[out] out_val Pointer to store the boolean result.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorOutside_t)(bool* out_val);
+
+/**
+ * @brief Sets whether the interior camera is "outside".
+ * @param val True if outside, false if inside.
+ */
+typedef void (*SPF_Camera_SetInteriorOutside_t)(bool val);
+
+/**
+ * @brief Gets the near clipping plane distance for the interior camera.
+ * @param[out] out_val Pointer to store the distance.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorNearPlane_t)(float* out_val);
+
+/**
+ * @brief Sets the near clipping plane distance for the interior camera.
+ * @param val The new distance.
+ */
+typedef void (*SPF_Camera_SetInteriorNearPlane_t)(float val);
+
+/**
+ * @brief Gets the far clipping plane distance for the interior camera.
+ * @param[out] out_val Pointer to store the distance.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorFarPlane_t)(float* out_val);
+
+/**
+ * @brief Sets the far clipping plane distance for the interior camera.
+ * @param val The new distance.
+ */
+typedef void (*SPF_Camera_SetInteriorFarPlane_t)(float val);
+
+/**
+ * @brief Gets the mouse sensitivity for the interior camera.
+ * @param[out] out_val Pointer to store the sensitivity value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorMouseSensitivity_t)(float* out_val);
+
+/**
+ * @brief Sets the mouse sensitivity for the interior camera.
+ * @param val The new sensitivity value.
+ */
+typedef void (*SPF_Camera_SetInteriorMouseSensitivity_t)(float val);
+
+/**
+ * @brief Gets the animation step for the cabin shake effect.
+ * @param[out] out_val Pointer to store the step value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorShakeAnimStep_t)(float* out_val);
+
+/**
+ * @brief Sets the animation step for the cabin shake effect.
+ * @param val The new step value.
+ */
+typedef void (*SPF_Camera_SetInteriorShakeAnimStep_t)(float val);
+
+/**
+ * @brief Gets the minimum scale for the cabin shake effect.
+ * @param[out] out_val Pointer to store the scale value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorShakeAnimScaleMin_t)(float* out_val);
+
+/**
+ * @brief Sets the minimum scale for the cabin shake effect.
+ * @param val The new scale value.
+ */
+typedef void (*SPF_Camera_SetInteriorShakeAnimScaleMin_t)(float val);
+
+/**
+ * @brief Gets the maximum scale for the cabin shake effect.
+ * @param[out] out_val Pointer to store the scale value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorShakeAnimScaleMax_t)(float* out_val);
+
+/**
+ * @brief Sets the maximum scale for the cabin shake effect.
+ * @param val The new scale value.
+ */
+typedef void (*SPF_Camera_SetInteriorShakeAnimScaleMax_t)(float val);
+
+/**
+ * @brief Gets the limit for the "hand shake" (living hands) effect.
+ * @param[out] out_val Pointer to store the limit value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorHandShakeLimit_t)(float* out_val);
+
+/**
+ * @brief Sets the limit for the "hand shake" effect.
+ * @param val The new limit value.
+ */
+typedef void (*SPF_Camera_SetInteriorHandShakeLimit_t)(float val);
+
+/**
+ * @brief Gets the speed for the "hand shake" effect.
+ * @param[out] out_val Pointer to store the speed value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorHandShakeSpeed_t)(float* out_val);
+
+/**
+ * @brief Sets the speed for the "hand shake" effect.
+ * @param val The new speed value.
+ */
+typedef void (*SPF_Camera_SetInteriorHandShakeSpeed_t)(float val);
+
+/**
+ * @brief Gets the FOV factor used during camera zoom.
+ * @param[out] out_val Pointer to store the factor value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorZoomFovFactor_t)(float* out_val);
+
+/**
+ * @brief Sets the FOV factor for camera zoom.
+ * @param val The new factor value.
+ */
+typedef void (*SPF_Camera_SetInteriorZoomFovFactor_t)(float val);
+
+/**
+ * @brief Gets the zoom speed for the interior camera.
+ * @param[out] out_val Pointer to store the speed value.
+ * @return True on success, false otherwise.
+ */
+typedef bool (*SPF_Camera_GetInteriorZoomSpeed_t)(float* out_val);
+
+/**
+ * @brief Sets the zoom speed for the interior camera.
+ * @param val The new speed value.
+ */
+typedef void (*SPF_Camera_SetInteriorZoomSpeed_t)(float val);
+
+
+// --- Azimuth Overrides ---
+
+/**
+ * @brief Gets the total number of azimuth override zones.
+ * @return The number of zones.
+ */
+typedef size_t (*SPF_Camera_GetInteriorAzimuthOverridesCount_t)();
+
+/**
+ * @brief Gets the raw memory address of an azimuth override object.
+ * @param index The zero-based index of the override.
+ * @return The memory address, or NULL if invalid.
+ */
+typedef void* (*SPF_Camera_GetInteriorAzimuthOverrideAddress_t)(size_t index);
+
+/**
+ * @brief Gets the "outside" flag for a specific azimuth override.
+ * @param index The index of the override.
+ * @param[out] out_val Pointer to store the result.
+ * @return True on success.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideOutside_t)(size_t index, bool* out_val);
+
+/**
+ * @brief Sets the "outside" flag for an azimuth override.
+ */
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideOutside_t)(size_t index, bool val);
+
+/**
+ * @brief Gets the starting azimuth (angle) for an override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideStartAzimuth_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideStartAzimuth_t)(size_t index, float val);
+
+/**
+ * @brief Gets the ending azimuth (angle) for an override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideEndAzimuth_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideEndAzimuth_t)(size_t index, float val);
+
+/**
+ * @brief Gets the upward rotation limit at the start of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideStartUpLimit_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideStartUpLimit_t)(size_t index, float val);
+
+/**
+ * @brief Gets the upward rotation limit at the end of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideEndUpLimit_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideEndUpLimit_t)(size_t index, float val);
+
+/**
+ * @brief Gets the downward rotation limit at the start of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideStartDownLimit_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideStartDownLimit_t)(size_t index, float val);
+
+/**
+ * @brief Gets the downward rotation limit at the end of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideEndDownLimit_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideEndDownLimit_t)(size_t index, float val);
+
+/**
+ * @brief Gets the default up/down rotation at the start of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideStartUpDownDefault_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideStartUpDownDefault_t)(size_t index, float val);
+
+/**
+ * @brief Gets the default up/down rotation at the end of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideEndUpDownDefault_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideEndUpDownDefault_t)(size_t index, float val);
+
+/**
+ * @brief Gets the default left/right rotation at the start of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideStartLeftRightDefault_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideStartLeftRightDefault_t)(size_t index, float val);
+
+/**
+ * @brief Gets the default left/right rotation at the end of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideEndLeftRightDefault_t)(size_t index, float* out_val);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideEndLeftRightDefault_t)(size_t index, float val);
+
+/**
+ * @brief Gets the head offset (X, Y, Z) at the start of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideStartHeadOffset_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideStartHeadOffset_t)(size_t index, float x, float y, float z);
+
+/**
+ * @brief Gets the head offset (X, Y, Z) at the end of the override zone.
+ */
+typedef bool (*SPF_Camera_GetInteriorAzimuthOverrideEndHeadOffset_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetInteriorAzimuthOverrideEndHeadOffset_t)(size_t index, float x, float y, float z);
+
+
+// --- Shake Animation ---
+
+/**
+ * @brief Gets the number of points in the cabin shake animation.
+ */
+typedef size_t (*SPF_Camera_GetInteriorShakeAnimCount_t)();
+
+/**
+ * @brief Gets a specific point (X, Y, Z) from the shake animation.
+ */
+typedef bool (*SPF_Camera_GetInteriorShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+
+/**
+ * @brief Sets a specific point (X, Y, Z) in the shake animation.
+ */
+typedef void (*SPF_Camera_SetInteriorShakeAnim_t)(size_t index, float x, float y, float z);
+
+
+// --- New Behind Advanced Settings ---
+
+/**
+ * @brief Gets/Sets the validation (collision) state for the behind camera.
+ */
+typedef bool (*SPF_Camera_GetBehindValidation_t)(bool* out_val);
+typedef void (*SPF_Camera_SetBehindValidation_t)(bool val);
+
+/**
+ * @brief Gets/Sets validation settings (radius, speed pos, speed neg).
+ */
+typedef bool (*SPF_Camera_GetBehindValidationSettings_t)(float* out_radius, float* out_speed_pos, float* out_speed_neg);
+typedef void (*SPF_Camera_SetBehindValidationSettings_t)(float radius, float speed_pos, float speed_neg);
+
+/**
+ * @brief Gets/Sets the speed FOV change factor.
+ */
+typedef bool (*SPF_Camera_GetBehindSpeedFovChangeFactor_t)(float* out_val);
+typedef void (*SPF_Camera_SetBehindSpeedFovChangeFactor_t)(float val);
+
+/**
+ * @brief Gets/Sets the shake animation step for the behind camera.
+ */
+typedef bool (*SPF_Camera_GetBehindShakeAnimStep_t)(float* out_val);
+typedef void (*SPF_Camera_SetBehindShakeAnimStep_t)(float val);
+
+/**
+ * @brief Gets/Sets the shake animation scale (min/max).
+ */
+typedef bool (*SPF_Camera_GetBehindShakeAnimScaleMin_t)(float* out_val);
+typedef void (*SPF_Camera_SetBehindShakeAnimScaleMin_t)(float val);
+typedef bool (*SPF_Camera_GetBehindShakeAnimScaleMax_t)(float* out_val);
+typedef void (*SPF_Camera_SetBehindShakeAnimScaleMax_t)(float val);
+
+/**
+ * @brief Gets the number of points in the behind camera shake animation.
+ */
+typedef size_t (*SPF_Camera_GetBehindShakeAnimCount_t)();
+
+/**
+ * @brief Gets/Sets specific points in the behind camera shake animation.
+ */
+typedef bool (*SPF_Camera_GetBehindShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetBehindShakeAnim_t)(size_t index, float x, float y, float z);
+
+
+// --- New Top Camera Advanced Settings ---
+
+/**
+ * @brief Gets the longitudinal (Z-axis) offsets for the top-down camera.
+ */
+typedef bool (*SPF_Camera_GetTopOffsetsZ_t)(float* forward, float* backward);
+
+/**
+ * @brief Sets the longitudinal (Z-axis) offsets for the top-down camera.
+ */
+typedef void (*SPF_Camera_SetTopOffsetsZ_t)(float forward, float backward);
+
+/**
+ * @brief Gets adaptive height settings for the top camera.
+ */
+typedef bool (*SPF_Camera_GetTopAdaptiveSettings_t)(float* out_factor, bool* out_use_adaptive);
+
+/**
+ * @brief Sets adaptive height settings for the top camera.
+ */
+typedef void (*SPF_Camera_SetTopAdaptiveSettings_t)(float factor, bool use_adaptive);
+
+/**
+ * @brief Gets near and far clipping planes for the top camera.
+ */
+typedef bool (*SPF_Camera_GetTopPlaneSettings_t)(float* out_near, float* out_far);
+
+/**
+ * @brief Sets near and far clipping planes for the top camera.
+ */
+typedef void (*SPF_Camera_SetTopPlaneSettings_t)(float near_p, float far_p);
+
+/**
+ * @brief Gets/Sets validation (collision) state for the top camera.
+ */
+typedef bool (*SPF_Camera_GetTopValidation_t)(bool* out_val);
+typedef void (*SPF_Camera_SetTopValidation_t)(bool val);
+
+/**
+ * @brief Gets/Sets validation settings (speed positive/negative) for the top camera.
+ */
+typedef bool (*SPF_Camera_GetTopValidationSettings_t)(float* out_speed_pos, float* out_speed_neg);
+typedef void (*SPF_Camera_SetTopValidationSettings_t)(float speed_pos, float speed_neg);
+
+/**
+ * @brief Gets/Sets the shake animation step for the top camera.
+ */
+typedef bool (*SPF_Camera_GetTopShakeAnimStep_t)(float* out_val);
+typedef void (*SPF_Camera_SetTopShakeAnimStep_t)(float val);
+
+/**
+ * @brief Gets/Sets the shake animation scale (min/max) for the top camera.
+ */
+typedef bool (*SPF_Camera_GetTopShakeAnimScaleMin_t)(float* out_val);
+typedef void (*SPF_Camera_SetTopShakeAnimScaleMin_t)(float val);
+typedef bool (*SPF_Camera_GetTopShakeAnimScaleMax_t)(float* out_val);
+typedef void (*SPF_Camera_SetTopShakeAnimScaleMax_t)(float val);
+
+/**
+ * @brief Gets the number of points in the top camera shake animation.
+ */
+typedef size_t (*SPF_Camera_GetTopShakeAnimCount_t)();
+
+/**
+ * @brief Gets/Sets specific points in the top camera shake animation.
+ */
+typedef bool (*SPF_Camera_GetTopShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetTopShakeAnim_t)(size_t index, float x, float y, float z);
+
+// --- New Cabin Camera Shake Settings ---
+
+/**
+ * @brief Gets/Sets the shake animation step for the cabin camera.
+ */
+typedef bool (*SPF_Camera_GetCabinShakeAnimStep_t)(float* out_val);
+typedef void (*SPF_Camera_SetCabinShakeAnimStep_t)(float val);
+
+/**
+ * @brief Gets/Sets the shake animation scale (min/max) for the cabin camera.
+ */
+typedef bool (*SPF_Camera_GetCabinShakeAnimScaleMin_t)(float* out_val);
+typedef void (*SPF_Camera_SetCabinShakeAnimScaleMin_t)(float val);
+typedef bool (*SPF_Camera_GetCabinShakeAnimScaleMax_t)(float* out_val);
+typedef void (*SPF_Camera_SetCabinShakeAnimScaleMax_t)(float val);
+
+/**
+ * @brief Gets the number of points in the cabin camera shake animation.
+ */
+typedef size_t (*SPF_Camera_GetCabinShakeAnimCount_t)();
+
+/**
+ * @brief Gets/Sets specific points in the cabin camera shake animation.
+ */
+typedef bool (*SPF_Camera_GetCabinShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetCabinShakeAnim_t)(size_t index, float x, float y, float z);
+
+
+// --- New Window Camera Advanced Settings ---
+
+/**
+ * @brief Gets/Sets the relative headtracking azimuth state for the window camera.
+ */
+typedef bool (*SPF_Camera_GetWindowRelativeHeadtrackingAzimuth_t)(bool* out_val);
+typedef void (*SPF_Camera_SetWindowRelativeHeadtrackingAzimuth_t)(bool val);
+
+/**
+ * @brief Gets/Sets the auto center move direction for the window camera.
+ */
+typedef bool (*SPF_Camera_GetWindowAutoCenterMoveDirection_t)(int32_t* out_val);
+typedef void (*SPF_Camera_SetWindowAutoCenterMoveDirection_t)(int32_t val);
+
+/**
+ * @brief Gets/Sets the shake animation step for the window camera.
+ */
+typedef bool (*SPF_Camera_GetWindowShakeAnimStep_t)(float* out_val);
+typedef void (*SPF_Camera_SetWindowShakeAnimStep_t)(float val);
+
+/**
+ * @brief Gets/Sets the shake animation scale (min/max) for the window camera.
+ */
+typedef bool (*SPF_Camera_GetWindowShakeAnimScaleMin_t)(float* out_val);
+typedef void (*SPF_Camera_SetWindowShakeAnimScaleMin_t)(float val);
+typedef bool (*SPF_Camera_GetWindowShakeAnimScaleMax_t)(float* out_val);
+typedef void (*SPF_Camera_SetWindowShakeAnimScaleMax_t)(float val);
+
+/**
+ * @brief Gets the number of points in the window camera shake animation.
+ */
+typedef size_t (*SPF_Camera_GetWindowShakeAnimCount_t)();
+
+/**
+ * @brief Gets/Sets specific points in the window camera shake animation.
+ */
+typedef bool (*SPF_Camera_GetWindowShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetWindowShakeAnim_t)(size_t index, float x, float y, float z);
+
+
+// --- New Bumper Camera Shake Settings ---
+
+/** @brief Gets/Sets the shake animation step for the bumper camera. */
+typedef bool (*SPF_Camera_GetBumperShakeAnimStep_t)(float* out_val);
+typedef void (*SPF_Camera_SetBumperShakeAnimStep_t)(float val);
+
+/** @brief Gets/Sets the shake animation scale (min/max) for the bumper camera. */
+typedef bool (*SPF_Camera_GetBumperShakeAnimScaleMin_t)(float* out_val);
+typedef void (*SPF_Camera_SetBumperShakeAnimScaleMin_t)(float val);
+typedef bool (*SPF_Camera_GetBumperShakeAnimScaleMax_t)(float* out_val);
+typedef void (*SPF_Camera_SetBumperShakeAnimScaleMax_t)(float val);
+
+/** @brief Gets the number of points in the bumper camera shake animation. */
+typedef size_t (*SPF_Camera_GetBumperShakeAnimCount_t)();
+
+/** @brief Gets/Sets specific points in the bumper camera shake animation. */
+typedef bool (*SPF_Camera_GetBumperShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetBumperShakeAnim_t)(size_t index, float x, float y, float z);
+
+
+// --- New Wheel Camera Shake Settings ---
+
+/** @brief Gets/Sets the shake animation step for the wheel camera. */
+typedef bool (*SPF_Camera_GetWheelShakeAnimStep_t)(float* out_val);
+typedef void (*SPF_Camera_SetWheelShakeAnimStep_t)(float val);
+
+/** @brief Gets/Sets the shake animation scale (min/max) for the wheel camera. */
+typedef bool (*SPF_Camera_GetWheelShakeAnimScaleMin_t)(float* out_val);
+typedef void (*SPF_Camera_SetWheelShakeAnimScaleMin_t)(float val);
+typedef bool (*SPF_Camera_GetWheelShakeAnimScaleMax_t)(float* out_val);
+typedef void (*SPF_Camera_SetWheelShakeAnimScaleMax_t)(float val);
+
+/** @brief Gets the number of points in the wheel camera shake animation. */
+typedef size_t (*SPF_Camera_GetWheelShakeAnimCount_t)();
+
+/** @brief Gets/Sets specific points in the wheel camera shake animation. */
+typedef bool (*SPF_Camera_GetWheelShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetWheelShakeAnim_t)(size_t index, float x, float y, float z);
+
+
+// --- New TV Camera Shake Settings ---
+
+/** @brief Gets/Sets the shake animation step for the TV camera. */
+typedef bool (*SPF_Camera_GetTVShakeAnimStep_t)(float* out_val);
+typedef void (*SPF_Camera_SetTVShakeAnimStep_t)(float val);
+
+/** @brief Gets/Sets the shake animation scale (min/max) for the TV camera. */
+typedef bool (*SPF_Camera_GetTVShakeAnimScaleMin_t)(float* out_val);
+typedef void (*SPF_Camera_SetTVShakeAnimScaleMin_t)(float val);
+typedef bool (*SPF_Camera_GetTVShakeAnimScaleMax_t)(float* out_val);
+typedef void (*SPF_Camera_SetTVShakeAnimScaleMax_t)(float val);
+
+/** @brief Gets the number of points in the TV camera shake animation. */
+typedef size_t (*SPF_Camera_GetTVShakeAnimCount_t)();
+
+/** @brief Gets/Sets specific points in the TV camera shake animation. */
+typedef bool (*SPF_Camera_GetTVShakeAnim_t)(size_t index, float* out_x, float* out_y, float* out_z);
+typedef void (*SPF_Camera_SetTVShakeAnim_t)(size_t index, float x, float y, float z);
+
+
 
 /**
  * @struct SPF_Camera_API
@@ -1530,6 +2038,257 @@ typedef struct SPF_Camera_API {
      * @return The uintptr_t memory address, or 0 if the pointer is invalid.
      */
     SPF_Camera_GetDebugObjectAddress_t Cam_GetDebugObjectAddress;
+
+    // --- New Interior Advanced Settings ---
+    /** @brief Gets/Sets the interior camera "outside" flag. See `SPF_Camera_GetInteriorOutside_t`. */
+    SPF_Camera_GetInteriorOutside_t Cam_GetInteriorOutside;
+    SPF_Camera_SetInteriorOutside_t Cam_SetInteriorOutside;
+
+    /** @brief Gets/Sets the near clipping plane for the interior camera. */
+    SPF_Camera_GetInteriorNearPlane_t Cam_GetInteriorNearPlane;
+    SPF_Camera_SetInteriorNearPlane_t Cam_SetInteriorNearPlane;
+
+    /** @brief Gets/Sets the far clipping plane for the interior camera. */
+    SPF_Camera_GetInteriorFarPlane_t Cam_GetInteriorFarPlane;
+    SPF_Camera_SetInteriorFarPlane_t Cam_SetInteriorFarPlane;
+
+    /** @brief Gets/Sets mouse sensitivity for the interior camera. */
+    SPF_Camera_GetInteriorMouseSensitivity_t Cam_GetInteriorMouseSensitivity;
+    SPF_Camera_SetInteriorMouseSensitivity_t Cam_SetInteriorMouseSensitivity;
+
+    /** @brief Gets/Sets the shake animation step. */
+    SPF_Camera_GetInteriorShakeAnimStep_t Cam_GetInteriorShakeAnimStep;
+    SPF_Camera_SetInteriorShakeAnimStep_t Cam_SetInteriorShakeAnimStep;
+
+    /** @brief Gets/Sets the shake animation scale (min/max). */
+    SPF_Camera_GetInteriorShakeAnimScaleMin_t Cam_GetInteriorShakeAnimScaleMin;
+    SPF_Camera_SetInteriorShakeAnimScaleMin_t Cam_SetInteriorShakeAnimScaleMin;
+    SPF_Camera_GetInteriorShakeAnimScaleMax_t Cam_GetInteriorShakeAnimScaleMax;
+    SPF_Camera_SetInteriorShakeAnimScaleMax_t Cam_SetInteriorShakeAnimScaleMax;
+
+    /** @brief Gets/Sets the hand shake limit/speed. */
+    SPF_Camera_GetInteriorHandShakeLimit_t Cam_GetInteriorHandShakeLimit;
+    SPF_Camera_SetInteriorHandShakeLimit_t Cam_SetInteriorHandShakeLimit;
+    SPF_Camera_GetInteriorHandShakeSpeed_t Cam_GetInteriorHandShakeSpeed;
+    SPF_Camera_SetInteriorHandShakeSpeed_t Cam_SetInteriorHandShakeSpeed;
+
+    /** @brief Gets/Sets the zoom FOV factor/speed. */
+    SPF_Camera_GetInteriorZoomFovFactor_t Cam_GetInteriorZoomFovFactor;
+    SPF_Camera_SetInteriorZoomFovFactor_t Cam_SetInteriorZoomFovFactor;
+    SPF_Camera_GetInteriorZoomSpeed_t Cam_GetInteriorZoomSpeed;
+    SPF_Camera_SetInteriorZoomSpeed_t Cam_SetInteriorZoomSpeed;
+
+    // --- Azimuth Overrides ---
+    /** @brief Gets the number of azimuth override zones. */
+    SPF_Camera_GetInteriorAzimuthOverridesCount_t Cam_GetInteriorAzimuthOverridesCount;
+    /** @brief Gets the raw memory address of an azimuth override zone object. */
+    SPF_Camera_GetInteriorAzimuthOverrideAddress_t Cam_GetInteriorAzimuthOverrideAddress;
+
+    /** @brief Gets/Sets the outside flag for an azimuth override zone. */
+    SPF_Camera_GetInteriorAzimuthOverrideOutside_t Cam_GetInteriorAzimuthOverrideOutside;
+    SPF_Camera_SetInteriorAzimuthOverrideOutside_t Cam_SetInteriorAzimuthOverrideOutside;
+
+    /** @brief Gets/Sets start/end azimuth for a zone. */
+    SPF_Camera_GetInteriorAzimuthOverrideStartAzimuth_t Cam_GetInteriorAzimuthOverrideStartAzimuth;
+    SPF_Camera_SetInteriorAzimuthOverrideStartAzimuth_t Cam_SetInteriorAzimuthOverrideStartAzimuth;
+    SPF_Camera_GetInteriorAzimuthOverrideEndAzimuth_t Cam_GetInteriorAzimuthOverrideEndAzimuth;
+    SPF_Camera_SetInteriorAzimuthOverrideEndAzimuth_t Cam_SetInteriorAzimuthOverrideEndAzimuth;
+
+    /** @brief Gets/Sets upward rotation limits for a zone. */
+    SPF_Camera_GetInteriorAzimuthOverrideStartUpLimit_t Cam_GetInteriorAzimuthOverrideStartUpLimit;
+    SPF_Camera_SetInteriorAzimuthOverrideStartUpLimit_t Cam_SetInteriorAzimuthOverrideStartUpLimit;
+    SPF_Camera_GetInteriorAzimuthOverrideEndUpLimit_t Cam_GetInteriorAzimuthOverrideEndUpLimit;
+    SPF_Camera_SetInteriorAzimuthOverrideEndUpLimit_t Cam_SetInteriorAzimuthOverrideEndUpLimit;
+
+    /** @brief Gets/Sets downward rotation limits for a zone. */
+    SPF_Camera_GetInteriorAzimuthOverrideStartDownLimit_t Cam_GetInteriorAzimuthOverrideStartDownLimit;
+    SPF_Camera_SetInteriorAzimuthOverrideStartDownLimit_t Cam_SetInteriorAzimuthOverrideStartDownLimit;
+    SPF_Camera_GetInteriorAzimuthOverrideEndDownLimit_t Cam_GetInteriorAzimuthOverrideEndDownLimit;
+    SPF_Camera_SetInteriorAzimuthOverrideEndDownLimit_t Cam_SetInteriorAzimuthOverrideEndDownLimit;
+
+    /** @brief Gets/Sets default up/down rotation for a zone. */
+    SPF_Camera_GetInteriorAzimuthOverrideStartUpDownDefault_t Cam_GetInteriorAzimuthOverrideStartUpDownDefault;
+    SPF_Camera_SetInteriorAzimuthOverrideStartUpDownDefault_t Cam_SetInteriorAzimuthOverrideStartUpDownDefault;
+    SPF_Camera_GetInteriorAzimuthOverrideEndUpDownDefault_t Cam_GetInteriorAzimuthOverrideEndUpDownDefault;
+    SPF_Camera_SetInteriorAzimuthOverrideEndUpDownDefault_t Cam_SetInteriorAzimuthOverrideEndUpDownDefault;
+
+    /** @brief Gets/Sets default left/right rotation for a zone. */
+    SPF_Camera_GetInteriorAzimuthOverrideStartLeftRightDefault_t Cam_GetInteriorAzimuthOverrideStartLeftRightDefault;
+    SPF_Camera_SetInteriorAzimuthOverrideStartLeftRightDefault_t Cam_SetInteriorAzimuthOverrideStartLeftRightDefault;
+    SPF_Camera_GetInteriorAzimuthOverrideEndLeftRightDefault_t Cam_GetInteriorAzimuthOverrideEndLeftRightDefault;
+    SPF_Camera_SetInteriorAzimuthOverrideEndLeftRightDefault_t Cam_SetInteriorAzimuthOverrideEndLeftRightDefault;
+
+    /** @brief Gets/Sets head offsets for a zone. */
+    SPF_Camera_GetInteriorAzimuthOverrideStartHeadOffset_t Cam_GetInteriorAzimuthOverrideStartHeadOffset;
+    SPF_Camera_SetInteriorAzimuthOverrideStartHeadOffset_t Cam_SetInteriorAzimuthOverrideStartHeadOffset;
+    SPF_Camera_GetInteriorAzimuthOverrideEndHeadOffset_t Cam_GetInteriorAzimuthOverrideEndHeadOffset;
+    SPF_Camera_SetInteriorAzimuthOverrideEndHeadOffset_t Cam_SetInteriorAzimuthOverrideEndHeadOffset;
+
+    // --- Shake Animation ---
+    /** @brief Gets the number of points in the shake animation sequence. */
+    SPF_Camera_GetInteriorShakeAnimCount_t Cam_GetInteriorShakeAnimCount;
+    /** @brief Gets/Sets specific points in the shake animation. */
+    SPF_Camera_GetInteriorShakeAnim_t Cam_GetInteriorShakeAnim;
+    SPF_Camera_SetInteriorShakeAnim_t Cam_SetInteriorShakeAnim;
+
+    // --- New Behind Advanced Settings ---
+    /** @brief Gets/Sets the behind camera validation state. See `SPF_Camera_GetBehindValidation_t`. */
+    SPF_Camera_GetBehindValidation_t Cam_GetBehindValidation;
+    SPF_Camera_SetBehindValidation_t Cam_SetBehindValidation;
+
+    /** @brief Gets/Sets validation settings. See `SPF_Camera_GetBehindValidationSettings_t`. */
+    SPF_Camera_GetBehindValidationSettings_t Cam_GetBehindValidationSettings;
+    SPF_Camera_SetBehindValidationSettings_t Cam_SetBehindValidationSettings;
+
+    /** @brief Gets/Sets speed FOV change factor. See `SPF_Camera_GetBehindSpeedFovChangeFactor_t`. */
+    SPF_Camera_GetBehindSpeedFovChangeFactor_t Cam_GetBehindSpeedFovChangeFactor;
+    SPF_Camera_SetBehindSpeedFovChangeFactor_t Cam_SetBehindSpeedFovChangeFactor;
+
+    /** @brief Gets/Sets the behind camera shake animation step. */
+    SPF_Camera_GetBehindShakeAnimStep_t Cam_GetBehindShakeAnimStep;
+    SPF_Camera_SetBehindShakeAnimStep_t Cam_SetBehindShakeAnimStep;
+
+    /** @brief Gets/Sets the behind camera shake animation scale (min/max). */
+    SPF_Camera_GetBehindShakeAnimScaleMin_t Cam_GetBehindShakeAnimScaleMin;
+    SPF_Camera_SetBehindShakeAnimScaleMin_t Cam_SetBehindShakeAnimScaleMin;
+    SPF_Camera_GetBehindShakeAnimScaleMax_t Cam_GetBehindShakeAnimScaleMax;
+    SPF_Camera_SetBehindShakeAnimScaleMax_t Cam_SetBehindShakeAnimScaleMax;
+
+    /** @brief Gets the number of points in the behind camera shake animation. */
+    SPF_Camera_GetBehindShakeAnimCount_t Cam_GetBehindShakeAnimCount;
+    /** @brief Gets/Sets specific points in the behind camera shake animation. */
+    SPF_Camera_GetBehindShakeAnim_t Cam_GetBehindShakeAnim;
+    SPF_Camera_SetBehindShakeAnim_t Cam_SetBehindShakeAnim;
+
+    // --- New Top Camera Advanced Settings ---
+    /** @brief Gets/Sets the top camera longitudinal offsets. */
+    SPF_Camera_GetTopOffsetsZ_t Cam_GetTopOffsetsZ;
+    SPF_Camera_SetTopOffsetsZ_t Cam_SetTopOffsetsZ;
+
+    /** @brief Gets/Sets adaptive height settings. */
+    SPF_Camera_GetTopAdaptiveSettings_t Cam_GetTopAdaptiveSettings;
+    SPF_Camera_SetTopAdaptiveSettings_t Cam_SetTopAdaptiveSettings;
+
+    /** @brief Gets/Sets near and far clipping planes. */
+    SPF_Camera_GetTopPlaneSettings_t Cam_GetTopPlaneSettings;
+    SPF_Camera_SetTopPlaneSettings_t Cam_SetTopPlaneSettings;
+
+    /** @brief Gets/Sets validation state. */
+    SPF_Camera_GetTopValidation_t Cam_GetTopValidation;
+    SPF_Camera_SetTopValidation_t Cam_SetTopValidation;
+
+    /** @brief Gets/Sets validation settings. */
+    SPF_Camera_GetTopValidationSettings_t Cam_GetTopValidationSettings;
+    SPF_Camera_SetTopValidationSettings_t Cam_SetTopValidationSettings;
+
+    /** @brief Gets/Sets the shake animation step. */
+    SPF_Camera_GetTopShakeAnimStep_t Cam_GetTopShakeAnimStep;
+    SPF_Camera_SetTopShakeAnimStep_t Cam_SetTopShakeAnimStep;
+
+    /** @brief Gets/Sets the shake animation scale (min/max). */
+    SPF_Camera_GetTopShakeAnimScaleMin_t Cam_GetTopShakeAnimScaleMin;
+    SPF_Camera_SetTopShakeAnimScaleMin_t Cam_SetTopShakeAnimScaleMin;
+    SPF_Camera_GetTopShakeAnimScaleMax_t Cam_GetTopShakeAnimScaleMax;
+    SPF_Camera_SetTopShakeAnimScaleMax_t Cam_SetTopShakeAnimScaleMax;
+
+    /** @brief Gets the number of points in the top camera shake animation. */
+    SPF_Camera_GetTopShakeAnimCount_t Cam_GetTopShakeAnimCount;
+    /** @brief Gets/Sets specific points in the top camera shake animation. */
+    SPF_Camera_GetTopShakeAnim_t Cam_GetTopShakeAnim;
+    SPF_Camera_SetTopShakeAnim_t Cam_SetTopShakeAnim;
+
+    // --- New Cabin Camera Shake Settings ---
+    /** @brief Gets/Sets the cabin camera shake animation step. */
+    SPF_Camera_GetCabinShakeAnimStep_t Cam_GetCabinShakeAnimStep;
+    SPF_Camera_SetCabinShakeAnimStep_t Cam_SetCabinShakeAnimStep;
+
+    /** @brief Gets/Sets the cabin camera shake animation scale (min/max). */
+    SPF_Camera_GetCabinShakeAnimScaleMin_t Cam_GetCabinShakeAnimScaleMin;
+    SPF_Camera_SetCabinShakeAnimScaleMin_t Cam_SetCabinShakeAnimScaleMin;
+    SPF_Camera_GetCabinShakeAnimScaleMax_t Cam_GetCabinShakeAnimScaleMax;
+    SPF_Camera_SetCabinShakeAnimScaleMax_t Cam_SetCabinShakeAnimScaleMax;
+
+    /** @brief Gets the number of points in the cabin camera shake animation. */
+    SPF_Camera_GetCabinShakeAnimCount_t Cam_GetCabinShakeAnimCount;
+    /** @brief Gets/Sets specific points in the cabin camera shake animation. */
+    SPF_Camera_GetCabinShakeAnim_t Cam_GetCabinShakeAnim;
+    SPF_Camera_SetCabinShakeAnim_t Cam_SetCabinShakeAnim;
+
+    // --- New Window Camera Advanced Settings ---
+    /** @brief Gets/Sets the window camera relative headtracking azimuth. */
+    SPF_Camera_GetWindowRelativeHeadtrackingAzimuth_t Cam_GetWindowRelativeHeadtrackingAzimuth;
+    SPF_Camera_SetWindowRelativeHeadtrackingAzimuth_t Cam_SetWindowRelativeHeadtrackingAzimuth;
+
+    /** @brief Gets/Sets the window camera auto center move direction. */
+    SPF_Camera_GetWindowAutoCenterMoveDirection_t Cam_GetWindowAutoCenterMoveDirection;
+    SPF_Camera_SetWindowAutoCenterMoveDirection_t Cam_SetWindowAutoCenterMoveDirection;
+
+    /** @brief Gets/Sets the window camera shake animation step. */
+    SPF_Camera_GetWindowShakeAnimStep_t Cam_GetWindowShakeAnimStep;
+    SPF_Camera_SetWindowShakeAnimStep_t Cam_SetWindowShakeAnimStep;
+
+    /** @brief Gets/Sets the window camera shake animation scale (min/max). */
+    SPF_Camera_GetWindowShakeAnimScaleMin_t Cam_GetWindowShakeAnimScaleMin;
+    SPF_Camera_SetWindowShakeAnimScaleMin_t Cam_SetWindowShakeAnimScaleMin;
+    SPF_Camera_GetWindowShakeAnimScaleMax_t Cam_GetWindowShakeAnimScaleMax;
+    SPF_Camera_SetWindowShakeAnimScaleMax_t Cam_SetWindowShakeAnimScaleMax;
+
+    /** @brief Gets the number of points in the window camera shake animation. */
+    SPF_Camera_GetWindowShakeAnimCount_t Cam_GetWindowShakeAnimCount;
+    /** @brief Gets/Sets specific points in the window camera shake animation. */
+    SPF_Camera_GetWindowShakeAnim_t Cam_GetWindowShakeAnim;
+    SPF_Camera_SetWindowShakeAnim_t Cam_SetWindowShakeAnim;
+
+    // --- New Bumper Camera Shake Settings ---
+    /** @brief Gets/Sets the bumper camera shake animation step. */
+    SPF_Camera_GetBumperShakeAnimStep_t Cam_GetBumperShakeAnimStep;
+    SPF_Camera_SetBumperShakeAnimStep_t Cam_SetBumperShakeAnimStep;
+
+    /** @brief Gets/Sets the bumper camera shake animation scale (min/max). */
+    SPF_Camera_GetBumperShakeAnimScaleMin_t Cam_GetBumperShakeAnimScaleMin;
+    SPF_Camera_SetBumperShakeAnimScaleMin_t Cam_SetBumperShakeAnimScaleMin;
+    SPF_Camera_GetBumperShakeAnimScaleMax_t Cam_GetBumperShakeAnimScaleMax;
+    SPF_Camera_SetBumperShakeAnimScaleMax_t Cam_SetBumperShakeAnimScaleMax;
+
+    /** @brief Gets the number of points in the bumper camera shake animation. */
+    SPF_Camera_GetBumperShakeAnimCount_t Cam_GetBumperShakeAnimCount;
+    /** @brief Gets/Sets specific points in the bumper camera shake animation. */
+    SPF_Camera_GetBumperShakeAnim_t Cam_GetBumperShakeAnim;
+    SPF_Camera_SetBumperShakeAnim_t Cam_SetBumperShakeAnim;
+
+    // --- New Wheel Camera Shake Settings ---
+    /** @brief Gets/Sets the wheel camera shake animation step. */
+    SPF_Camera_GetWheelShakeAnimStep_t Cam_GetWheelShakeAnimStep;
+    SPF_Camera_SetWheelShakeAnimStep_t Cam_SetWheelShakeAnimStep;
+
+    /** @brief Gets/Sets the wheel camera shake animation scale (min/max). */
+    SPF_Camera_GetWheelShakeAnimScaleMin_t Cam_GetWheelShakeAnimScaleMin;
+    SPF_Camera_SetWheelShakeAnimScaleMin_t Cam_SetWheelShakeAnimScaleMin;
+    SPF_Camera_GetWheelShakeAnimScaleMax_t Cam_GetWheelShakeAnimScaleMax;
+    SPF_Camera_SetWheelShakeAnimScaleMax_t Cam_SetWheelShakeAnimScaleMax;
+
+    /** @brief Gets the number of points in the wheel camera shake animation. */
+    SPF_Camera_GetWheelShakeAnimCount_t Cam_GetWheelShakeAnimCount;
+    /** @brief Gets/Sets specific points in the wheel camera shake animation. */
+    SPF_Camera_GetWheelShakeAnim_t Cam_GetWheelShakeAnim;
+    SPF_Camera_SetWheelShakeAnim_t Cam_SetWheelShakeAnim;
+
+    // --- New TV Camera Shake Settings ---
+    /** @brief Gets/Sets the TV camera shake animation step. */
+    SPF_Camera_GetTVShakeAnimStep_t Cam_GetTVShakeAnimStep;
+    SPF_Camera_SetTVShakeAnimStep_t Cam_SetTVShakeAnimStep;
+
+    /** @brief Gets/Sets the TV camera shake animation scale (min/max). */
+    SPF_Camera_GetTVShakeAnimScaleMin_t Cam_GetTVShakeAnimScaleMin;
+    SPF_Camera_SetTVShakeAnimScaleMin_t Cam_SetTVShakeAnimScaleMin;
+    SPF_Camera_GetTVShakeAnimScaleMax_t Cam_GetTVShakeAnimScaleMax;
+    SPF_Camera_SetTVShakeAnimScaleMax_t Cam_SetTVShakeAnimScaleMax;
+
+    /** @brief Gets the number of points in the TV camera shake animation. */
+    SPF_Camera_GetTVShakeAnimCount_t Cam_GetTVShakeAnimCount;
+    /** @brief Gets/Sets specific points in the TV camera shake animation. */
+    SPF_Camera_GetTVShakeAnim_t Cam_GetTVShakeAnim;
+    SPF_Camera_SetTVShakeAnim_t Cam_SetTVShakeAnim;
 
 } SPF_Camera_API;
 

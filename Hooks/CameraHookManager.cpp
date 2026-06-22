@@ -1,11 +1,12 @@
 #define _USE_MATH_DEFINES // For M_PI on MSVC
-#include <cmath>          // For M_PI
+#include <cstddef>
+#include <cmath>
 #include "Hooks/CameraHookManager.hpp"
-#include "Hooks/Offsets.hpp" // Added to resolve 'Offsets' and 'g_offsets'
-#include "Animation/AnimationController.hpp" // Added to resolve IsAnimating()
-#include "Animation/StandingAnimController.hpp" // Added to resolve IsAnimating()
-#include "Animation/Positions/CameraPositions.hpp" // For accessing predefined camera positions
-#include "SPF_CabinWalk.hpp" // For g_ctx, PluginContext
+#include "Hooks/Offsets.hpp"
+#include "Animation/AnimationController.hpp"
+#include "Animation/StandingAnimController.hpp"
+#include "Animation/Positions/CameraPositions.hpp"
+#include "SPF_CabinWalk.hpp"
 
 namespace SPF_CabinWalk::CameraHookManager
 {
@@ -13,18 +14,14 @@ namespace SPF_CabinWalk::CameraHookManager
     // Internal State
     // =================================================================================================
 
-    // --- Hook Definitions ---
     using UpdateCameraFromInput_t = void (*)(long long camera_object, float delta_time);
-    static UpdateCameraFromInput_t o_UpdateCameraFromInput = nullptr;
-
-    // Define the function pointer type for CacheExteriorSoundAngleRange
     using CacheExteriorSoundAngleRange_t = void (*)(long long camera_object);
 
-    // --- State Variables ---
+    static UpdateCameraFromInput_t o_UpdateCameraFromInput = nullptr;
+
     static AnimationController::CameraPosition g_current_camera_pos = AnimationController::CameraPosition::Driver;
     static AnimationController::CameraPosition g_previous_camera_pos = AnimationController::CameraPosition::Driver;
 
-    // --- Backup Storage ---
     static AzimuthBackup g_original_azimuth_values[20];
     static uint32_t g_azimuth_backup_count = 0;
     static SPF_FVector g_original_camera_pivot = {0};
@@ -34,13 +31,25 @@ namespace SPF_CabinWalk::CameraHookManager
     static float g_original_mouse_down_limit = 0.0f;
 
     // =================================================================================================
-    // Forward Declarations for Internal Functions
+    // Forward Declarations
     // =================================================================================================
 
     static void Detour_UpdateCameraFromInput(long long camera_object, float delta_time);
     static void BackupAndModifyAzimuths(long long camera_object);
     static void RestoreAzimuths(long long camera_object);
     static void ZeroAzimuths(long long camera_object);
+
+    static bool CacheExteriorSound(long long camera_object)
+    {
+        if (!Offsets::g_offsets.pfnCacheExteriorSoundAngleRange)
+        {
+            return false;
+        }
+
+        auto pfn_cache = reinterpret_cast<CacheExteriorSoundAngleRange_t>(Offsets::g_offsets.pfnCacheExteriorSoundAngleRange);
+        pfn_cache(camera_object);
+        return true;
+    }
 
     // =================================================================================================
     // Public Functions
@@ -74,65 +83,58 @@ namespace SPF_CabinWalk::CameraHookManager
 
     static void Detour_UpdateCameraFromInput(long long camera_object, float delta_time)
     {
-
-        // If the logical camera position has not changed, just run the original function and 360-wrap logic.
         if (g_current_camera_pos == g_previous_camera_pos)
         {
-            if (o_UpdateCameraFromInput) {
+            if (o_UpdateCameraFromInput)
+            {
                 o_UpdateCameraFromInput(camera_object, delta_time);
             }
         }
-        else // A position change has occurred
+        else
         {
-            // First, always restore to a clean slate if the previous state was not the default driver state.
-            // This prevents modifications from stacking (e.g., passenger inverted limits + zeroed azimuths).
             if (g_previous_camera_pos != AnimationController::CameraPosition::Driver)
             {
                 RestoreAzimuths(camera_object);
             }
-            
-            // Now, apply the new state's modifications from the clean, default state.
+
             switch (g_current_camera_pos)
             {
-                case AnimationController::CameraPosition::Passenger:
-                    BackupAndModifyAzimuths(camera_object);
-                    break;
+            case AnimationController::CameraPosition::Passenger:
+                BackupAndModifyAzimuths(camera_object);
+                break;
 
-                case AnimationController::CameraPosition::Standing:
-                case AnimationController::CameraPosition::SofaSit1:
-                case AnimationController::CameraPosition::SofaLie:
-                case AnimationController::CameraPosition::SofaSit2:
-                    ZeroAzimuths(camera_object); // The switch inside this handles different limits
-                    break;
+            case AnimationController::CameraPosition::Standing:
+            case AnimationController::CameraPosition::SofaSit1:
+            case AnimationController::CameraPosition::SofaLie:
+            case AnimationController::CameraPosition::SofaSit2:
+                ZeroAzimuths(camera_object);
+                break;
 
-                case AnimationController::CameraPosition::Driver:
-                default:
-                    // Do nothing, we are already restored to default.
-                    break;
+            case AnimationController::CameraPosition::Driver:
+            default:
+                break;
             }
 
-            // Update the previous position for the next frame's comparison.
             g_previous_camera_pos = g_current_camera_pos;
 
-            // Call the original function after our modifications.
             if (o_UpdateCameraFromInput)
             {
                 o_UpdateCameraFromInput(camera_object, delta_time);
             }
         }
 
-        // Handle 360-degree rotation wrapping for any free-look position
         if ((g_current_camera_pos == AnimationController::CameraPosition::Standing ||
              g_current_camera_pos == AnimationController::CameraPosition::SofaSit1 ||
              g_current_camera_pos == AnimationController::CameraPosition::SofaLie ||
-             g_current_camera_pos == AnimationController::CameraPosition::SofaSit2) 
-             && g_ctx.cameraAPI)
+             g_current_camera_pos == AnimationController::CameraPosition::SofaSit2) &&
+            g_ctx.cameraAPI)
         {
-            float yaw, pitch;
+            float yaw = 0.0f;
+            float pitch = 0.0f;
             g_ctx.cameraAPI->Cam_GetInteriorHeadRot(&yaw, &pitch);
 
-            const float wrap_threshold = M_PI; // 180 degrees in radians
-            const float wrap_value = 2 * M_PI; // 360 degrees in radians
+            const float wrap_threshold = M_PI;
+            const float wrap_value = 2.0f * M_PI;
 
             if (yaw > wrap_threshold)
             {
@@ -147,7 +149,11 @@ namespace SPF_CabinWalk::CameraHookManager
 
     static void BackupAndModifyAzimuths(long long camera_object)
     {
-        // 1. Handle Camera Pivot
+        if (!g_ctx.cameraAPI)
+        {
+            return;
+        }
+
         float *p_camera_pivot_x = (float *)((char *)camera_object + Offsets::g_offsets.camera_pivot_offset);
         float *p_camera_pivot_y = (float *)((char *)camera_object + Offsets::g_offsets.camera_pivot_offset + 4);
         float *p_camera_pivot_z = (float *)((char *)camera_object + Offsets::g_offsets.camera_pivot_offset + 8);
@@ -160,15 +166,12 @@ namespace SPF_CabinWalk::CameraHookManager
         *p_camera_pivot_y = g_ctx.settings.positions.passenger_seat.position.y;
         *p_camera_pivot_z = g_ctx.settings.positions.passenger_seat.position.z;
 
-        // 2. Handle Mouse Limits via API
-        if (g_ctx.cameraAPI)
-        {
-            g_ctx.cameraAPI->Cam_GetInteriorRotationLimits(
+        if (g_ctx.cameraAPI->Cam_GetInteriorRotationLimits(
                 &g_original_mouse_left_limit,
                 &g_original_mouse_right_limit,
                 &g_original_mouse_up_limit,
-                &g_original_mouse_down_limit);
-
+                &g_original_mouse_down_limit))
+        {
             float new_left_limit = g_original_mouse_right_limit * -1.0f;
             float new_right_limit = g_original_mouse_left_limit * -1.0f;
 
@@ -179,80 +182,82 @@ namespace SPF_CabinWalk::CameraHookManager
                 g_original_mouse_down_limit);
         }
 
-        // 3. Handle Azimuth Ranges
-        long long **azimuth_array_ptr = (long long **)((char *)camera_object + Offsets::g_offsets.azimuth_array_offset);
-        long long azimuth_count = *(long long *)((char *)camera_object + Offsets::g_offsets.azimuth_count_offset);
+        const size_t azimuth_count = g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverridesCount();
         g_azimuth_backup_count = (azimuth_count < 20) ? (uint32_t)azimuth_count : 20;
 
         for (uint32_t i = 0; i < g_azimuth_backup_count; ++i)
         {
-            long long azimuth_struct_ptr = (*azimuth_array_ptr)[i];
-            if (azimuth_struct_ptr)
+            AzimuthBackup &backup = g_original_azimuth_values[i];
+            float start_head_x = 0.0f, start_head_y = 0.0f, start_head_z = 0.0f;
+            float end_head_x = 0.0f, end_head_y = 0.0f, end_head_z = 0.0f;
+            bool outside_flag = false;
+
+            if (!g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideStartAzimuth(i, &backup.start) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideEndAzimuth(i, &backup.end) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideOutside(i, &outside_flag) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideStartHeadOffset(i, &start_head_x, &start_head_y, &start_head_z) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideEndHeadOffset(i, &end_head_x, &end_head_y, &end_head_z))
             {
-                // --- Backup original values FIRST ---
-                float *p_start_azimuth = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_azimuth_offset);
-                float *p_end_azimuth = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_azimuth_offset);
-                g_original_azimuth_values[i].start = *p_start_azimuth;
-                g_original_azimuth_values[i].end = *p_end_azimuth;
+                continue;
+            }
 
-                char *p_outside_flag = (char *)((char *)azimuth_struct_ptr + Offsets::g_offsets.azimuth_outside_flag_offset);
-                g_original_azimuth_values[i].outside_flag = *p_outside_flag;
+            backup.outside_flag = outside_flag ? 1 : 0;
+            backup.start_head_offset = {start_head_x, start_head_y, start_head_z};
+            backup.end_head_offset = {end_head_x, end_head_y, end_head_z};
 
-                float *p_start_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_head_offset_x_offset);
-                float *p_end_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_head_offset_x_offset);
-                g_original_azimuth_values[i].start_head_offset = {p_start_offset_vec[0], p_start_offset_vec[1], p_start_offset_vec[2]};
-                g_original_azimuth_values[i].end_head_offset = {p_end_offset_vec[0], p_end_offset_vec[1], p_end_offset_vec[2]};
+            float new_start = -backup.start;
+            float new_end = -backup.end;
+            bool angles_were_swapped = false;
 
-                // --- Now, perform modifications ---
-                // 1. Invert and check if angles need to be swapped
-                *p_start_azimuth *= -1.0f;
-                *p_end_azimuth *= -1.0f;
-                bool angles_were_swapped = false;
-                if (*p_start_azimuth > *p_end_azimuth)
-                {
-                    float temp = *p_start_azimuth;
-                    *p_start_azimuth = *p_end_azimuth;
-                    *p_end_azimuth = temp;
-                    angles_were_swapped = true;
-                }
+            if (new_start > new_end)
+            {
+                float temp = new_start;
+                new_start = new_end;
+                new_end = temp;
+                angles_were_swapped = true;
+            }
 
-                // 2. Conditionally swap head offsets based on angle swap
-                if (angles_were_swapped)
-                {
-                    // SWAP head offsets
-                    p_start_offset_vec[0] = g_original_azimuth_values[i].end_head_offset.x * -1.0f;
-                    p_start_offset_vec[1] = g_original_azimuth_values[i].end_head_offset.y;
-                    p_start_offset_vec[2] = g_original_azimuth_values[i].end_head_offset.z;
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideStartAzimuth(i, new_start);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideEndAzimuth(i, new_end);
 
-                    p_end_offset_vec[0] = g_original_azimuth_values[i].start_head_offset.x * -1.0f;
-                    p_end_offset_vec[1] = g_original_azimuth_values[i].start_head_offset.y;
-                    p_end_offset_vec[2] = g_original_azimuth_values[i].start_head_offset.z;
-                }
-                else
-                {
-                    // DO NOT SWAP head offsets
-                    p_start_offset_vec[0] = g_original_azimuth_values[i].start_head_offset.x * -1.0f;
-                    p_start_offset_vec[1] = g_original_azimuth_values[i].start_head_offset.y;
-                    p_start_offset_vec[2] = g_original_azimuth_values[i].start_head_offset.z;
-
-                    p_end_offset_vec[0] = g_original_azimuth_values[i].end_head_offset.x * -1.0f;
-                    p_end_offset_vec[1] = g_original_azimuth_values[i].end_head_offset.y;
-                    p_end_offset_vec[2] = g_original_azimuth_values[i].end_head_offset.z;
-                }
+            if (angles_were_swapped)
+            {
+                g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideStartHeadOffset(
+                    i,
+                    backup.end_head_offset.x * -1.0f,
+                    backup.end_head_offset.y,
+                    backup.end_head_offset.z);
+                g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideEndHeadOffset(
+                    i,
+                    backup.start_head_offset.x * -1.0f,
+                    backup.start_head_offset.y,
+                    backup.start_head_offset.z);
+            }
+            else
+            {
+                g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideStartHeadOffset(
+                    i,
+                    backup.start_head_offset.x * -1.0f,
+                    backup.start_head_offset.y,
+                    backup.start_head_offset.z);
+                g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideEndHeadOffset(
+                    i,
+                    backup.end_head_offset.x * -1.0f,
+                    backup.end_head_offset.y,
+                    backup.end_head_offset.z);
             }
         }
 
-        // 4. Recalculate outside sound cache
-        if (Offsets::g_offsets.pfnCacheExteriorSoundAngleRange)
-        {
-            CacheExteriorSoundAngleRange_t pfnCache = (CacheExteriorSoundAngleRange_t)Offsets::g_offsets.pfnCacheExteriorSoundAngleRange;
-            pfnCache(camera_object);
-        }
+        CacheExteriorSound(camera_object);
     }
 
     static void RestoreAzimuths(long long camera_object)
     {
-        // 1. Restore Camera Pivot
+        if (!g_ctx.cameraAPI)
+        {
+            return;
+        }
+
         float *p_camera_pivot_x = (float *)((char *)camera_object + Offsets::g_offsets.camera_pivot_offset);
         float *p_camera_pivot_y = (float *)((char *)camera_object + Offsets::g_offsets.camera_pivot_offset + 4);
         float *p_camera_pivot_z = (float *)((char *)camera_object + Offsets::g_offsets.camera_pivot_offset + 8);
@@ -260,152 +265,110 @@ namespace SPF_CabinWalk::CameraHookManager
         *p_camera_pivot_y = g_original_camera_pivot.y;
         *p_camera_pivot_z = g_original_camera_pivot.z;
 
-        // 2. Restore Mouse Limits via API
-        if (g_ctx.cameraAPI)
+        g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(
+            g_original_mouse_left_limit,
+            g_original_mouse_right_limit,
+            g_original_mouse_up_limit,
+            g_original_mouse_down_limit);
+
+        const size_t current_count = g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverridesCount();
+        const size_t restore_count = (g_azimuth_backup_count < current_count) ? g_azimuth_backup_count : current_count;
+
+        for (uint32_t i = 0; i < restore_count; ++i)
         {
-            g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(
-                g_original_mouse_left_limit,
-                g_original_mouse_right_limit,
-                g_original_mouse_up_limit,
-                g_original_mouse_down_limit);
+            const AzimuthBackup &backup = g_original_azimuth_values[i];
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideStartAzimuth(i, backup.start);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideEndAzimuth(i, backup.end);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideOutside(i, backup.outside_flag != 0);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideStartHeadOffset(
+                i,
+                backup.start_head_offset.x,
+                backup.start_head_offset.y,
+                backup.start_head_offset.z);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideEndHeadOffset(
+                i,
+                backup.end_head_offset.x,
+                backup.end_head_offset.y,
+                backup.end_head_offset.z);
         }
 
-        // 3. Restore Azimuth Ranges
-        long long **azimuth_array_ptr = (long long **)((char *)camera_object + Offsets::g_offsets.azimuth_array_offset);
-        for (uint32_t i = 0; i < g_azimuth_backup_count; ++i)
-        {
-            long long azimuth_struct_ptr = (*azimuth_array_ptr)[i];
-            if (azimuth_struct_ptr)
-            {
-                // Restore angles
-                float *p_start_azimuth = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_azimuth_offset);
-                float *p_end_azimuth = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_azimuth_offset);
-                *p_start_azimuth = g_original_azimuth_values[i].start;
-                *p_end_azimuth = g_original_azimuth_values[i].end;
-
-                // Restore outside flag
-                char *p_outside_flag = (char *)((char *)azimuth_struct_ptr + Offsets::g_offsets.azimuth_outside_flag_offset);
-                *p_outside_flag = g_original_azimuth_values[i].outside_flag;
-
-                // Restore full head offset vectors
-                float *p_start_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_head_offset_x_offset);
-                p_start_offset_vec[0] = g_original_azimuth_values[i].start_head_offset.x;
-                p_start_offset_vec[1] = g_original_azimuth_values[i].start_head_offset.y;
-                p_start_offset_vec[2] = g_original_azimuth_values[i].start_head_offset.z;
-
-                float *p_end_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_head_offset_x_offset);
-                p_end_offset_vec[0] = g_original_azimuth_values[i].end_head_offset.x;
-                p_end_offset_vec[1] = g_original_azimuth_values[i].end_head_offset.y;
-                p_end_offset_vec[2] = g_original_azimuth_values[i].end_head_offset.z;
-            }
-        }
-
-        // 4. Recalculate outside sound cache
-        if (Offsets::g_offsets.pfnCacheExteriorSoundAngleRange)
-        {
-            CacheExteriorSoundAngleRange_t pfnCache = (CacheExteriorSoundAngleRange_t)Offsets::g_offsets.pfnCacheExteriorSoundAngleRange;
-            pfnCache(camera_object);
-        }
+        CacheExteriorSound(camera_object);
     }
 
     static void ZeroAzimuths(long long camera_object)
     {
-        // 1. Handle Base Head Offset
-        // No change needed for base head offset as animation controller directly sets position
-
-        // 2. Handle Mouse Limits via API
-        if (g_ctx.cameraAPI)
+        if (!g_ctx.cameraAPI)
         {
-            g_ctx.cameraAPI->Cam_GetInteriorRotationLimits(
+            return;
+        }
+
+        if (g_ctx.cameraAPI->Cam_GetInteriorRotationLimits(
                 &g_original_mouse_left_limit,
                 &g_original_mouse_right_limit,
                 &g_original_mouse_up_limit,
-                &g_original_mouse_down_limit);
-
+                &g_original_mouse_down_limit))
+        {
             switch (g_current_camera_pos)
             {
-                case AnimationController::CameraPosition::Standing:
-                    // Set wide limits for free look in standing mode
-                    g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(231.0f, -231.0f, g_original_mouse_up_limit, -80.0f);
-                    break;
-                
-                case AnimationController::CameraPosition::SofaSit1:
-                case AnimationController::CameraPosition::SofaLie:
-                case AnimationController::CameraPosition::SofaSit2:
-                    // Set custom limits for sofa positions
-                    g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(
-                        g_ctx.settings.sofa_limits.yaw_left,
-                        g_ctx.settings.sofa_limits.yaw_right,
-                        g_ctx.settings.sofa_limits.pitch_up,
-                        g_ctx.settings.sofa_limits.pitch_down
-                    );
-                    break;
-                
-                default:
-                    // Fallback, should not happen if logic is correct
-                    break;
+            case AnimationController::CameraPosition::Standing:
+                g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(231.0f, -231.0f, g_original_mouse_up_limit, -80.0f);
+                break;
+
+            case AnimationController::CameraPosition::SofaSit1:
+            case AnimationController::CameraPosition::SofaLie:
+            case AnimationController::CameraPosition::SofaSit2:
+                g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(
+                    g_ctx.settings.sofa_limits.yaw_left,
+                    g_ctx.settings.sofa_limits.yaw_right,
+                    g_ctx.settings.sofa_limits.pitch_up,
+                    g_ctx.settings.sofa_limits.pitch_down);
+                break;
+
+            default:
+                break;
             }
         }
 
-        // 3. Handle Azimuth Ranges - Zero them out
-        long long **azimuth_array_ptr = (long long **)((char *)camera_object + Offsets::g_offsets.azimuth_array_offset);
-        long long azimuth_count = *(long long *)((char *)camera_object + Offsets::g_offsets.azimuth_count_offset);
+        const size_t azimuth_count = g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverridesCount();
         g_azimuth_backup_count = (azimuth_count < 20) ? (uint32_t)azimuth_count : 20;
 
         for (uint32_t i = 0; i < g_azimuth_backup_count; ++i)
         {
-            long long azimuth_struct_ptr = (*azimuth_array_ptr)[i];
-            if (azimuth_struct_ptr)
+            AzimuthBackup &backup = g_original_azimuth_values[i];
+            float start_head_x = 0.0f, start_head_y = 0.0f, start_head_z = 0.0f;
+            float end_head_x = 0.0f, end_head_y = 0.0f, end_head_z = 0.0f;
+            bool outside_flag = false;
+
+            if (!g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideStartAzimuth(i, &backup.start) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideEndAzimuth(i, &backup.end) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideOutside(i, &outside_flag) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideStartHeadOffset(i, &start_head_x, &start_head_y, &start_head_z) ||
+                !g_ctx.cameraAPI->Cam_GetInteriorAzimuthOverrideEndHeadOffset(i, &end_head_x, &end_head_y, &end_head_z))
             {
-                // Backup original values before zeroing
-                float *p_start_azimuth = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_azimuth_offset);
-                float *p_end_azimuth = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_azimuth_offset);
-                g_original_azimuth_values[i].start = *p_start_azimuth;
-                g_original_azimuth_values[i].end = *p_end_azimuth;
-
-                char *p_outside_flag = (char *)((char *)azimuth_struct_ptr + Offsets::g_offsets.azimuth_outside_flag_offset);
-                g_original_azimuth_values[i].outside_flag = *p_outside_flag;
-
-                float *p_start_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.start_head_offset_x_offset);
-                float *p_end_offset_vec = (float *)((char *)azimuth_struct_ptr + Offsets::g_offsets.end_head_offset_x_offset);
-                g_original_azimuth_values[i].start_head_offset = {p_start_offset_vec[0], p_start_offset_vec[1], p_start_offset_vec[2]};
-                g_original_azimuth_values[i].end_head_offset = {p_end_offset_vec[0], p_end_offset_vec[1], p_end_offset_vec[2]};
-
-                // Zero out the azimuths, head offsets and outside flag
-                *p_start_azimuth = 0.0f;
-                *p_end_azimuth = 0.0f;
-                *p_outside_flag = 0;
-
-                float *p_start_offset_vec_current = p_start_offset_vec;
-                float *p_end_offset_vec_current = p_end_offset_vec;
-
-                p_start_offset_vec[0] = 0.0f;
-                p_start_offset_vec[1] = 0.0f;
-                p_start_offset_vec[2] = 0.0f;
-                p_end_offset_vec[0] = 0.0f;
-                p_end_offset_vec[1] = 0.0f;
-                p_end_offset_vec[2] = 0.0f;
+                continue;
             }
+
+            backup.outside_flag = outside_flag ? 1 : 0;
+            backup.start_head_offset = {start_head_x, start_head_y, start_head_z};
+            backup.end_head_offset = {end_head_x, end_head_y, end_head_z};
+
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideStartAzimuth(i, 0.0f);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideEndAzimuth(i, 0.0f);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideOutside(i, false);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideStartHeadOffset(i, 0.0f, 0.0f, 0.0f);
+            g_ctx.cameraAPI->Cam_SetInteriorAzimuthOverrideEndHeadOffset(i, 0.0f, 0.0f, 0.0f);
         }
 
-        // 4. Recalculate outside sound cache
-        if (Offsets::g_offsets.pfnCacheExteriorSoundAngleRange)
-        {
-            CacheExteriorSoundAngleRange_t pfnCache = (CacheExteriorSoundAngleRange_t)Offsets::g_offsets.pfnCacheExteriorSoundAngleRange;
-            pfnCache(camera_object);
-        }
+        CacheExteriorSound(camera_object);
     }
 
-void NotifySettingsUpdated()
+    void NotifySettingsUpdated()
     {
-        // Only force re-evaluation if we are not actively animating a major sequence,
-        // as the animation itself will handle position updates.
-        // Also, ensure there's a current valid position to re-evaluate.
         if (g_current_camera_pos != AnimationController::CameraPosition::None &&
             !SPF_CabinWalk::AnimationController::IsAnimating() &&
             !SPF_CabinWalk::StandingAnimController::IsAnimating())
         {
-            g_previous_camera_pos = AnimationController::CameraPosition::None; // Force re-evaluation on next update
+            g_previous_camera_pos = AnimationController::CameraPosition::None;
         }
     }
 } // namespace SPF_CabinWalk::CameraHookManager
