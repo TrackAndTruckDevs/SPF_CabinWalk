@@ -1,3 +1,7 @@
+<p align="center">
+    <a href=""><img src="https://github.com/user-attachments/assets/fa2b494e-508a-4892-b2a3-cd5ce8556e98" alt="Logo SPF CabinWalk" height="433px" /></a>
+</p>
+
 <h1 align="center">SPF CabinWalk Plugin</h1>
 
 <p align="center">
