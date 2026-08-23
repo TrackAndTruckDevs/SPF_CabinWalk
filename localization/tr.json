@@ -15,7 +15,8 @@
         "tr": "Türkçe"
     },
     "messages": {
-        "warning_not_safe_to_move": "Lütfen durun ve park frenini çekin!"
+        "warning_not_safe_to_move": "Lütfen durun ve park frenini çekin!",
+        "warning_wrong_camera": "Lütfen kabin kamerasına geçin!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

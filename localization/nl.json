@@ -15,7 +15,8 @@
         "tr": "Turks"
     },
     "messages": {
-        "warning_not_safe_to_move": "Stop en trek de parkeerrem aan!"
+        "warning_not_safe_to_move": "Stop en trek de parkeerrem aan!",
+        "warning_wrong_camera": "Schakel over naar de cabinecamera!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

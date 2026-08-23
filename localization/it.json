@@ -15,7 +15,8 @@
         "tr": "Turco"
     },
     "messages": {
-        "warning_not_safe_to_move": "Si prega di fermarsi e inserire il freno di stazionamento!"
+        "warning_not_safe_to_move": "Si prega di fermarsi e inserire il freno di stazionamento!",
+        "warning_wrong_camera": "Si prega di passare alla camera della cabina!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

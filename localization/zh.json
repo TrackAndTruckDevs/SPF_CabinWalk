@@ -15,7 +15,8 @@
         "tr": "土耳其语"
     },
     "messages": {
-        "warning_not_safe_to_move": "请停车并拉上手刹！"
+        "warning_not_safe_to_move": "请停车并拉上手刹！",
+        "warning_wrong_camera": "请切换到驾驶室摄像头！"
     },
     "keybinds": {
         "moveToPassengerSeat": {

@@ -1,34 +1,54 @@
-# Set the minimum required CMake version.
-cmake_minimum_required(VERSION 3.16)
+# ======================================================================
+#  SPF_CabinWalk -- SPF Plugin Template
+# ======================================================================
+#  This is the root CMakeLists.txt for the SPF_CabinWalk template project.
+#  It is designed to be built standalone (outside the SPF framework)
+#  and covers MSVC, MinGW, and cross-compilation scenarios.
+# ======================================================================
 
-# Define our project.
-project(SPF VERSION 1.0.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 4.4)
 
-# Set C++20 standard for the entire project.
+project(SPF_CabinWalk VERSION 1.0.0 LANGUAGES CXX)
+
+add_compile_definitions(_AMD64_)
+
+# --- C++ Standard ---
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# For MSVC, use static runtime linking (/MT instead of /MD) to avoid missing DLL errors (Win32 Error 126) on end-user machines.
+# --- Global MSVC Runtime Configuration (/MT) ---
+# This ensures static runtime linking, avoiding "Win32 Error 126" on
+# machines without VC++ Redistributables.
+# Also replaces /EHsc with /EHa to catch SEH exceptions cleanly.
 if(MSVC)
-    set(variables 
-        CMAKE_CXX_FLAGS_DEBUG 
-        CMAKE_CXX_FLAGS_RELEASE 
-        CMAKE_CXX_FLAGS_RELWITHDEBINFO 
-        CMAKE_CXX_FLAGS_MINSIZEREL
+    set(variables
+        CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_MINSIZEREL
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_MINSIZEREL
     )
     foreach(variable ${variables})
         if(${variable} MATCHES "/MD")
             string(REPLACE "/MD" "/MT" ${variable} "${${variable}}")
         endif()
+        if(${variable} MATCHES "/EHsc")
+            string(REPLACE "/EHsc" "/EHa" ${variable} "${${variable}}")
+        elseif(${variable} MATCHES "/EHs")
+            string(REPLACE "/EHs" "/EHa" ${variable} "${${variable}}")
+        endif()
     endforeach()
+    add_compile_options(/utf-8)
 endif()
+# --- End of Global MSVC Runtime Configuration ---
 
-# Define the name of our plugin
+# ======================================================================
+#  YOU CAN EDIT BELOW
+# ======================================================================
+#  Plugin name -- change this to match your plugin's directory name.
 set(PLUGIN_NAME SPF_CabinWalk)
 
-# Create the plugin as a shared library (DLL)
-add_library(${PLUGIN_NAME} SHARED
+#  Source files that will be compiled into the plugin DLL.
+#  Add your .cpp files here as needed.
+set(PLUGIN_SOURCES
     "SPF_CabinWalk.cpp"
     "Hooks/Offsets.cpp"
     "Hooks/CameraHookManager.cpp"
@@ -45,18 +65,56 @@ add_library(${PLUGIN_NAME} SHARED
     "Animation/Sequences/StandingStances.cpp"
     "Animation/Sequences/StandingToSofa.cpp"
     "Animation/Sequences/SofaToStanding.cpp"
-    "Animation/Sequences/SofaStances.cpp"
+    "Animation/Sequences/SofaStances.cpp"    
 )
+# ======================================================================
+#  END OF USER CONFIGURABLE SECTION
+# ======================================================================
 
+# --- Plugin Library ---
+add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
+
+# --- SPF API Headers ---
+# The SPF API header files are provided in the SPF_API/ subfolder
+# alongside this CMakeLists.txt.
 target_include_directories(${PLUGIN_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/SPF_API"
 )
 
-set(GAME_PLUGINS_DIR "E:/SteamLibrary/steamapps/common/American Truck Simulator/bin/win_x64/plugins" CACHE PATH "Path to the game's plugins directory")
+# --- MinGW Static Linking ---
+# Ensures static runtime libraries for MinGW cross-compilation.
+if(MINGW)
+    set(MINGW_STATIC_FLAGS "-static-libgcc;-static-libstdc++")
+    set(MINGW_WINPTHREAD_FLAGS "-Wl,-Bstatic;-lwinpthread;-Wl,-Bdynamic")
+    target_link_options(${PLUGIN_NAME} PRIVATE
+        ${MINGW_STATIC_FLAGS}
+        ${MINGW_WINPTHREAD_FLAGS}
+    )
+endif()
+# --- End of MinGW Static Linking ---
 
+# --- Optional Plugin Additions (uncomment as needed) ---
+#
+# # Preprocessor defines
+# target_compile_definitions(${PLUGIN_NAME} PRIVATE
+#     NOMINMAX
+#     WIN32_LEAN_AND_MEAN
+#     _CRT_SECURE_NO_WARNINGS
+# )
+#
+# # Additional link libraries
+# target_link_libraries(${PLUGIN_NAME} PRIVATE
+#     winmm.lib
+#     version.lib
+# )
+#
+# # Windows version resource (.rc file)
+# # See https://learn.microsoft.com/en-us/windows/win32/menurc/versioninfo-resource
+# target_sources(${PLUGIN_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
+# --- End of Optional Additions ---
 
-# All plugins should go into a 'plugins' subfolder in the output directory
+# --- Output Properties ---
 set_target_properties(${PLUGIN_NAME} PROPERTIES
     PREFIX ""
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/${PLUGIN_NAME}"
@@ -64,31 +122,138 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 )
 
 # --- Deployment ---
-# This section is optional but convenient. It copies the final DLL
-# to the game's actual plugin directory with the correct structure.
-if(EXISTS "${GAME_PLUGINS_DIR}")
-    # Define the final deployment directory for this specific plugin
-    set(PLUGIN_DEPLOY_DIR "${GAME_PLUGINS_DIR}/spfPlugins/${PLUGIN_NAME}")
+# Paths are set via CMakePresets.json / CMakeUserPresets.json:
+#   ATS_PLUGINS_DIR   — American Truck Simulator  plugins dir
+#   ETS2_PLUGINS_DIR  — Euro Truck Simulator 2      plugins dir
+set(ATS_PLUGINS_DIR "" CACHE PATH "Path to ATS bin/win_x64/plugins (set in CMakeUserPresets.json)")
+set(ETS2_PLUGINS_DIR "" CACHE PATH "Path to ETS2 bin/win_x64/plugins (set in CMakeUserPresets.json)")
 
-    # This command ensures the destination directory exists before we try to copy the file.
-    add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${PLUGIN_DEPLOY_DIR}"
-        COMMENT "Ensuring deployment directory exists for ${PLUGIN_NAME}"
-    )
+message(STATUS "")
+message(STATUS "  ==================== DEPLOY ====================")
 
-    # This command copies the compiled DLL to the correct final location.
+# --- ATS ---
+message(STATUS "")
+message(STATUS "  [ATS]      ${ATS_PLUGINS_DIR}")
+if(ATS_PLUGINS_DIR AND EXISTS "${ATS_PLUGINS_DIR}")
+    message(STATUS "           ✅ deploy enabled")
+    set(DEPLOY_DIR "${ATS_PLUGINS_DIR}/spfPlugins/${PLUGIN_NAME}")
     add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEPLOY_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "$<TARGET_FILE:${PLUGIN_NAME}>"
-            "${PLUGIN_DEPLOY_DIR}"
-        COMMENT "Deploying ${PLUGIN_NAME}.dll to ${PLUGIN_DEPLOY_DIR}"
+            "$<TARGET_FILE:${PLUGIN_NAME}>" "${DEPLOY_DIR}"
+        COMMENT "Deploying ${PLUGIN_NAME} to ATS: ${DEPLOY_DIR}"
     )
-
-    # This command copies the localization files to the deployment directory.
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/localization")
+        add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/localization" "${DEPLOY_DIR}/localization"
+        )
+    endif()
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/data")
+        add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/data" "${DEPLOY_DIR}/data"
+        )
+    endif()
     add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/localization"
-            "${PLUGIN_DEPLOY_DIR}/localization"
-        COMMENT "Deploying localization files for ${PLUGIN_NAME}"
+        COMMAND ${CMAKE_COMMAND} -E echo "  ✅  ${PLUGIN_NAME}: [ATS] deploy OK"
     )
+elseif(ATS_PLUGINS_DIR)
+    message(STATUS "           ❌ directory not found")
+    add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "  ❌  ${PLUGIN_NAME}: [ATS] NOT FOUND"
+    )
+else()
+    message(STATUS "           ⚠️  no path set")
+    add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "  ⚠️  ${PLUGIN_NAME}: [ATS] skipped - no path set in preset"
+    )
+endif()
+
+# --- ETS2 ---
+message(STATUS "")
+message(STATUS "  [ETS2]     ${ETS2_PLUGINS_DIR}")
+if(ETS2_PLUGINS_DIR AND EXISTS "${ETS2_PLUGINS_DIR}")
+    message(STATUS "           ✅ deploy enabled")
+    set(DEPLOY_DIR "${ETS2_PLUGINS_DIR}/spfPlugins/${PLUGIN_NAME}")
+    add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEPLOY_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:${PLUGIN_NAME}>" "${DEPLOY_DIR}"
+        COMMENT "Deploying ${PLUGIN_NAME} to ETS2: ${DEPLOY_DIR}"
+    )
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/localization")
+        add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/localization" "${DEPLOY_DIR}/localization"
+        )
+    endif()
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/data")
+        add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/data" "${DEPLOY_DIR}/data"
+        )
+    endif()
+    add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "  ✅  ${PLUGIN_NAME}: [ETS2] deploy OK"
+    )
+elseif(ETS2_PLUGINS_DIR)
+    message(STATUS "           ❌ directory not found")
+    add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "  ❌  ${PLUGIN_NAME}: [ETS2] NOT FOUND"
+    )
+else()
+    message(STATUS "           ⚠️  no path set")
+    add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "  ⚠️  ${PLUGIN_NAME}: [ETS2] skipped - no path set in preset"
+    )
+endif()
+
+message(STATUS "")
+message(STATUS "  ==================== END DEPLOY ====================")
+# --- End of Deployment ---
+
+# --- Configuration Summary ---
+message(STATUS "")
+message(STATUS "  ==================== CONFIGURATION ====================")
+message(STATUS "")
+message(STATUS "  Plugin:     ${PLUGIN_NAME} ${PROJECT_VERSION}")
+message(STATUS "  Generator:  ${CMAKE_GENERATOR}")
+if(CMAKE_BUILD_TYPE)
+    message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+if(MSVC)
+    message(STATUS "  Runtime:    MSVC static (/MT)")
+elseif(MINGW)
+    message(STATUS "  Runtime:    MinGW static (-static-libgcc -static-libstdc++)")
+endif()
+if(CMAKE_CROSSCOMPILING)
+    message(STATUS "  Platform:   ${CMAKE_HOST_SYSTEM_NAME} (${CMAKE_HOST_SYSTEM_PROCESSOR}) → Windows (x86_64)")
+else()
+    message(STATUS "  Platform:   Windows (${CMAKE_SYSTEM_PROCESSOR})")
+endif()
+message(STATUS "  C++ std:    C++${CMAKE_CXX_STANDARD}")
+message(STATUS "")
+message(STATUS "  Output:     ${CMAKE_BINARY_DIR}/plugins/${PLUGIN_NAME}")
+message(STATUS "  API:        ${CMAKE_CURRENT_SOURCE_DIR}/SPF_API")
+message(STATUS "")
+message(STATUS "  ==================== END CONFIGURATION =================")
+
+# --- clangd compile_commands.json (POST_BUILD) ---
+# clangd (via .clangd's CompilationDatabase: build) looks for
+# build/compile_commands.json. When using CMake presets the file
+# ends up in build/<preset>/compile_commands.json instead.
+# This POST_BUILD step copies it so clangd can find it.
+if(CMAKE_EXPORT_COMPILE_COMMANDS AND NOT CMAKE_GENERATOR MATCHES "Visual Studio")
+    string(COMPARE NOTEQUAL "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build" NON_DEFAULT_BUILD)
+    if(NON_DEFAULT_BUILD)
+        set(CLANGD_LINK "${CMAKE_SOURCE_DIR}/compile_commands.json")
+        message(STATUS "  clangd:    synced after build → ${CLANGD_LINK}")
+        add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_BINARY_DIR}/compile_commands.json"
+                "${CLANGD_LINK}"
+            COMMENT "  clangd:    synced compile_commands.json"
+        )
+    endif()
 endif()

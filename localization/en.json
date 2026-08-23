@@ -15,7 +15,8 @@
         "tr": "Turkish"
     },
     "messages": {
-        "warning_not_safe_to_move": "Please stop and apply the parking brake!"
+        "warning_not_safe_to_move": "Please stop and apply the parking brake!",
+        "warning_wrong_camera": "Please switch to the cabin camera!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

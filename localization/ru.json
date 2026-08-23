@@ -15,7 +15,8 @@
         "tr": "Турецкий"
     },
     "messages": {
-        "warning_not_safe_to_move": "Пожалуйста, остановитесь и задействуйте стояночный тормоз!"
+        "warning_not_safe_to_move": "Пожалуйста, остановитесь и задействуйте стояночный тормоз!",
+        "warning_wrong_camera": "Пожалуйста, переключитесь на камеру кабины!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

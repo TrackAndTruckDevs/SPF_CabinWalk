@@ -15,7 +15,8 @@
         "tr": "Turco"
     },
     "messages": {
-        "warning_not_safe_to_move": "Por favor, pare e acione o freio de estacionamento!"
+        "warning_not_safe_to_move": "Por favor, pare e acione o freio de estacionamento!",
+        "warning_wrong_camera": "Por favor, mude para a câmera da cabine!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

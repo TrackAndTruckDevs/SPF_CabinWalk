@@ -15,7 +15,8 @@
         "tr": "Turecki"
     },
     "messages": {
-        "warning_not_safe_to_move": "Proszę się zatrzymać i zaciągnąć hamulec postojowy!"
+        "warning_not_safe_to_move": "Proszę się zatrzymać i zaciągnąć hamulec postojowy!",
+        "warning_wrong_camera": "Przełącz na kabinę kamery!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

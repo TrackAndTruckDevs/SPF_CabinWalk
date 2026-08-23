@@ -15,7 +15,8 @@
         "tr": "Turc"
     },
     "messages": {
-        "warning_not_safe_to_move": "Veuillez vous arrêter et serrer le frein de stationnement !"
+        "warning_not_safe_to_move": "Veuillez vous arrêter et serrer le frein de stationnement !",
+        "warning_wrong_camera": "Veuillez passer à la caméra de la cabine !"
     },
     "keybinds": {
         "moveToPassengerSeat": {

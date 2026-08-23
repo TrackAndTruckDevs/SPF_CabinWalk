@@ -7,6 +7,19 @@
  */
 
 // Disabling optimizations to change the binary signature and reduce heuristic false positives
+#include "SPF_Camera_API.h"
+#include "SPF_Config_API.h"
+#include "SPF_Localization_API.h"
+#include "SPF_Logger_API.h"
+#include "SPF_Manifest_API.h"
+#include "SPF_Plugin.h"
+#include "SPF_TelemetryData.h"
+#include "SPF_UI_API.h"
+#include <cstdint>
+#include <debugapi.h>
+#include <minwinbase.h>
+#include <minwindef.h>
+#include <sysinfoapi.h>
 #if defined(_MSC_VER)
 #pragma optimize("", off)
 #endif
@@ -15,7 +28,6 @@
 #include "Hooks/Offsets.hpp"                    // For memory offsets and signatures
 #include "Hooks/CameraHookManager.hpp"          // For camera hooking logic
 #include "Animation/AnimationController.hpp"    // For managing camera animations
-#include "Animation/StandingAnimController.hpp" // For handling walking logic
 
 #include <cmath>     // For math functions like fabsf
 #include <cstring>   // For C-style string manipulation functions like strncpy_s.
@@ -62,6 +74,8 @@ namespace SPF_CabinWalk
 
     // Forward Declarations
     bool IsSafeToLeaveDriverSeat();
+    bool IsOnInteriorCamera();
+    void ShowWrongCameraWarning();
 
     // =================================================================================================
     // 1. Constants & Global State
@@ -624,6 +638,11 @@ namespace SPF_CabinWalk
 
     void OnCycleSofaPositions()
     {
+        if (!IsOnInteriorCamera())
+        {
+            ShowWrongCameraWarning();
+            return;
+        }
         if (!IsSafeToLeaveDriverSeat())
         {
             return;
@@ -747,6 +766,22 @@ namespace SPF_CabinWalk
         g_ctx.uiAPI = ui_api;
     }
 
+    bool IsOnInteriorCamera()
+    {
+        if (!g_ctx.cameraAPI || !g_ctx.cameraAPI->Cam_GetCurrentCamera)
+        {
+            return false;
+        }
+
+        SPF_CameraType currentCamera;
+        if (!g_ctx.cameraAPI->Cam_GetCurrentCamera(&currentCamera))
+        {
+            return false;
+        }
+
+        return currentCamera == SPF_CAMERA_INTERIOR;
+    }
+
     bool IsSafeToLeaveDriverSeat()
     {
         // This check only applies if we are currently in the driver's seat.
@@ -791,10 +826,37 @@ namespace SPF_CabinWalk
         }
     }
 
+    void ShowWrongCameraWarning()
+    {
+        if (!g_ctx.uiAPI)
+        {
+            return;
+        }
+
+        char warning_message[512];
+        g_ctx.loadAPI->localization->Loc_GetString(
+            g_ctx.loadAPI->localization->Loc_GetContext(PLUGIN_NAME),
+            "messages.warning_wrong_camera",
+            warning_message, sizeof(warning_message));
+
+        SPF_Notification_Params params;
+        memset(&params, 0, sizeof(SPF_Notification_Params));
+        params.type = SPF_NOTIFICATION_WARNING;
+        params.message = warning_message;
+        params.mode = SPF_NOTIF_MODE_TOP;
+        params.duration = -1.0f;
+        g_ctx.uiAPI->UI_ShowNotification(&params);
+    }
+
     void OnMoveToPassengerSeat()
     {
         if (g_ctx.loggerHandle)
             g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_INFO, "[Keybind] OnMoveToPassengerSeat triggered.");
+        if (!IsOnInteriorCamera())
+        {
+            ShowWrongCameraWarning();
+            return;
+        }
         if (!IsSafeToLeaveDriverSeat())
         {
             if (g_ctx.loggerHandle)
@@ -809,12 +871,22 @@ namespace SPF_CabinWalk
     }
     void OnMoveToDriverSeat()
     {
+        if (!IsOnInteriorCamera())
+        {
+            ShowWrongCameraWarning();
+            return;
+        }
         // OnRequestMove now handles all pathfinding logic internally.
         AnimationController::OnRequestMove(AnimationController::CameraPosition::Driver);
     }
 
     void OnMoveToStandingPosition()
     {
+        if (!IsOnInteriorCamera())
+        {
+            ShowWrongCameraWarning();
+            return;
+        }
         if (!IsSafeToLeaveDriverSeat())
         {
             return;

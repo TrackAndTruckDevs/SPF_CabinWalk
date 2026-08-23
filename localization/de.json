@@ -15,7 +15,8 @@
         "tr": "Türkisch"
     },
     "messages": {
-        "warning_not_safe_to_move": "Bitte anhalten und die Feststellbremse anziehen!"
+        "warning_not_safe_to_move": "Bitte anhalten und die Feststellbremse anziehen!",
+        "warning_wrong_camera": "Bitte wechseln Sie zur Kabinekamera!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

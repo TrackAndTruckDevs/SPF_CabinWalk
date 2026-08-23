@@ -15,7 +15,8 @@
         "tr": "Турецька"
     },
     "messages": {
-        "warning_not_safe_to_move": "Будь ласка, зупиніться та поставте вантажівку на ручник!"
+        "warning_not_safe_to_move": "Будь ласка, зупиніться та поставте вантажівку на ручник!",
+        "warning_wrong_camera": "Будь ласка, перемкніться на камеру кабіни!"
     },
     "keybinds": {
         "moveToPassengerSeat": {

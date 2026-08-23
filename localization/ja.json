@@ -15,7 +15,8 @@
         "tr": "トルコ語"
     },
     "messages": {
-        "warning_not_safe_to_move": "停止してパーキングブレーキをかけてください！"
+        "warning_not_safe_to_move": "停止してパーキングブレーキをかけてください！",
+        "warning_wrong_camera": "キャビンカメラに切り替えてください！"
     },
     "keybinds": {
         "moveToPassengerSeat": {

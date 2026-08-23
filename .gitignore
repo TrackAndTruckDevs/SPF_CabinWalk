@@ -1,1 +1,26 @@
-build/*
+# Ignore everything
+*
+
+# Allow source code directories
+!cmake/
+!cmake/*
+
+!Animation/
+!Animation/**
+
+!Hooks/
+!Hooks/**
+
+!SPF_API/
+!SPF_API/**
+
+# Allow root source files
+!SPF_CabinWalk.cpp
+!SPF_CabinWalk.hpp
+!.clang-format
+!.clangd
+!CMakeLists.txt
+!CMakePresets.json
+!CMakeUserPresets.json
+!LICENSE
+!.gitignore

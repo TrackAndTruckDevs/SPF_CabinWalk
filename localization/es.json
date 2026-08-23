@@ -15,7 +15,8 @@
         "tr": "Turco"
     },
     "messages": {
-        "warning_not_safe_to_move": "¡Por favor, deténgase y ponga el freno de mano!"
+        "warning_not_safe_to_move": "¡Por favor, deténgase y ponga el freno de mano!",
+        "warning_wrong_camera": "¡Por favor, cambie a la cámara de la cabina!"
     },
     "keybinds": {
         "moveToPassengerSeat": {
