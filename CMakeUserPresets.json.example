@@ -1,5 +1,5 @@
 {
-  "version": 11,
+  "version": 12,
   "$schema": "https://cmake.org/cmake/help/latest/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json",
 
   "$comment": [
@@ -21,6 +21,9 @@
     " 'F:/SteamLibrary/steamapps/common/American Truck Simulator/bin/win_x64/plugins' ",
     " 'F:/SteamLibrary/steamapps/common/Euro Truck Simulator 2/bin/win_x64/plugins' ",
     "",
+    "  SPF_SIGN_CERT example",
+    " '$env{HOME}/.config/spf-certs/spf-cacert.pfx' ",
+    "",
     "============================================================================"
   ],
 
@@ -30,9 +33,14 @@
       "name": "base-user-env",
       "hidden": true,
       "environment": {
+        "$comment": "--- the path to ATS and ETS2 games ---",
         "ATS_PLUGINS_DIR": "",
         "ETS2_PLUGINS_DIR": "",
         "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres"
+      },
+      "cacheVariables": {
+        "$comment": "--- path to certificate ---",
+        "SPF_SIGN_CERT": ""
       }
     },
 

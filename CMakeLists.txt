@@ -8,7 +8,7 @@
 
 cmake_minimum_required(VERSION 4.4)
 
-project(SPF_CabinWalk VERSION 1.0.0 LANGUAGES CXX)
+project(SPF_CabinWalk VERSION 1.2.0 LANGUAGES CXX)
 if(NOT PROJECT_VERSION_TWEAK)
   set(PROJECT_VERSION_TWEAK 0)
 endif()

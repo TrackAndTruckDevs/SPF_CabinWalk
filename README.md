@@ -43,7 +43,7 @@ This is **not a bug in the plugin**. Windows Smart App Control (SAC) or Windows 
 > The blocking behavior is unpredictable — on the same computer, the plugin may work in American Truck Simulator but be blocked in Euro Truck Simulator 2. How Windows determines which DLLs to trust is known only to Microsoft.
 
 > [!TIP]
-> The plugin contains no malicious code — the [VirusTotal scan](https://www.virustotal.com/gui/file/345d533d1652d4d900a90042a30f8eaaca0b956e9e89e3d6002784c7e68bd0a7/detection) is clean (0 detections). The AI-based protection system produces false positives.
+> The plugin contains no malicious code — the [VirusTotal scan](https://www.virustotal.com/gui/file/94c3f02f782152db120a07e3c868ee92bcb4679f7152105613043114bc2eb871) is clean (0 detections). The AI-based protection system produces false positives.
 
 For more details, see: [Smart App Control — Microsoft Support](https://support.microsoft.com/windows/security/threat-malware-protection/smart-app-control-has-blocked-part-of-this-app)
 
@@ -102,7 +102,7 @@ This project uses **CMake presets** for configuration and building.
 
 ### Prerequisites
 
-- **CMake** 3.21 or newer
+- **CMake** 4.4 or newer
 - A compatible C++20 compiler:
   - **Windows**: MSVC (Visual Studio 2022) or MinGW-w64
   - **Linux**: MinGW-w64 (cross-compile)
