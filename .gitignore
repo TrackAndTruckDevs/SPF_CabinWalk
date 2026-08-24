@@ -21,6 +21,6 @@
 !.clangd
 !CMakeLists.txt
 !CMakePresets.json
-!CMakeUserPresets.json
+!CMakeUserPresets.json.example
 !LICENSE
 !.gitignore

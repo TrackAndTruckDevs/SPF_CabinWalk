@@ -1,389 +1,320 @@
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include "Animation/StandingAnimController.hpp"
-#include "Animation/Sequences/StandingStances.hpp"
-#include "Animation/AnimationSequence.hpp"
+
 #include "Animation/AnimationController.hpp"
+#include "Animation/AnimationSequence.hpp"
+#include "Animation/Sequences/StandingStances.hpp"
 #include "SPF_CabinWalk.hpp"
+#include "SPF_TelemetryData.h"
 
+#include <cmath>
+#include <cstdint>
+#include <math.h>
 #include <memory>
+#include <numbers>
 
-namespace SPF_CabinWalk::StandingAnimController
-{
-    // =================================================================================================
-    // Internal State
-    // =================================================================================================
-    static PluginContext* g_stand_ctx = nullptr;
-    static Stance g_current_stance = Stance::Standing;
-    static float g_target_walk_z = 0.0f;
-    static AnimationController::CameraPosition g_final_destination;
-    static Stance g_transition_to_stance = Stance::Standing;
-    static std::unique_ptr<Animation::AnimationSequence> g_active_sequence = nullptr;
-    static uint64_t last_simulation_time = 0;
-    static bool g_has_taken_first_step = false;
+namespace SPF_CabinWalk::StandingAnimController {
+// =================================================================================================
+// Internal State
+// =================================================================================================
+static PluginContext* g_stand_ctx = nullptr;
+static Stance g_current_stance = Stance::Standing;
+static float g_target_walk_z = 0.0f;
+static AnimationController::CameraPosition g_final_destination;
+static Stance g_transition_to_stance = Stance::Standing;
+static std::unique_ptr<Animation::AnimationSequence> g_active_sequence = nullptr;
+static uint64_t last_simulation_time = 0;
+static bool g_has_taken_first_step = false;
 
-    // Timers for holding camera in a trigger zone
-    static uint64_t g_time_in_crouch_zone = 0;
-    static uint64_t g_time_in_tiptoe_zone = 0;
-    static uint64_t g_time_in_standup_zone = 0;
-    static uint64_t g_time_in_standdown_zone = 0;
+// Timers for holding camera in a trigger zone
+static uint64_t g_time_in_crouch_zone = 0;
+static uint64_t g_time_in_tiptoe_zone = 0;
+static uint64_t g_time_in_standup_zone = 0;
+static uint64_t g_time_in_standdown_zone = 0;
 
-    static AnimationController::GazeDirection GetGazeDirection(float yaw_radians)
-    {
-        // Define thresholds in radians (M_PI is 180 degrees)
-        const float quarter_pi = M_PI / 4.0f;     // 45 degrees
-        const float three_quarters_pi = 3.0f * M_PI / 4.0f; // 135 degrees
+static AnimationController::GazeDirection GetGazeDirection(float yaw_radians) {
+  // Define thresholds in radians (M_PI is 180 degrees)
+  const float quarter_pi = std::numbers::pi / 4.0f;                // 45 degrees
+  const float three_quarters_pi = 3.0f * std::numbers::pi / 4.0f;  // 135 degrees
 
-        if (yaw_radians >= -quarter_pi && yaw_radians <= quarter_pi)
+  if (yaw_radians >= -quarter_pi && yaw_radians <= quarter_pi) {
+    return AnimationController::GazeDirection::Forward;
+  } else if (yaw_radians > quarter_pi && yaw_radians <= three_quarters_pi) {
+    return AnimationController::GazeDirection::Left;
+  } else if (yaw_radians < -quarter_pi && yaw_radians >= -three_quarters_pi) {
+    return AnimationController::GazeDirection::Right;
+  } else  // yaw_radians > three_quarters_pi || yaw_radians < -three_quarters_pi
+  {
+    return AnimationController::GazeDirection::Backward;
+  }
+}
+
+void Initialize(PluginContext* ctx) { g_stand_ctx = ctx; }
+
+void Update(const Animation::CurrentCameraState& current_state) {
+  if (!g_stand_ctx || !g_stand_ctx->coreAPI) {
+    return;
+  }
+
+  SPF_Timestamps timestamps;
+  g_stand_ctx->coreAPI->telemetry->Tel_GetTimestamps(g_stand_ctx->telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
+  uint64_t delta_time_ms = timestamps.simulation - last_simulation_time;
+  last_simulation_time = timestamps.simulation;
+
+  // --- Handle active animation sequence ---
+  if (g_active_sequence && g_active_sequence->IsPlaying()) {
+    bool is_playing = g_active_sequence->Update(delta_time_ms, g_stand_ctx->cameraAPI);
+
+    if (!is_playing) {
+      // Animation finished, transition to the new stable stance
+      g_active_sequence.reset();
+      if (g_current_stance == Stance::InTransition) {
+        g_current_stance = g_transition_to_stance;
+      }
+    }
+    return;  // Exit if an animation is still playing
+  }
+
+  // --- Handle stance transitions based on pitch (only if no animation is active) ---
+  switch (g_current_stance) {
+    case Stance::Standing: {
+      // Reset timers for other states
+      g_time_in_standup_zone = 0;
+      g_time_in_standdown_zone = 0;
+
+      // Continuous walking logic
+      if (SPF_CabinWalk::IsWalkKeyDown()) {
+        if (!g_active_sequence || !g_active_sequence->IsPlaying())  // Ensure no other animation is playing
         {
-            return AnimationController::GazeDirection::Forward;
+          const bool is_walking_forward = (current_state.rotation.x >= -std::numbers::pi / 2.0 && current_state.rotation.x <= std::numbers::pi / 2.0);
+          const float next_z_pos = current_state.position.z + (is_walking_forward ? -g_stand_ctx->settings.standing_movement.walking.step_amount : g_stand_ctx->settings.standing_movement.walking.step_amount);
+
+          if (next_z_pos >= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.min && next_z_pos <= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.max)  // Check boundaries before triggering step
+          {
+            if (!g_has_taken_first_step) {
+              g_active_sequence = AnimationSequences::CreateDynamicFirstStepSequence(current_state, is_walking_forward);
+              g_has_taken_first_step = true;
+            } else {
+              g_active_sequence = AnimationSequences::CreateWalkStepSequence(current_state, is_walking_forward);
+            }
+
+            if (g_active_sequence) {
+              g_active_sequence->Start(current_state);
+              return;  // Block other checks until walk animation finishes
+            }
+          }
         }
-        else if (yaw_radians > quarter_pi && yaw_radians <= three_quarters_pi)
-        {
-            return AnimationController::GazeDirection::Left;
+      } else  // Walk key is NOT down
+      {
+        g_has_taken_first_step = false;  // Reset first step flag
+      }
+
+      // If not walking, and no animation is playing, then check for other stance changes.
+      if (!g_active_sequence || !g_active_sequence->IsPlaying()) {
+        // Check for crouch
+        if (current_state.rotation.y < g_stand_ctx->settings.standing_movement.stance_control.crouch.activation_angle) {
+          g_time_in_crouch_zone += delta_time_ms;
+          g_time_in_tiptoe_zone = 0;  // Reset other timer
+          if (g_time_in_crouch_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms) {
+            g_time_in_crouch_zone = 0;
+            AnimationController::GazeDirection current_gaze_for_stance = GetGazeDirection(current_state.rotation.x);
+            g_active_sequence = AnimationSequences::CreateCrouchDownSequence(current_state, current_gaze_for_stance);
+            if (g_active_sequence) {
+              g_active_sequence->Start(current_state);
+              g_current_stance = Stance::InTransition;
+              g_transition_to_stance = Stance::Crouching;
+            }
+          }
         }
-        else if (yaw_radians < -quarter_pi && yaw_radians >= -three_quarters_pi)
-        {
-            return AnimationController::GazeDirection::Right;
+        // Check for tiptoes
+        else if (current_state.rotation.y > g_stand_ctx->settings.standing_movement.stance_control.tiptoe.activation_angle) {
+          g_time_in_tiptoe_zone += delta_time_ms;
+          g_time_in_crouch_zone = 0;  // Reset other timer
+          if (g_time_in_tiptoe_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms) {
+            g_time_in_tiptoe_zone = 0;
+            AnimationController::GazeDirection current_gaze_for_stance = GetGazeDirection(current_state.rotation.x);
+            g_active_sequence = AnimationSequences::CreateTiptoeSequence(current_state, current_gaze_for_stance);
+            if (g_active_sequence) {
+              g_active_sequence->Start(current_state);
+              g_current_stance = Stance::InTransition;
+              g_transition_to_stance = Stance::Tiptoes;
+            }
+          }
         }
-        else // yaw_radians > three_quarters_pi || yaw_radians < -three_quarters_pi
-        {
-            return AnimationController::GazeDirection::Backward;
+        // Not in any trigger zone
+        else {
+          g_time_in_crouch_zone = 0;
+          g_time_in_tiptoe_zone = 0;
         }
+      }
+      break;
+    }
+    case Stance::Crouching: {
+      g_time_in_crouch_zone = 0;  // Reset other state timers
+      g_time_in_tiptoe_zone = 0;
+
+      if (current_state.rotation.y > g_stand_ctx->settings.standing_movement.stance_control.crouch.deactivation_angle) {
+        g_time_in_standup_zone += delta_time_ms;
+        if (g_time_in_standup_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms) {
+          g_time_in_standup_zone = 0;
+          TriggerStandUp();  // Use the refactored function
+        }
+      } else {
+        g_time_in_standup_zone = 0;
+      }
+      break;
+    }
+    case Stance::Tiptoes: {
+      g_time_in_crouch_zone = 0;  // Reset other state timers
+      g_time_in_tiptoe_zone = 0;
+
+      if (current_state.rotation.y < g_stand_ctx->settings.standing_movement.stance_control.tiptoe.deactivation_angle) {
+        g_time_in_standdown_zone += delta_time_ms;
+        if (g_time_in_standdown_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms) {
+          g_time_in_standdown_zone = 0;
+          TriggerStandDown();  // Use the refactored function
+        }
+      } else {
+        g_time_in_standdown_zone = 0;
+      }
+      break;
+    }
+    case Stance::InTransition:  // Should be handled by the active_sequence check above
+      break;
+    case Stance::WalkingToFinalDestination: {
+      // Logic for automatically walking towards g_target_walk_z
+      const float z_target = g_target_walk_z;
+      const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_amount;
+
+      // Determine if we are close enough to the target Z
+      if (std::fabs(current_state.position.z - z_target) <= step_amount) {
+        // Close enough to target. Transition to sitting.
+        g_current_stance = Stance::Standing;               // Reset stance to Standing
+        AnimationController::MoveTo(g_final_destination);  // Trigger the final sit-down animation
+        return;                                            // New animation started, exit update
+      } else                                               // Still far from target, trigger another walk step
+      {
+        // Determine if we need to walk forward (-Z) or backward (+Z)
+        bool is_walking_forward = (current_state.position.z > z_target);  // If current Z is greater than target Z, walk forward (-Z)
+
+        // Trigger a walk step.
+        TriggerWalkStepTowards(current_state, is_walking_forward);
+        return;  // A new animation might have started, exit update
+      }
+    }
+    default:
+      break;
+  }
+}
+
+void OnEnterStandingState() {
+  g_current_stance = Stance::Standing;
+  g_active_sequence.reset();
+}
+
+void TriggerWalkStepTowards(const Animation::CurrentCameraState& current_state, bool is_walking_forward) {
+  // This function is called by AnimationController to make a step towards the home position.
+  // It bypasses the IsWalkKeyDown() check because the intent to walk is already established.
+
+  if (g_active_sequence && g_active_sequence->IsPlaying()) {
+    return;  // Don't trigger a new step if an animation is already playing
+  }
+
+  const float next_z_pos = current_state.position.z + (is_walking_forward ? -g_stand_ctx->settings.standing_movement.walking.step_amount : g_stand_ctx->settings.standing_movement.walking.step_amount);
+
+  if (next_z_pos >= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.min && next_z_pos <= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.max) {
+    if (!g_has_taken_first_step) {
+      // This 'first step' now implies turning to face the Z-axis of the STANDING_POSITION_TARGET.
+      // The yaw component of STANDING_POSITION_TARGET should be used for rotation.
+      // CreateDynamicFirstStepSequence might need to be adapted or a new sequence created
+      // that handles turning towards STANDING_POSITION_TARGET.rotation.x (yaw).
+      g_active_sequence = AnimationSequences::CreateDynamicFirstStepSequence(current_state, is_walking_forward);  // This sequence should eventually handle yaw correction
+      g_has_taken_first_step = true;
+    } else {
+      g_active_sequence = AnimationSequences::CreateWalkStepSequence(current_state, is_walking_forward);
     }
 
-
-    void Initialize(PluginContext* ctx)
-    {
-        g_stand_ctx = ctx;
+    if (g_active_sequence) {
+      g_active_sequence->Start(current_state);
     }
+  } else {
+    // If boundaries would be exceeded, reset first step flag as we can't walk further in this direction
+    g_has_taken_first_step = false;
+  }
+}
 
-    void Update(const Animation::CurrentCameraState& current_state)
-    {
-        if (!g_stand_ctx || !g_stand_ctx->coreAPI)
-        {
-            return;
-        }
+bool CanSitDown(AnimationController::CameraPosition target, float target_z) {
+  // Get current camera state
+  Animation::CurrentCameraState current_state;
+  g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+  // Rotation not strictly needed for this check, but good practice to get full state if available.
+  g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+  current_state.rotation.z = 0.0f;  // Roll is not retrieved
 
-        SPF_Timestamps timestamps;
-        g_stand_ctx->coreAPI->telemetry->Tel_GetTimestamps(g_stand_ctx->telemetryHandle, &timestamps, sizeof(SPF_Timestamps));
-        uint64_t delta_time_ms = timestamps.simulation - last_simulation_time;
-        last_simulation_time = timestamps.simulation;
+  const float z_current = current_state.position.z;
+  const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_amount;
 
-        // --- Handle active animation sequence ---
-        if (g_active_sequence && g_active_sequence->IsPlaying())
-        {
-            bool is_playing = g_active_sequence->Update(delta_time_ms, g_stand_ctx->cameraAPI);
+  // Check if we are close enough to the target Z
+  if (std::fabs(z_current - target_z) <= step_amount) {
+    // Close enough, can sit immediately.
+    return true;
+  } else {
+    // Too far, initiate walk
+    StartWalkingToZ(target_z, target);
+    return false;
+  }
+}
 
-            if (!is_playing)
-            {
-                // Animation finished, transition to the new stable stance
-                g_active_sequence.reset();
-                if (g_current_stance == Stance::InTransition)
-                {
-                    g_current_stance = g_transition_to_stance;
-                }
-            }
-            return; // Exit if an animation is still playing
-        }
+Stance GetCurrentStance() { return g_current_stance; }
 
-        // --- Handle stance transitions based on pitch (only if no animation is active) ---
-        switch (g_current_stance)
-        {
-            case Stance::Standing:
-            {
-                // Reset timers for other states
-                g_time_in_standup_zone = 0;
-                g_time_in_standdown_zone = 0;
+bool IsAnimating() { return g_active_sequence && g_active_sequence->IsPlaying(); }
 
-                // Continuous walking logic
-                if (SPF_CabinWalk::IsWalkKeyDown())
-                {
-                    if (!g_active_sequence || !g_active_sequence->IsPlaying()) // Ensure no other animation is playing
-                    {
-                        const bool is_walking_forward = (current_state.rotation.x >= -M_PI_2 && current_state.rotation.x <= M_PI_2);
-                        const float next_z_pos = current_state.position.z + (is_walking_forward ? -g_stand_ctx->settings.standing_movement.walking.step_amount : g_stand_ctx->settings.standing_movement.walking.step_amount);
+void TriggerStandUp() {
+  if (IsAnimating() || g_current_stance != Stance::Crouching) {
+    return;  // Don't interrupt or trigger from wrong state
+  }
 
-                        if (next_z_pos >= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.min && next_z_pos <= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.max) // Check boundaries before triggering step
-                        {
-                            if (!g_has_taken_first_step)
-                            {
-                                g_active_sequence = AnimationSequences::CreateDynamicFirstStepSequence(current_state, is_walking_forward);
-                                g_has_taken_first_step = true;
-                            }
-                            else
-                            {
-                                g_active_sequence = AnimationSequences::CreateWalkStepSequence(current_state, is_walking_forward);
-                            }
+  // Need current state to create the animation
+  Animation::CurrentCameraState current_state;
+  g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+  g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+  current_state.rotation.z = 0.0f;
 
-                            if (g_active_sequence)
-                            {
-                                g_active_sequence->Start(current_state);
-                                return; // Block other checks until walk animation finishes
-                            }
-                        }
-                    }
-                }
-                else // Walk key is NOT down
-                {
-                    g_has_taken_first_step = false; // Reset first step flag
-                }
+  AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);
+  g_active_sequence = AnimationSequences::CreateStandUpSequence(current_state, current_gaze);
+  if (g_active_sequence) {
+    g_active_sequence->Start(current_state);
+    g_current_stance = Stance::InTransition;
+    g_transition_to_stance = Stance::Standing;
+  }
+}
 
-                // If not walking, and no animation is playing, then check for other stance changes.
-                if (!g_active_sequence || !g_active_sequence->IsPlaying())
-                {
-                    // Check for crouch
-                    if (current_state.rotation.y < g_stand_ctx->settings.standing_movement.stance_control.crouch.activation_angle)
-                    {
-                        g_time_in_crouch_zone += delta_time_ms;
-                        g_time_in_tiptoe_zone = 0; // Reset other timer
-                        if (g_time_in_crouch_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
-                        {
-                            g_time_in_crouch_zone = 0;
-                            AnimationController::GazeDirection current_gaze_for_stance = GetGazeDirection(current_state.rotation.x);
-                            g_active_sequence = AnimationSequences::CreateCrouchDownSequence(current_state, current_gaze_for_stance);
-                            if (g_active_sequence)
-                            {
-                                g_active_sequence->Start(current_state);
-                                g_current_stance = Stance::InTransition;
-                                g_transition_to_stance = Stance::Crouching;
-                            }
-                        }
-                    }
-                    // Check for tiptoes
-                    else if (current_state.rotation.y > g_stand_ctx->settings.standing_movement.stance_control.tiptoe.activation_angle)
-                    {
-                        g_time_in_tiptoe_zone += delta_time_ms;
-                        g_time_in_crouch_zone = 0; // Reset other timer
-                        if (g_time_in_tiptoe_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
-                        {
-                            g_time_in_tiptoe_zone = 0;
-                            AnimationController::GazeDirection current_gaze_for_stance = GetGazeDirection(current_state.rotation.x);
-                            g_active_sequence = AnimationSequences::CreateTiptoeSequence(current_state, current_gaze_for_stance);
-                            if (g_active_sequence)
-                            {
-                                g_active_sequence->Start(current_state);
-                                g_current_stance = Stance::InTransition;
-                                g_transition_to_stance = Stance::Tiptoes;
-                            }
-                        }
-                    }
-                    // Not in any trigger zone
-                    else
-                    {
-                        g_time_in_crouch_zone = 0;
-                        g_time_in_tiptoe_zone = 0;
-                    }
-                }
-                break;
-            }
-            case Stance::Crouching:
-            {
-                g_time_in_crouch_zone = 0; // Reset other state timers
-                g_time_in_tiptoe_zone = 0;
+void TriggerStandDown() {
+  if (IsAnimating() || g_current_stance != Stance::Tiptoes) {
+    return;  // Don't interrupt or trigger from wrong state
+  }
 
-                if (current_state.rotation.y > g_stand_ctx->settings.standing_movement.stance_control.crouch.deactivation_angle)
-                {
-                    g_time_in_standup_zone += delta_time_ms;
-                    if (g_time_in_standup_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
-                    {
-                        g_time_in_standup_zone = 0;
-                        TriggerStandUp(); // Use the refactored function
-                    }
-                }
-                else
-                {
-                    g_time_in_standup_zone = 0;
-                }
-                break;
-            }
-            case Stance::Tiptoes:
-            {
-                g_time_in_crouch_zone = 0; // Reset other state timers
-                g_time_in_tiptoe_zone = 0;
+  // Need current state to create the animation
+  Animation::CurrentCameraState current_state;
+  g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
+  g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
+  current_state.rotation.z = 0.0f;
 
-                if (current_state.rotation.y < g_stand_ctx->settings.standing_movement.stance_control.tiptoe.deactivation_angle)
-                {
-                    g_time_in_standdown_zone += delta_time_ms;
-                    if (g_time_in_standdown_zone >= g_stand_ctx->settings.standing_movement.stance_control.hold_time_ms)
-                    {
-                        g_time_in_standdown_zone = 0;
-                        TriggerStandDown(); // Use the refactored function
-                    }
-                }
-                else
-                {
-                    g_time_in_standdown_zone = 0;
-                }
-                break;
-            }
-            case Stance::InTransition: // Should be handled by the active_sequence check above
-                break;
-            case Stance::WalkingToFinalDestination:
-            {
-                // Logic for automatically walking towards g_target_walk_z
-                const float z_target = g_target_walk_z;
-const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_amount;
+  AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);
+  g_active_sequence = AnimationSequences::CreateStandDownSequence(current_state, current_gaze);
+  if (g_active_sequence) {
+    g_active_sequence->Start(current_state);
+    g_current_stance = Stance::InTransition;
+    g_transition_to_stance = Stance::Standing;
+  }
+}
 
-                // Determine if we are close enough to the target Z
-                if (std::fabs(current_state.position.z - z_target) <= step_amount)
-                {
-                    // Close enough to target. Transition to sitting.
-                    g_current_stance = Stance::Standing; // Reset stance to Standing
-                    AnimationController::MoveTo(g_final_destination); // Trigger the final sit-down animation
-                    return; // New animation started, exit update
-                }
-                else // Still far from target, trigger another walk step
-                {
-                    // Determine if we need to walk forward (-Z) or backward (+Z)
-                    bool is_walking_forward = (current_state.position.z > z_target); // If current Z is greater than target Z, walk forward (-Z)
+void StartWalkingToZ(float target_z, AnimationController::CameraPosition final_destination) {
+  if (IsAnimating() || g_current_stance != Stance::Standing) {
+    return;  // Only start walking if currently in Standing stance and not animating
+  }
 
-                    // Trigger a walk step.
-                    TriggerWalkStepTowards(current_state, is_walking_forward);
-                    return; // A new animation might have started, exit update
-                }
-            }
-            default:
-                break;
-        }
-    }
-
-    void OnEnterStandingState()
-    {
-        g_current_stance = Stance::Standing;
-        g_active_sequence.reset();
-    }
-
-    void TriggerWalkStepTowards(const Animation::CurrentCameraState& current_state, bool is_walking_forward)
-    {
-        // This function is called by AnimationController to make a step towards the home position.
-        // It bypasses the IsWalkKeyDown() check because the intent to walk is already established.
-
-        if (g_active_sequence && g_active_sequence->IsPlaying())
-        {
-            return; // Don't trigger a new step if an animation is already playing
-        }
-
-        const float next_z_pos = current_state.position.z + (is_walking_forward ? -g_stand_ctx->settings.standing_movement.walking.step_amount : g_stand_ctx->settings.standing_movement.walking.step_amount);
-
-        if (next_z_pos >= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.min && next_z_pos <= g_stand_ctx->settings.standing_movement.walking.walk_zone_z.max)
-        {
-            if (!g_has_taken_first_step)
-            {
-                // This 'first step' now implies turning to face the Z-axis of the STANDING_POSITION_TARGET.
-                // The yaw component of STANDING_POSITION_TARGET should be used for rotation.
-                // CreateDynamicFirstStepSequence might need to be adapted or a new sequence created
-                // that handles turning towards STANDING_POSITION_TARGET.rotation.x (yaw).
-                g_active_sequence = AnimationSequences::CreateDynamicFirstStepSequence(current_state, is_walking_forward); // This sequence should eventually handle yaw correction
-                g_has_taken_first_step = true;
-            }
-            else
-            {
-                g_active_sequence = AnimationSequences::CreateWalkStepSequence(current_state, is_walking_forward);
-            }
-
-            if (g_active_sequence)
-            {
-                g_active_sequence->Start(current_state);
-            }
-        }
-        else
-        {
-            // If boundaries would be exceeded, reset first step flag as we can't walk further in this direction
-            g_has_taken_first_step = false;
-        }
-    }
-
-        bool CanSitDown(AnimationController::CameraPosition target, float target_z)
-        {
-            // Get current camera state
-            Animation::CurrentCameraState current_state;
-            g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
-            // Rotation not strictly needed for this check, but good practice to get full state if available.
-            g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
-            current_state.rotation.z = 0.0f; // Roll is not retrieved
-    
-            const float z_current = current_state.position.z;
-            const float step_amount = g_stand_ctx->settings.standing_movement.walking.step_amount;
-    
-            // Check if we are close enough to the target Z
-            if (std::fabs(z_current - target_z) <= step_amount)
-            {
-                // Close enough, can sit immediately.
-                return true;
-            }
-            else
-            {
-                // Too far, initiate walk
-                StartWalkingToZ(target_z, target);
-                return false;
-            }
-        }
-            
-                Stance GetCurrentStance()
-                {
-                    return g_current_stance;
-                }
-            
-                bool IsAnimating()
-                {
-                    return g_active_sequence && g_active_sequence->IsPlaying();
-                }
-            
-                void TriggerStandUp()
-                {
-                    if (IsAnimating() || g_current_stance != Stance::Crouching)
-                    {
-                        return; // Don't interrupt or trigger from wrong state
-                    }
-            
-                    // Need current state to create the animation
-                    Animation::CurrentCameraState current_state;
-                    g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
-                    g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
-                    current_state.rotation.z = 0.0f;
-            
-                    AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);
-                    g_active_sequence = AnimationSequences::CreateStandUpSequence(current_state, current_gaze);
-                    if (g_active_sequence)
-                    {
-                        g_active_sequence->Start(current_state);
-                        g_current_stance = Stance::InTransition;
-                        g_transition_to_stance = Stance::Standing;
-                    }
-                }
-            
-                    void TriggerStandDown()
-                    {
-                        if (IsAnimating() || g_current_stance != Stance::Tiptoes)
-                        {
-                            return; // Don't interrupt or trigger from wrong state
-                        }
-                
-                        // Need current state to create the animation
-                        Animation::CurrentCameraState current_state;
-                        g_stand_ctx->cameraAPI->Cam_GetInteriorSeatPos(&current_state.position.x, &current_state.position.y, &current_state.position.z);
-                        g_stand_ctx->cameraAPI->Cam_GetInteriorHeadRot(&current_state.rotation.x, &current_state.rotation.y);
-                        current_state.rotation.z = 0.0f;
-                
-                        AnimationController::GazeDirection current_gaze = GetGazeDirection(current_state.rotation.x);
-                        g_active_sequence = AnimationSequences::CreateStandDownSequence(current_state, current_gaze);
-                        if (g_active_sequence)
-                        {
-                            g_active_sequence->Start(current_state);
-                            g_current_stance = Stance::InTransition;
-                            g_transition_to_stance = Stance::Standing;
-                        }
-                    }
-                
-                    void StartWalkingToZ(float target_z, AnimationController::CameraPosition final_destination)
-                    {
-                        if (IsAnimating() || g_current_stance != Stance::Standing)
-                        {
-                            return; // Only start walking if currently in Standing stance and not animating
-                        }
-                
-                        g_target_walk_z = target_z;
-                        g_final_destination = final_destination;
-                        g_current_stance = Stance::WalkingToFinalDestination;
-                    }            }
+  g_target_walk_z = target_z;
+  g_final_destination = final_destination;
+  g_current_stance = Stance::WalkingToFinalDestination;
+}
+}  // namespace SPF_CabinWalk::StandingAnimController
