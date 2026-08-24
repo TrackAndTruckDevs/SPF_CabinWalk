@@ -27,7 +27,7 @@ bool Find(const SPF_Hooks_API* hooks_api) {
     return false;
   }
 
-  uintptr_t pattern_addr = hooks_api->Hook_FindPatternFrom(G_CAMERA_PIVOT_SIGNATURE, interior_cam_fn_address, 1024);
+  uintptr_t pattern_addr = hooks_api->Hook_FindPatternFrom(G_CAMERA_PIVOT_SIGNATURE, interior_cam_fn_address, 256);
   if (!pattern_addr) {
     if (g_ctx.loggerHandle) {
       g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_ERROR, "[Offsets] Could not find G_CAMERA_PIVOT_SIGNATURE.");

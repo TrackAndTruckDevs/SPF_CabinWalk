@@ -42,6 +42,14 @@ static long long g_last_camera_object = 0;
 // Forward Declarations
 // =================================================================================================
 
+struct CameraPivot {
+  float x, y, z;
+};
+
+static CameraPivot* GetPivot(long long camera_object) {
+  return reinterpret_cast<CameraPivot*>(reinterpret_cast<char*>(camera_object) + Offsets::g_offsets.camera_pivot_offset);
+}
+
 static void Detour_UpdateCameraFromInput(long long camera_object, float delta_time);
 static void BackupAndModifyAzimuths(long long camera_object);
 static void RestoreAzimuths(long long camera_object);
@@ -153,13 +161,10 @@ static void BackupAndModifyAzimuths(long long camera_object) {
     return;
   }
 
-  float* p_camera_pivot_x = (float*)((char*)camera_object + Offsets::g_offsets.camera_pivot_offset);
-  float* p_camera_pivot_y = (float*)((char*)camera_object + Offsets::g_offsets.camera_pivot_offset + 4);
-  float* p_camera_pivot_z = (float*)((char*)camera_object + Offsets::g_offsets.camera_pivot_offset + 8);
-
-  *p_camera_pivot_x = g_ctx.settings.positions.passenger_seat.position.x;
-  *p_camera_pivot_y = g_ctx.settings.positions.passenger_seat.position.y;
-  *p_camera_pivot_z = g_ctx.settings.positions.passenger_seat.position.z;
+  CameraPivot* pivot = GetPivot(camera_object);
+  pivot->x = g_ctx.settings.positions.passenger_seat.position.x;
+  pivot->y = g_ctx.settings.positions.passenger_seat.position.y;
+  pivot->z = g_ctx.settings.positions.passenger_seat.position.z;
 
   if (g_ctx.cameraAPI->Cam_GetInteriorRotationLimits(&g_original_mouse_left_limit, &g_original_mouse_right_limit, &g_original_mouse_up_limit, &g_original_mouse_down_limit)) {
     float new_left_limit = g_original_mouse_right_limit * -1.0f;
@@ -218,20 +223,18 @@ static void RestoreAzimuths(long long camera_object) {
     return;
   }
 
-  float* p_camera_pivot_x = (float*)((char*)camera_object + Offsets::g_offsets.camera_pivot_offset);
-  float* p_camera_pivot_y = (float*)((char*)camera_object + Offsets::g_offsets.camera_pivot_offset + 4);
-  float* p_camera_pivot_z = (float*)((char*)camera_object + Offsets::g_offsets.camera_pivot_offset + 8);
+  CameraPivot* pivot = GetPivot(camera_object);
 
   if (g_ctx.loadAPI && g_ctx.loggerHandle && g_ctx.formattingAPI) {
     char buf[256];
     g_ctx.formattingAPI->Fmt_Format(
-      buf, sizeof(buf), "[RestoreAzimuths] before: pivot=(%.2f,%.2f,%.2f) -> driver=(%.2f,%.2f,%.2f)", *p_camera_pivot_x, *p_camera_pivot_y, *p_camera_pivot_z, g_driver_seat_pivot.x, g_driver_seat_pivot.y, g_driver_seat_pivot.z);
+      buf, sizeof(buf), "[RestoreAzimuths] before: pivot=(%.2f,%.2f,%.2f) -> driver=(%.2f,%.2f,%.2f)", pivot->x, pivot->y, pivot->z, g_driver_seat_pivot.x, g_driver_seat_pivot.y, g_driver_seat_pivot.z);
     g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_INFO, buf);
   }
 
-  *p_camera_pivot_x = g_driver_seat_pivot.x;
-  *p_camera_pivot_y = g_driver_seat_pivot.y;
-  *p_camera_pivot_z = g_driver_seat_pivot.z;
+  pivot->x = g_driver_seat_pivot.x;
+  pivot->y = g_driver_seat_pivot.y;
+  pivot->z = g_driver_seat_pivot.z;
 
   g_ctx.cameraAPI->Cam_SetInteriorRotationLimits(g_original_mouse_left_limit, g_original_mouse_right_limit, g_original_mouse_up_limit, g_original_mouse_down_limit);
 

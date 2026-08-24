@@ -19,8 +19,11 @@
 !SPF_CabinWalk.hpp
 !.clang-format
 !.clangd
+!.gitignore
 !CMakeLists.txt
 !CMakePresets.json
 !CMakeUserPresets.json.example
 !LICENSE
-!.gitignore
+!README.md
+!version.rc.in
+

@@ -1,0 +1,35 @@
+#include <winres.h>
+
+// Version info for SPF_CabinWalk.dll
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,@PROJECT_VERSION_TWEAK@
+ PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,@PROJECT_VERSION_TWEAK@
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0" // Language: English (US), Encoding: Unicode
+        BEGIN
+            VALUE "CompanyName",      "Track'n'Truck Devs"
+            VALUE "FileDescription",  "SPF Framework - Core Library"
+            VALUE "FileVersion",      "@PROJECT_VERSION@"
+            VALUE "InternalName",     "SPF_CabinWalk.dll"
+            VALUE "LegalCopyright",   "Copyright (C) 2026 Track'n'Truck Devs"
+            VALUE "OriginalFilename", "SPF_CabinWalk.dll"
+            VALUE "ProductName",      "SPF CabinWalk"
+            VALUE "ProductVersion",   "@PROJECT_VERSION@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

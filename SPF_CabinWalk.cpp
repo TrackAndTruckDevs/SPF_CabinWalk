@@ -29,46 +29,13 @@
 #include <minwindef.h>
 #include <string>  // For std::string and std::to_string
 #include <sysinfoapi.h>
-#include <windows.h>  // Added for system API calls to reduce false positives
+#include <windows.h>
 
-#if defined(_MSC_VER)
-#pragma optimize("", off)
-#endif
+// #if defined(_MSC_VER)
+// #pragma optimize("", off)
+// #endif
 
 namespace SPF_CabinWalk {
-// =================================================================================================
-// Anti-Virus False Positive Mitigation (Junk Data & System Calls)
-// =================================================================================================
-
-// Adding a large block of legitimate text to change file entropy and increase size.
-const char* MIT_LICENSE_BLOAT =
-  "Copyright (c) 2026 Track'n'Truck Devs\n\n"
-  "Permission is hereby granted, free of charge, to any person obtaining a copy "
-  "of this software and associated documentation files (the \"Software\"), to deal "
-  "in the Software without restriction, including without limitation the rights "
-  "to use, copy, modify, merge, publish, distribute, sublicense, and/or sell "
-  "copies of the Software, and to permit persons to whom the Software is "
-  "furnished to do so, subject to the following conditions:\n\n"
-  "The above copyright notice and this permission notice shall be included in all "
-  "copies or substantial portions of the Software.\n\n"
-  "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR "
-  "IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, "
-  "FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE "
-  "AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER "
-  "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, "
-  "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE "
-  "SOFTWARE.\n\n"
-  "This metadata is intentionally included to increase file size and dilute "
-  "mathematical patterns that sometimes trigger heuristic anti-virus detections.";
-
-void AV_Mitigation_Dummy() {
-  SYSTEMTIME st;
-  GetSystemTime(&st);
-  DWORD tick = GetTickCount();
-  if (tick == 0xDEADBEEF) {
-    OutputDebugStringA(MIT_LICENSE_BLOAT);
-  }
-}
 
 // Forward Declarations
 bool IsSafeToLeaveDriverSeat();
@@ -491,9 +458,6 @@ void OnLanguageChanged(const char* langCode) {
 }
 
 void OnLoad(const SPF_Load_API* load_api) {
-  // Anti-virus false positive mitigation: call dummy functions to make the DLL look more "natural"
-  AV_Mitigation_Dummy();
-
   // Cache the provided API pointers in our global context.
   g_ctx.loadAPI = load_api;
 
@@ -760,7 +724,7 @@ void OnMoveToPassengerSeat() {
     return;
   }
   if (!IsSafeToLeaveDriverSeat()) {
-    if (g_ctx.loggerHandle) g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_WARN, "[Keybind] OnMoveToPassengerSeat aborted: not safe to leave driver seat.");
+    if (g_ctx.loggerHandle) g_ctx.loadAPI->logger->Log(g_ctx.loggerHandle, SPF_LOG_TRACE, "[Keybind] OnMoveToPassengerSeat aborted: not safe to leave driver seat.");
     return;
   }
 

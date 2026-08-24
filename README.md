@@ -24,8 +24,61 @@ A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you
 
 [Watch a demonstration of the plugin on YouTube](https://youtu.be/668ubdWqsVw)
 
-## Features
+## ⚠️ Known Issues
 
+**Windows SmartScreen / Smart App Control may block this plugin.**
+
+When enabling the plugin in the SPF Framework, you may see the following error in the game log:
+
+```
+[PluginManager] -> Failed to temporarily load library for manifest extraction. Win32 Error: 126
+[PluginManager] -> Failed to load library. Win32 Error: 126
+```
+
+As a result, the plugin **cannot be activated** in the SPF Framework — the toggle remains permanently off and the plugin simply does not load.
+
+This is **not a bug in the plugin**. Windows Smart App Control (SAC) or Windows Defender SmartScreen incorrectly flags the DLL as untrusted and blocks it from loading.
+
+> [!NOTE]
+> The blocking behavior is unpredictable — on the same computer, the plugin may work in American Truck Simulator but be blocked in Euro Truck Simulator 2. How Windows determines which DLLs to trust is known only to Microsoft.
+
+> [!TIP]
+> The plugin contains no malicious code — the [VirusTotal scan](https://www.virustotal.com/gui/file/345d533d1652d4d900a90042a30f8eaaca0b956e9e89e3d6002784c7e68bd0a7/detection) is clean (0 detections). The AI-based protection system produces false positives.
+
+For more details, see: [Smart App Control — Microsoft Support](https://support.microsoft.com/windows/security/threat-malware-protection/smart-app-control-has-blocked-part-of-this-app)
+
+### How to Fix
+
+**Option 1 — Build from source**
+
+Compile the plugin yourself using your own toolchain. Your compiler may produce a DLL that Smart App Control does not block. See the [How to Build](#how-to-build-) section below.
+
+**Option 2 — Trust the certificate (Recommended)**
+
+The plugin DLL is signed with a self-signed certificate. You can add it to Windows' trusted certificates:
+
+1. Right-click `SPF_CabinWalk.dll` → **Properties** (or press `Alt + Enter`).
+2. Go to the **Digital Signatures** tab.
+3. Select the `Track'n'Truck Devs` signature → click **Details**.
+4. Click **View Certificate** → **Install Certificate**.
+5. Choose **Local Machine** (requires admin) or **Current User** → click **Next**.
+6. Select **Place all certificates in the following store** → click **Browse** → choose **Trusted Root Certification Authorities** → click **OK**.
+7. Click **Next** → **Finish**.
+
+**Option 3 — Disable Smart App Control**
+
+> [!WARNING]
+> This reduces your system's security. Only do this if you understand the risks.
+
+1. Open **Windows Security** → **App & browser control**.
+2. Click on **Smart App Control settings** (or **Reputation-based protection settings**).
+3. Toggle Smart App Control to **Off**.
+
+If you cannot find the setting, you can also disable it via Group Policy or registry — search for "disable Smart App Control" for your Windows version.
+
+---
+
+## Features
 *   **Free Camera Movement**: Move the camera between the driver's seat, passenger seat, a standing position, and multiple spots on the sleeper sofa.
 *   **Smooth Animations**: Enjoy configurable, fluid transitions between all camera positions.
 *   **Interactive Walking Mode**: When in the standing position, you can:
@@ -45,13 +98,52 @@ If you enjoy this plugin and want to support the development of future projects,
 
 ## How to Build 🛠️
 
-This is a standard CMake project. To build it from source:
+This project uses **CMake presets** for configuration and building.
+
+### Prerequisites
+
+- **CMake** 3.21 or newer
+- A compatible C++20 compiler:
+  - **Windows**: MSVC (Visual Studio 2022) or MinGW-w64
+  - **Linux**: MinGW-w64 (cross-compile)
+
+### Steps
 
 1.  Clone this repository.
-2.  Ensure you have **CMake** and a compatible C++ compiler with the **MSVC toolchain** (e.g., Visual Studio) installed.
-3.  Create a `build` directory inside the project folder.
-4.  Run CMake from the `build` directory to generate project files (e.g., `cmake ..`).
-5.  Build the project using your chosen build tool (e.g., run `cmake --build .` or open the generated `.sln` file in Visual Studio and build from there).
+2.  Copy the user presets template:
+
+    ```bash
+    cp CMakeUserPresets.json.example CMakeUserPresets.json
+    ```
+
+3.  Edit `CMakeUserPresets.json` and set your game install paths:
+
+    ```json
+    {
+      "environment": {
+        "ATS_PLUGINS_DIR": "F:/SteamLibrary/steamapps/common/American Truck Simulator/bin/win_x64/plugins",
+        "ETS2_PLUGINS_DIR": "F:/SteamLibrary/steamapps/common/Euro Truck Simulator 2/bin/win_x64/plugins"
+      }
+    }
+    ```
+
+4.  Configure and build using a preset that matches your toolchain:
+
+    ```bash
+    # Windows — Visual Studio 2022
+    cmake --preset user-win-release
+    cmake --build --preset user-win-release
+
+    # Windows — Ninja (MSVC)
+    cmake --preset user-ninja-release
+    cmake --build --preset user-ninja-release
+
+    # Linux — MinGW cross-compile (Ninja)
+    cmake --preset user-mingw-release
+    cmake --build --preset user-mingw-release
+    ```
+
+    Run `cmake --list-presets` to see all available presets (Debug, RelWithDebInfo, MinSizeRel, etc.).
 
 ## Installation
 
