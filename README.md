@@ -24,58 +24,6 @@ A plugin for American Truck Simulator and Euro Truck Simulator 2 that allows you
 
 [Watch a demonstration of the plugin on YouTube](https://youtu.be/668ubdWqsVw)
 
-## ⚠️ Known Issues
-
-**Windows SmartScreen / Smart App Control may block this plugin.**
-
-When enabling the plugin in the SPF Framework, you may see the following error in the game log:
-
-```
-[PluginManager] -> Failed to temporarily load library for manifest extraction. Win32 Error: 126
-[PluginManager] -> Failed to load library. Win32 Error: 126
-```
-
-As a result, the plugin **cannot be activated** in the SPF Framework — the toggle remains permanently off and the plugin simply does not load.
-
-This is **not a bug in the plugin**. Windows Smart App Control (SAC) or Windows Defender SmartScreen incorrectly flags the DLL as untrusted and blocks it from loading.
-
-> [!NOTE]
-> The blocking behavior is unpredictable — on the same computer, the plugin may work in American Truck Simulator but be blocked in Euro Truck Simulator 2. How Windows determines which DLLs to trust is known only to Microsoft.
-
-> [!TIP]
-> The plugin contains no malicious code — the [VirusTotal scan](https://www.virustotal.com/gui/file/94c3f02f782152db120a07e3c868ee92bcb4679f7152105613043114bc2eb871) is clean (0 detections). The AI-based protection system produces false positives.
-
-For more details, see: [Smart App Control — Microsoft Support](https://support.microsoft.com/windows/security/threat-malware-protection/smart-app-control-has-blocked-part-of-this-app)
-
-### How to Fix
-
-**Option 1 — Build from source**
-
-Compile the plugin yourself using your own toolchain. Your compiler may produce a DLL that Smart App Control does not block. See the [How to Build](#how-to-build-) section below.
-
-**Option 2 — Trust the certificate (Recommended)**
-
-The plugin DLL is signed with a self-signed certificate. You can add it to Windows' trusted certificates:
-
-1. Right-click `SPF_CabinWalk.dll` → **Properties** (or press `Alt + Enter`).
-2. Go to the **Digital Signatures** tab.
-3. Select the `Track'n'Truck Devs` signature → click **Details**.
-4. Click **View Certificate** → **Install Certificate**.
-5. Choose **Local Machine** (requires admin) or **Current User** → click **Next**.
-6. Select **Place all certificates in the following store** → click **Browse** → choose **Trusted Root Certification Authorities** → click **OK**.
-7. Click **Next** → **Finish**.
-
-**Option 3 — Disable Smart App Control**
-
-> [!WARNING]
-> This reduces your system's security. Only do this if you understand the risks.
-
-1. Open **Windows Security** → **App & browser control**.
-2. Click on **Smart App Control settings** (or **Reputation-based protection settings**).
-3. Toggle Smart App Control to **Off**.
-
-If you cannot find the setting, you can also disable it via Group Policy or registry — search for "disable Smart App Control" for your Windows version.
-
 ---
 
 ## Features
@@ -89,6 +37,10 @@ If you cannot find the setting, you can also disable it via Group Policy or regi
 *   **Live Configuration**: Interactively adjust camera positions, animation speeds, walking parameters, and more in real-time to perfectly suit any truck.
 *   **Customizable Keybinds**: Configure all actions through the SPF Framework menu, with support for "Toggle" and "Hold" behaviors.
 *   **Full Localization**: All text is translatable, with support for multiple languages.
+
+<p align="center">
+  <img src="resource/gameplay.gif" alt="Gameplay">
+</p>
 
 ## Support the Project
 
@@ -192,3 +144,66 @@ To adjust the plugin's behavior, go to the "Plugin Settings" tab, select **SPF_C
 *   **Animation Durations**: Adjust the speed of every transition animation.
 *   **Standing Movement**: Modify walking speed, camera bob amount, crouch depth, tiptoe height, and the angles required to trigger them.
 All changes are applied instantly for a live preview.
+
+---
+
+## ⚠️ Known Issues
+
+**Windows SmartScreen / Smart App Control may block this plugin.**
+
+<p align="center">
+<img width="328" height="175" alt="smart app block" src="https://github.com/user-attachments/assets/4ef61d34-754d-4fa0-a50a-465572e6390e" />
+</p>
+
+
+When enabling the plugin in the SPF Framework, you may see the following error in the framework log:
+
+```
+[PluginManager] -> Failed to temporarily load library for manifest extraction. Win32 Error: 126
+[PluginManager] -> Failed to load library. Win32 Error: 126
+```
+
+As a result, the plugin **cannot be activated** in the SPF Framework — the toggle remains permanently off and the plugin simply does not load.
+
+This is **not a bug in the plugin**. Windows Smart App Control (SAC) or Windows Defender SmartScreen incorrectly flags the DLL as untrusted and blocks it from loading.
+
+> [!NOTE]
+> The blocking behavior is unpredictable — on the same computer, the plugin may work in American Truck Simulator but be blocked in Euro Truck Simulator 2. How Windows determines which DLLs to trust is known only to Microsoft.
+
+> [!TIP]
+> The plugin contains no malicious code — the [VirusTotal scan](https://www.virustotal.com/gui/file/94c3f02f782152db120a07e3c868ee92bcb4679f7152105613043114bc2eb871) is clean (0 detections). The AI-based protection system produces false positives.
+
+For more details, see: [Smart App Control — Microsoft Support](https://support.microsoft.com/windows/security/threat-malware-protection/smart-app-control-has-blocked-part-of-this-app)
+
+### How to Fix
+
+**Option 1 — Build from source**
+
+Compile the plugin yourself using your own toolchain. Your compiler may produce a DLL that Smart App Control does not block. See the [How to Build](#how-to-build-) section below.
+
+**Option 2 — Trust the certificate (Recommended)**
+
+The plugin DLL is signed with a self-signed certificate. You can add it to Windows' trusted certificates:
+
+1. Right-click `SPF_CabinWalk.dll` → **Properties** (or press `Alt + Enter`).
+2. Go to the **Digital Signatures** tab.
+3. Select the `Track'n'Truck Devs` signature → click **Details**.
+4. Click **View Certificate** → **Install Certificate**.
+5. Choose **Local Machine** (requires admin) or **Current User** → click **Next**.
+6. Select **Place all certificates in the following store** → click **Browse** → choose **Trusted Root Certification Authorities** → click **OK**.
+7. Click **Next** → **Finish**.
+
+<p align="center">
+<img width="1050" height="800" alt="3" src="https://github.com/user-attachments/assets/e88f3622-afb4-42bc-bf16-e0ff29fb1c1d" />
+</p>
+
+**Option 3 — Disable Smart App Control**
+
+> [!WARNING]
+> This reduces your system's security. Only do this if you understand the risks.
+
+1. Open **Windows Security** → **App & browser control**.
+2. Click on **Smart App Control settings** (or **Reputation-based protection settings**).
+3. Toggle Smart App Control to **Off**.
+
+If you cannot find the setting, you can also disable it via Group Policy or registry — search for "disable Smart App Control" for your Windows version.

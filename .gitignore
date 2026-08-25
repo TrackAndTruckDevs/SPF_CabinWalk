@@ -14,6 +14,12 @@
 !SPF_API/
 !SPF_API/**
 
+!resource/
+!resource/**
+
+!localization/
+!localization/**
+
 # Allow root source files
 !SPF_CabinWalk.cpp
 !SPF_CabinWalk.hpp
